@@ -1,0 +1,2451 @@
+{
+ "app_id": "SIGECOM · Distribuidora Andina",
+ "version": "v3.9",
+ "titles": [
+  "SIGECOM · Distribuidora Andina v3.9"
+ ],
+ "root": "inicio",
+ "nodes": {
+  "inicio": {
+   "id": "inicio",
+   "title": "Inicio",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Inicio"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "1,0|Inicio",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Inicio",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Bienvenido a SIGECOM",
+       "bbox": [
+        400,
+        200,
+        860,
+        230
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 9,
+       "text": "Sistema de gestión comercial: use el menú superior para acceder a los módulos",
+       "bbox": [
+        250,
+        240,
+        1010,
+        265
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Soporte: extensión 214 (fuera de servicio).",
+       "bbox": [
+        400,
+        280,
+        860,
+        300
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  },
+  "clientes": {
+   "id": "clientes",
+   "title": "Clientes",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Clientes"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,1|NIT",
+      "0,1|Nombre",
+      "1,0|Clientes",
+      "1,0|Comercial",
+      "11,1|Nuevo",
+      "2,0|Cartera",
+      "2,1|Nombre",
+      "3,0|Ayuda",
+      "3,0|Herramientas",
+      "3,1|Ciudad",
+      "4,1|Buscar",
+      "5,1|Teléfono"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Clientes",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Nombre",
+       "bbox": [
+        8,
+        90,
+        88,
+        108
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 9
+      },
+      {
+       "id": 9,
+       "text": "",
+       "bbox": [
+        98,
+        90,
+        288,
+        108
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Buscar",
+       "bbox": [
+        400,
+        88,
+        480,
+        110
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 11,
+       "text": "Nuevo",
+       "bbox": [
+        1150,
+        88,
+        1245,
+        110
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "NIT",
+       "bbox": [
+        8,
+        130,
+        158,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 13,
+       "text": "Nombre",
+       "bbox": [
+        168,
+        130,
+        318,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "Ciudad",
+       "bbox": [
+        328,
+        130,
+        478,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 15,
+       "text": "Teléfono",
+       "bbox": [
+        488,
+        130,
+        638,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 16,
+       "text": "900123456-7",
+       "bbox": [
+        8,
+        160,
+        158,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 17,
+       "text": "Comercial Ruiz",
+       "bbox": [
+        168,
+        160,
+        318,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  },
+  "pedidos": {
+   "id": "pedidos",
+   "title": "Pedidos",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Pedidos"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,1|Cliente",
+      "0,1|Número",
+      "1,0|Comercial",
+      "1,0|Pedidos",
+      "2,0|Cartera",
+      "2,1|Cliente",
+      "3,0|Ayuda",
+      "3,0|Herramientas",
+      "3,1|Fecha",
+      "4,1|Desde",
+      "5,1|Total",
+      "6,1|Estado",
+      "8,1|Buscar"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Pedidos",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Cliente",
+       "bbox": [
+        8,
+        90,
+        88,
+        108
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 9
+      },
+      {
+       "id": 9,
+       "text": "",
+       "bbox": [
+        98,
+        90,
+        288,
+        108
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Desde",
+       "bbox": [
+        400,
+        90,
+        480,
+        108
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 11
+      },
+      {
+       "id": 11,
+       "text": "",
+       "bbox": [
+        490,
+        90,
+        680,
+        108
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "Buscar",
+       "bbox": [
+        800,
+        88,
+        880,
+        110
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 13,
+       "text": "Número",
+       "bbox": [
+        8,
+        130,
+        158,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "Cliente",
+       "bbox": [
+        168,
+        130,
+        318,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 15,
+       "text": "Fecha",
+       "bbox": [
+        328,
+        130,
+        478,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 16,
+       "text": "Total",
+       "bbox": [
+        488,
+        130,
+        638,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 17,
+       "text": "Estado",
+       "bbox": [
+        648,
+        130,
+        798,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 18,
+       "text": "PD-2041",
+       "bbox": [
+        8,
+        160,
+        158,
+        178
+       ],
+       "kind": "link",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 19,
+       "text": "Abierto",
+       "bbox": [
+        648,
+        160,
+        798,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  },
+  "facturas": {
+   "id": "facturas",
+   "title": "Facturas",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Facturas"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,1|Cliente",
+      "0,1|Código",
+      "1,0|Comercial",
+      "1,0|Facturas",
+      "10,7|Siguiente",
+      "11,1|Exportar",
+      "2,0|Cartera",
+      "2,1|Cliente",
+      "3,0|Ayuda",
+      "3,0|Herramientas",
+      "3,1|Fecha",
+      "4,1|Estado",
+      "5,1|Vence",
+      "6,1|Valor",
+      "8,1|Buscar",
+      "8,1|Estado",
+      "8,1|Limpiar",
+      "8,7|Anterior"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Facturas",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Cliente",
+       "bbox": [
+        8,
+        90,
+        88,
+        108
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 9
+      },
+      {
+       "id": 9,
+       "text": "",
+       "bbox": [
+        98,
+        90,
+        288,
+        108
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Estado",
+       "bbox": [
+        400,
+        90,
+        480,
+        108
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 11
+      },
+      {
+       "id": 11,
+       "text": "Todos",
+       "bbox": [
+        490,
+        90,
+        680,
+        108
+       ],
+       "kind": "select",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "Buscar",
+       "bbox": [
+        800,
+        88,
+        880,
+        110
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 13,
+       "text": "Limpiar",
+       "bbox": [
+        890,
+        88,
+        970,
+        110
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "Exportar",
+       "bbox": [
+        1150,
+        88,
+        1245,
+        110
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 15,
+       "text": "Código",
+       "bbox": [
+        8,
+        130,
+        158,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 16,
+       "text": "Cliente",
+       "bbox": [
+        168,
+        130,
+        318,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 17,
+       "text": "Fecha",
+       "bbox": [
+        328,
+        130,
+        478,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 18,
+       "text": "Vence",
+       "bbox": [
+        488,
+        130,
+        638,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 19,
+       "text": "Valor",
+       "bbox": [
+        648,
+        130,
+        798,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 20,
+       "text": "Estado",
+       "bbox": [
+        808,
+        130,
+        958,
+        150
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 21,
+       "text": "FV-10159",
+       "bbox": [
+        8,
+        160,
+        158,
+        178
+       ],
+       "kind": "link",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 22,
+       "text": "Comercial Ruiz",
+       "bbox": [
+        168,
+        160,
+        318,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 23,
+       "text": "14/10/2026",
+       "bbox": [
+        328,
+        160,
+        478,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 24,
+       "text": "$ 1.250.000",
+       "bbox": [
+        648,
+        160,
+        798,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 25,
+       "text": "Vencida",
+       "bbox": [
+        808,
+        160,
+        958,
+        178
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 26,
+       "text": "Anterior",
+       "bbox": [
+        900,
+        535,
+        980,
+        555
+       ],
+       "kind": "link",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 27,
+       "text": "Página 1",
+       "bbox": [
+        990,
+        535,
+        1070,
+        555
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 28,
+       "text": "Siguiente",
+       "bbox": [
+        1080,
+        535,
+        1170,
+        555
+       ],
+       "kind": "link",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  },
+  "bitacora-de-cambios": {
+   "id": "bitacora-de-cambios",
+   "title": "Bitácora de cambios",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Bitácora de cambios"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,1|Fecha",
+      "1,0|Bitácora de cambios",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "2,1|Usuario",
+      "3,0|Ayuda",
+      "3,0|Herramientas",
+      "3,1|Acción",
+      "5,1|Detalle"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Bitácora de cambios",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Fecha",
+       "bbox": [
+        8,
+        100,
+        158,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 9,
+       "text": "Usuario",
+       "bbox": [
+        168,
+        100,
+        318,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Acción",
+       "bbox": [
+        328,
+        100,
+        478,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 11,
+       "text": "Detalle",
+       "bbox": [
+        488,
+        100,
+        638,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "13/10/2026",
+       "bbox": [
+        8,
+        130,
+        158,
+        148
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 13,
+       "text": "operador2",
+       "bbox": [
+        168,
+        130,
+        318,
+        148
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "Actualizó factura",
+       "bbox": [
+        328,
+        130,
+        478,
+        148
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  },
+  "reportes-generados": {
+   "id": "reportes-generados",
+   "title": "Reportes generados",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Reportes generados"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,1|Reporte",
+      "1,0|Comercial",
+      "1,0|Reportes generados",
+      "2,0|Cartera",
+      "2,1|Generado",
+      "3,0|Ayuda",
+      "3,0|Herramientas",
+      "3,1|Descargar",
+      "3,1|Formato"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Reportes generados",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Reporte",
+       "bbox": [
+        8,
+        100,
+        158,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 9,
+       "text": "Generado",
+       "bbox": [
+        168,
+        100,
+        318,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Formato",
+       "bbox": [
+        328,
+        100,
+        478,
+        120
+       ],
+       "kind": "header",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 11,
+       "text": "Cartera vencida",
+       "bbox": [
+        8,
+        130,
+        158,
+        148
+       ],
+       "kind": "cell",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "Descargar",
+       "bbox": [
+        328,
+        130,
+        478,
+        148
+       ],
+       "kind": "link",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  },
+  "detalle-de-factura": {
+   "id": "detalle-de-factura",
+   "title": "Detalle de factura",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1.0,
+   "appearances": [
+    {
+     "version": "v3.9",
+     "band": [
+      "Detalle de factura"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,1|Cliente",
+      "0,1|Fecha",
+      "0,2|Estado",
+      "0,2|Valor",
+      "0,6|Volver",
+      "1,0|Comercial",
+      "1,0|Detalle de factura",
+      "1,6|Imprimir",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial",
+      "2,0|Cartera",
+      "3,0|Ayuda",
+      "3,0|Herramientas"
+     ],
+     "ref_png": null,
+     "crops": [],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGECOM · Distribuidora Andina   v3.9",
+       "bbox": [
+        0,
+        0,
+        500,
+        22
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: operador",
+       "bbox": [
+        900,
+        2,
+        1250,
+        20
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        8,
+        26,
+        70,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        80,
+        26,
+        170,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        180,
+        26,
+        250,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        260,
+        26,
+        370,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        380,
+        26,
+        430,
+        44
+       ],
+       "kind": "menu",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Detalle de factura",
+       "bbox": [
+        8,
+        55,
+        300,
+        78
+       ],
+       "kind": "title",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Cliente",
+       "bbox": [
+        8,
+        100,
+        88,
+        118
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 9
+      },
+      {
+       "id": 9,
+       "text": "Comercial Ruiz",
+       "bbox": [
+        98,
+        100,
+        288,
+        118
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "Fecha",
+       "bbox": [
+        8,
+        130,
+        88,
+        148
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 11
+      },
+      {
+       "id": 11,
+       "text": "14/10/2026",
+       "bbox": [
+        98,
+        130,
+        288,
+        148
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "Valor",
+       "bbox": [
+        8,
+        160,
+        88,
+        178
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 13
+      },
+      {
+       "id": 13,
+       "text": "$ 1.250.000",
+       "bbox": [
+        98,
+        160,
+        288,
+        178
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "Estado",
+       "bbox": [
+        8,
+        190,
+        88,
+        208
+       ],
+       "kind": "text",
+       "conf": 1.0,
+       "paired_input": 15
+      },
+      {
+       "id": 15,
+       "text": "Vencida",
+       "bbox": [
+        98,
+        190,
+        288,
+        208
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 16,
+       "text": "Volver",
+       "bbox": [
+        8,
+        480,
+        88,
+        502
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 17,
+       "text": "Imprimir",
+       "bbox": [
+        100,
+        480,
+        180,
+        502
+       ],
+       "kind": "button",
+       "conf": 1.0,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1.0
+    }
+   ]
+  }
+ },
+ "edges": {
+  "inicio|click|Archivo › Inicio": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        108,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "inicio",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "inicio": 1
+   },
+   "inherited": false
+  },
+  "inicio|click|Comercial › Maestros": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Maestros",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        180,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Comercial"
+    }
+   },
+   "to": null,
+   "effect": null,
+   "ok": 0,
+   "fail": 0,
+   "last_ok": null,
+   "outcomes": {}
+  },
+  "inicio|click|Comercial › Clientes": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Clientes",
+       "role": "menu",
+       "cell": [
+        1,
+        1
+       ],
+       "xy": [
+        180,
+        80
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Comercial"
+    }
+   },
+   "to": "clientes",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "clientes": 1
+   },
+   "inherited": false
+  },
+  "inicio|click|Comercial › Ventas": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Ventas",
+       "role": "menu",
+       "cell": [
+        1,
+        1
+       ],
+       "xy": [
+        180,
+        102
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Comercial"
+    }
+   },
+   "to": null,
+   "effect": null,
+   "ok": 0,
+   "fail": 0,
+   "last_ok": null,
+   "outcomes": {}
+  },
+  "inicio|click|Comercial › Pedidos": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Pedidos",
+       "role": "menu",
+       "cell": [
+        1,
+        1
+       ],
+       "xy": [
+        180,
+        124
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Comercial"
+    }
+   },
+   "to": "pedidos",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "pedidos": 1
+   },
+   "inherited": false
+  },
+  "clientes|click|Archivo › Inicio": {
+   "from": "clientes",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        108,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "inicio",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "inicio": 1
+   },
+   "inherited": false
+  },
+  "pedidos|click|Archivo › Inicio": {
+   "from": "pedidos",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        108,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "inicio",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "inicio": 1
+   },
+   "inherited": false
+  },
+  "inicio|click|Cartera › Facturas": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Facturas",
+       "role": "menu",
+       "cell": [
+        2,
+        0
+       ],
+       "xy": [
+        280,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Cartera"
+    }
+   },
+   "to": "facturas",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "facturas": 1
+   },
+   "inherited": false
+  },
+  "facturas|click|Archivo › Inicio": {
+   "from": "facturas",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        108,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "inicio",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "inicio": 1
+   },
+   "inherited": false
+  },
+  "inicio|click|Herramientas › Bitácora de cambios": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Bitácora de cambios",
+       "role": "menu",
+       "cell": [
+        3,
+        0
+       ],
+       "xy": [
+        360,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Herramientas"
+    }
+   },
+   "to": "bitacora-de-cambios",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "bitacora-de-cambios": 1
+   },
+   "inherited": false
+  },
+  "inicio|click|Herramientas › Reportes generados": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Reportes generados",
+       "role": "menu",
+       "cell": [
+        3,
+        1
+       ],
+       "xy": [
+        360,
+        80
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Herramientas"
+    }
+   },
+   "to": "reportes-generados",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "reportes-generados": 1
+   },
+   "inherited": false
+  },
+  "bitacora-de-cambios|click|Archivo › Inicio": {
+   "from": "bitacora-de-cambios",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        108,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "inicio",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "inicio": 1
+   },
+   "inherited": false
+  },
+  "reportes-generados|click|Archivo › Inicio": {
+   "from": "reportes-generados",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        108,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "inicio",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "inicio": 1
+   },
+   "inherited": false
+  },
+  "inicio|click|Ayuda › Acerca de": {
+   "from": "inicio",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "Acerca de",
+       "role": "menu",
+       "cell": [
+        4,
+        0
+       ],
+       "xy": [
+        480,
+        58
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Ayuda"
+    }
+   },
+   "to": null,
+   "effect": null,
+   "ok": 0,
+   "fail": 0,
+   "last_ok": null,
+   "outcomes": {}
+  },
+  "facturas|click|FV-10159": {
+   "from": "facturas",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "v3.9",
+       "label": "FV-10159",
+       "role": "link",
+       "cell": [
+        0,
+        2
+       ],
+       "xy": [
+        83,
+        169
+       ]
+      }
+     ]
+    },
+    "params": {}
+   },
+   "to": "detalle-de-factura",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1.0,
+   "outcomes": {
+    "detalle-de-factura": 1
+   },
+   "inherited": false,
+   "data": true
+  }
+ },
+ "procedures": [],
+ "unexplored": {},
+ "denylist": [
+  "Integraciones",
+  "Eliminar",
+  "Anular",
+  "Borrar",
+  "Guardar*",
+  "Enviar",
+  "Configuración"
+ ]
+}
