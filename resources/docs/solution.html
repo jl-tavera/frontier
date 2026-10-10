@@ -406,7 +406,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>Clicking</td>
-<td>Replay the stored bbox while the static pixels match; a target that only moved by template match of its crop; only then the model names the target and perception grounds it</td>
+<td>Click the edge's stored last-good <code>xy</code> and verify the destination; replay the stored bbox while the static pixels match; a target that only moved by template match of its crop; only then the model names the target and perception grounds it</td>
 <td>Model outputs raw x,y: not accurate enough and breaks when layout shifts. OCR on every step: a second per step for nothing on a mapped app</td>
 </tr>
 <tr>
@@ -426,8 +426,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>Edge target</td>
-<td>Semantic target (label + role + cell), grounded at run time</td>
-<td>Stored x,y: breaks the moment a button moves, which is exactly 15:30</td>
+<td>Semantic target (label + role + cell) plus the last-good <code>xy</code> as a cache: tried first, verified by the destination, re-grounded by perception and rewritten on a miss</td>
+<td>Stored x,y alone: breaks the moment a button moves, which is exactly 15:30, with nothing to repair it. Semantic target only: perception on every replay</td>
 </tr>
 <tr>
 <td>Initial mapping</td>
@@ -2039,7 +2039,7 @@ Ayuda
 </tr>
 <tr>
 <td>3</td>
-<td><strong>Deterministic action signatures. Never store x,y.</strong> <code>kind + target label + role + coarse grid cell</code>.</td>
+<td><strong>Deterministic action signatures. Never store x,y.</strong> <em>(Superseded: the last-good x,y is now cached beside the signature and rewritten on a miss; see <a href="#frontier-challenge-1-solution">solution.md §4</a> Edge target.)</em> <code>kind + target label + role + coarse grid cell</code>.</td>
 <td>Raw coordinates are what breaks when a button moves at 15:30.</td>
 <td>ScreenSearch, MobileGPT <code>click(text:…)</code>; AppAgentX shortcuts as the counter-example</td>
 </tr>
