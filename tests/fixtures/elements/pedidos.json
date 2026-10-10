@@ -1,0 +1,22 @@
+[
+  {"id": 0, "text": "SIGECOM · Distribuidora Andina   v3.9", "bbox": [0, 0, 500, 22], "kind": "title"},
+  {"id": 1, "text": "Hoy: 14/10/2026 · Usuario: operador", "bbox": [900, 2, 1250, 20], "kind": "text"},
+  {"id": 2, "text": "Archivo", "bbox": [8, 26, 70, 44], "kind": "menu"},
+  {"id": 3, "text": "Comercial", "bbox": [80, 26, 170, 44], "kind": "menu"},
+  {"id": 4, "text": "Cartera", "bbox": [180, 26, 250, 44], "kind": "menu"},
+  {"id": 5, "text": "Herramientas", "bbox": [260, 26, 370, 44], "kind": "menu"},
+  {"id": 6, "text": "Ayuda", "bbox": [380, 26, 430, 44], "kind": "menu"},
+  {"id": 7, "text": "Pedidos", "bbox": [8, 55, 300, 78], "kind": "title"},
+  {"id": 8, "text": "Cliente", "bbox": [8, 90, 88, 108], "kind": "text", "paired_input": 9},
+  {"id": 9, "text": "", "bbox": [98, 90, 288, 108], "kind": "field"},
+  {"id": 10, "text": "Desde", "bbox": [400, 90, 480, 108], "kind": "text", "paired_input": 11},
+  {"id": 11, "text": "", "bbox": [490, 90, 680, 108], "kind": "field"},
+  {"id": 12, "text": "Buscar", "bbox": [800, 88, 880, 110], "kind": "button"},
+  {"id": 13, "text": "Número", "bbox": [8, 130, 158, 150], "kind": "header"},
+  {"id": 14, "text": "Cliente", "bbox": [168, 130, 318, 150], "kind": "header"},
+  {"id": 15, "text": "Fecha", "bbox": [328, 130, 478, 150], "kind": "header"},
+  {"id": 16, "text": "Total", "bbox": [488, 130, 638, 150], "kind": "header"},
+  {"id": 17, "text": "Estado", "bbox": [648, 130, 798, 150], "kind": "header"},
+  {"id": 18, "text": "PD-2041", "bbox": [8, 160, 158, 178], "kind": "link"},
+  {"id": 19, "text": "Abierto", "bbox": [648, 160, 798, 178], "kind": "cell"}
+]

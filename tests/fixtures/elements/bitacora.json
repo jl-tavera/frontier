@@ -1,0 +1,17 @@
+[
+  {"id": 0, "text": "SIGECOM · Distribuidora Andina   v3.9", "bbox": [0, 0, 500, 22], "kind": "title"},
+  {"id": 1, "text": "Hoy: 14/10/2026 · Usuario: operador", "bbox": [900, 2, 1250, 20], "kind": "text"},
+  {"id": 2, "text": "Archivo", "bbox": [8, 26, 70, 44], "kind": "menu"},
+  {"id": 3, "text": "Comercial", "bbox": [80, 26, 170, 44], "kind": "menu"},
+  {"id": 4, "text": "Cartera", "bbox": [180, 26, 250, 44], "kind": "menu"},
+  {"id": 5, "text": "Herramientas", "bbox": [260, 26, 370, 44], "kind": "menu"},
+  {"id": 6, "text": "Ayuda", "bbox": [380, 26, 430, 44], "kind": "menu"},
+  {"id": 7, "text": "Bitácora de cambios", "bbox": [8, 55, 300, 78], "kind": "title"},
+  {"id": 8, "text": "Fecha", "bbox": [8, 100, 158, 120], "kind": "header"},
+  {"id": 9, "text": "Usuario", "bbox": [168, 100, 318, 120], "kind": "header"},
+  {"id": 10, "text": "Acción", "bbox": [328, 100, 478, 120], "kind": "header"},
+  {"id": 11, "text": "Detalle", "bbox": [488, 100, 638, 120], "kind": "header"},
+  {"id": 12, "text": "13/10/2026", "bbox": [8, 130, 158, 148], "kind": "cell"},
+  {"id": 13, "text": "operador2", "bbox": [168, 130, 318, 148], "kind": "cell"},
+  {"id": 14, "text": "Actualizó factura", "bbox": [328, 130, 478, 148], "kind": "cell"}
+]

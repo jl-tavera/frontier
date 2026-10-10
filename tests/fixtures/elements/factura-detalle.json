@@ -1,0 +1,20 @@
+[
+  {"id": 0, "text": "SIGECOM · Distribuidora Andina   v3.9", "bbox": [0, 0, 500, 22], "kind": "title"},
+  {"id": 1, "text": "Hoy: 14/10/2026 · Usuario: operador", "bbox": [900, 2, 1250, 20], "kind": "text"},
+  {"id": 2, "text": "Archivo", "bbox": [8, 26, 70, 44], "kind": "menu"},
+  {"id": 3, "text": "Comercial", "bbox": [80, 26, 170, 44], "kind": "menu"},
+  {"id": 4, "text": "Cartera", "bbox": [180, 26, 250, 44], "kind": "menu"},
+  {"id": 5, "text": "Herramientas", "bbox": [260, 26, 370, 44], "kind": "menu"},
+  {"id": 6, "text": "Ayuda", "bbox": [380, 26, 430, 44], "kind": "menu"},
+  {"id": 7, "text": "Detalle de factura", "bbox": [8, 55, 300, 78], "kind": "title"},
+  {"id": 8, "text": "Cliente", "bbox": [8, 100, 88, 118], "kind": "text", "paired_input": 9},
+  {"id": 9, "text": "Comercial Ruiz", "bbox": [98, 100, 288, 118], "kind": "field"},
+  {"id": 10, "text": "Fecha", "bbox": [8, 130, 88, 148], "kind": "text", "paired_input": 11},
+  {"id": 11, "text": "14/10/2026", "bbox": [98, 130, 288, 148], "kind": "field"},
+  {"id": 12, "text": "Valor", "bbox": [8, 160, 88, 178], "kind": "text", "paired_input": 13},
+  {"id": 13, "text": "$ 1.250.000", "bbox": [98, 160, 288, 178], "kind": "field"},
+  {"id": 14, "text": "Estado", "bbox": [8, 190, 88, 208], "kind": "text", "paired_input": 15},
+  {"id": 15, "text": "Vencida", "bbox": [98, 190, 288, 208], "kind": "field"},
+  {"id": 16, "text": "Volver", "bbox": [8, 480, 88, 502], "kind": "button"},
+  {"id": 17, "text": "Imprimir", "bbox": [100, 480, 180, 502], "kind": "button"}
+]
