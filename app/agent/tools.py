@@ -11,6 +11,7 @@ from collections import deque
 
 from app.contracts import BBox, Effect, Element, Kind, Perceive, Session, Target
 from app.memory.appmap import AppMap
+from app.memory.fingerprint import cell
 from app.perception.ground import elements_text
 from app.perception.ocr import elements as ocr_elements
 from app.warm.replay import Observation, observe, replay_edge, replay_target
@@ -41,6 +42,7 @@ class Tools:
     def __init__(self, session: Session, m: AppMap, task: str = "", *, perceive: Perceive = ocr_elements):
         self.session, self.m, self.task, self.perceive = session, m, _fold(task), perceive
         self.allow: set[str] = set()  # folded labels a stored procedure for this task may click past the denylist
+        self.last: tuple[Target, tuple[int, int]] | None = None  # click_text's grounded target and xy, for F4's edges
 
     def _observe(self) -> Observation:
         return observe(self.session.fb, self.m, perceive=self.perceive)
@@ -99,7 +101,8 @@ class Tools:
             return self._fail(t0, f"not found: {label}", "S1", obs.node)
         if self._denied(e.text):  # a fuzzy match may land on a denied label
             return self._fail(t0, f"denied: {e.text}", screen=obs.node)
-        return await self._act(lambda: self.session.click(*_centre(e.bbox)), f"click_text {e.text}")
+        self.last = Target(e.text, e.kind, cell(e.bbox, *obs.size)), _centre(e.bbox)
+        return await self._act(lambda: self.session.click(*self.last[1]), f"click_text {e.text}")
 
     async def fill_field(self, label: str, value: str) -> Effect:
         """Click the label's paired input; Tab when no caret or text showed in it; then type."""
