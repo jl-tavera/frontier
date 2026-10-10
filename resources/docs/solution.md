@@ -77,6 +77,10 @@ Digest of the recon in Appendix B:
 
   Cross-cutting: [H] structured JSONL log (every step: tool, args, screen_id,
   diff, outcome) → feeds Challenge 2 spec, debrief, and the eval harness.
+
+  [S] Data Sync Engine (track 4): need(entity) → [DB] SQLite cache hit + probe → SQL answer
+      miss / stale → ladder: Exportar → clipboard → OCR paging → staging → atomic swap into [DB]
+      one-way pull, app always wins, write tasks never read the cache
 ```
 
 ### 3.2 Tech stack
@@ -89,7 +93,9 @@ Digest of the recon in Appendix B:
 | [C] Agent loop | Anthropic Python SDK. Claude Opus 5.5 (`claude-opus-5-5`) for planning, replanning and recovery; Claude Sonnet 5.5 (`claude-sonnet-5-5`) as the optional cheaper tier for routine steps, only if measurements call for it. Prompt caching on system prompt + tool schemas + map summary. Jev (TypeSafe AI) as an optional System 1 behind a confidence gate | Tool-use loop with batched actions first, then plan-then-execute (Appendix F). Agent frameworks and MCP discarded: no latency gain, more to explain |
 | [D] Tools | Plain Python functions in three levels (low: click/type/key/screenshot · mid: click_text, fill_field, read_region, wait_for · high: navigate_to, read_grid, export) | Every tool returns an observed effect (diff bbox, new screen id), never just an image |
 | [E] Perception | RapidOCR on ONNX Runtime (Latin PP-OCRv5 rec model, angle classifier off), OpenCV contours + grid lines, numpy, Pillow; Tesseract `spa` cross-check under 0.8 confidence | CPU-only hybrid. Detect once, recognize lazily, cache by line pixels (Appendix H). GPU grounding models discarded for the hackathon |
-| [F] App memory | Nav graph: one JSON per app (`memory/<app_id>.json`, Appendix E §4). Data cache: stdlib `sqlite3`, WAL, generic JSON rows + `sync_state` (Appendix G §5) | Small, readable in a debrief, zero extra services. Neo4j, vector DB, Postgres, Redis, DuckDB discarded for now |
+| [F] App memory | Nav graph: one JSON per app (`memory/<app_id>.json`, Appendix E §4): nodes, edges with semantic targets, procedures, frontier | Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded |
+| [S] Data sync engine | Plain Python: `need(entity)` → probe (row count + page-1 hash) → cache hit or acquire through the ladder Exportar → clipboard (`ServerCutText`) → OCR paging; normalise by header text; staging table → one-transaction swap; write-through read-back after our own writes (Appendix G) | Always reading live: 30–120 s per entity. Push/CDC: impossible, there is only pixels |
+| [DB] SQLite read cache | stdlib `sqlite3`, WAL, one file, generic JSON rows (`rows`, `sync_state`), `json_extract` queries so filters and sums are SQL, not LLM arithmetic | JSON files: no queries, half-written on crash. DuckDB: extra dep. Postgres/Redis: ops work, no benefit for ~1k rows (§10 for later) |
 | [G] RFB session | `websockets` ≥ 13 (asyncio client, `binary` subprotocol), `pycryptodome` (VNC DES auth), numpy framebuffer; Raw + CopyRect only; `shared=1`; `ClientCutText`/`ServerCutText` clipboard | ~200 LOC we own instead of a headless browser (+300 MB, lossy JPEG, canvas offsets) or a TCP-only VNC library (Appendix C §2) |
 | [H] Log | JSONL file, one event per step (`tool`, `args`, `screen_id`, `diff`, `outcome`, `signal`, `rung`, `cost_ms`) | Evidence for the Challenge 2 spec, the debrief and the harness |
 | Deploy | Railway, Docker, one service, CPU-only | §3.4 |
