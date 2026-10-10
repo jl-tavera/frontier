@@ -73,7 +73,8 @@ async def agent_loop(task: str, plan: Plan, ex) -> dict:
     here, screen = _screen(tools)
     queries = json.dumps([q.__dict__ for q in plan.queries], ensure_ascii=False, default=str)
     messages = [
-        # cached where OpenRouter passes it through: the tools, this prompt and the map are the same every turn
+        # cached where OpenRouter passes it through: this prompt and the map are the same every turn, the tools until go_to
+        # joins them with the first edge
         {"role": "system", "content": [{"type": "text", "text": SYSTEM + compact(m, task),
                                         "cache_control": {"type": "ephemeral"}}]},
         {"role": "user", "content": [{"type": "text", "text": f"Task: {task}\nQueries parsed so far: {queries}"}, *screen]}]
@@ -81,7 +82,9 @@ async def agent_loop(task: str, plan: Plan, ex) -> dict:
     # lazy: no turn cap, run_task's budget guard ends a model that never calls done
     while True:
         resp = await (ex.llm or openrouter()).chat.completions.create(
-            model=model("planner"), messages=messages, tools=SCHEMAS)
+            # with no edges every go_to fails, so a cold map is navigated by clicking visible text (ex.m: the ladder may swap it)
+            model=model("planner"), messages=messages,
+            tools=[t for t in SCHEMAS if ex.m.edges or t["function"]["name"] != "go_to"])
         msg = resp.choices[0].message
         messages.append(msg.model_dump(exclude_none=True))
         if not msg.tool_calls:

@@ -91,3 +91,12 @@ def test_a_tool_that_raises_comes_back_as_a_failed_call_and_the_loop_goes_on(mon
     result = next(m["content"] for m in llm.calls[2]["messages"] if m["role"] == "tool")
     assert result.startswith("failed") and "unknown key ctrl+a" in result
 
+
+def test_go_to_is_offered_only_once_the_map_has_an_edge(monkeypatch, fixtures_dir, tmp_path):
+    *_, llm = run(monkeypatch, fixtures_dir, tmp_path / "memory", READ, LEARN, [("done", {"answer": "1"})],
+                  {"text": "respuesta: 1"})
+
+    first, second = ({t["function"]["name"] for t in c["tools"]} for c in llm.calls[1:3])
+    assert "go_to" not in first and "click_text" in first  # cold map: no edges
+    assert "go_to" in second  # the clicks it just made are edges now
+
