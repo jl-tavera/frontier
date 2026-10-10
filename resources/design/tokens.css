@@ -1,0 +1,75 @@
+/* Frontier design tokens, taken from the live CSS of https://frontier.lab10.ai/ on 2026-10-10.
+   Color names match the site's own custom properties. See DESIGN.md for usage. */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Doto:wght@900&display=swap");
+
+:root {
+  /* Brand accents (Lab10) */
+  --lab10-lavender: #a9a0ec;
+  --lab10-yellow: #f6f072;
+
+  /* Surfaces: near-black, stepped */
+  --fr-bg: #0a0a0a;
+  --fr-surface: #141414;
+  --fr-hover: #1c1c1c;
+  --fr-dot: #1f1f1f;
+  --fr-pixel: #2a2a2a;
+  --fr-pixel-2: #3a3a3a;
+
+  /* Lines */
+  --fr-line: #262626;
+  --fr-line-strong: #666;
+
+  /* Text */
+  --fr-fg: #fafafa;
+  --fr-fg-muted: #a3a3a3;
+  --fr-fg-subtle: #808080;
+
+  /* Accent tints (backgrounds behind accent text) */
+  --fr-lavender-deep: #1f1b3a;
+  --fr-yellow-deep: #26240a;
+
+  /* Status */
+  --fr-success: #3ecf8e;
+  --fr-warning: #ff9f43;
+  --fr-danger: #ff5a5f;
+  --fr-danger-soft: #ff8a8d;
+  --fr-danger-deep: #2a0f10;
+
+  /* Elevation: the only shadow on the site */
+  --fr-glow: 0 0 0 1px var(--lab10-lavender), 0 0 32px #a9a0ec59;
+
+  /* Type */
+  --fr-font-sans: Geist, ui-sans-serif, system-ui, sans-serif;
+  --fr-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --fr-font-pixel: Doto, var(--fr-font-mono);
+
+  /* Spacing (4px base) and layout */
+  --fr-space-1: 4px;
+  --fr-space-2: 8px;
+  --fr-space-3: 12px;
+  --fr-space-4: 16px;
+  --fr-space-6: 24px;
+  --fr-space-8: 32px;
+  --fr-space-12: 48px;
+  --fr-space-20: 80px;
+  --fr-container: 1200px;
+  --fr-header-h: 72px;
+
+  /* Motion: stepped, never eased */
+  --fr-step: 0.1s steps(2, end);
+}
+
+/* Utilities lifted verbatim from the site */
+.fr-grid-bg {
+  background-image: radial-gradient(var(--fr-dot) 1.5px, transparent 1.5px);
+  background-position: 12px 12px;
+  background-size: 24px 24px;
+}
+.fr-step-transition {
+  transition: background-color var(--fr-step), color var(--fr-step),
+    box-shadow var(--fr-step), border-color var(--fr-step);
+}
+@keyframes fr-blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: 0 } }
+.fr-cursor { animation: 1s step-end infinite fr-blink; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--lab10-lavender); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .fr-cursor { animation: none; } }
