@@ -214,6 +214,13 @@ CREATE TABLE sync_state (
   acquired_at TEXT NOT NULL,
   PRIMARY KEY (app_id, entity)
 );
+
+CREATE TABLE unusable (               -- §4.4: a rung that failed on this grid, skipped on later reads
+  app_id      TEXT NOT NULL,
+  entity      TEXT NOT NULL,
+  method      TEXT NOT NULL,          -- clipboard | export
+  PRIMARY KEY (app_id, entity, method)
+);
 ```
 
 Queries use `json_extract(data_json, '$.Total')`, which is built into SQLite, so filter and sum tasks become SQL instead of LLM arithmetic. The swap works like this: rows are written into `rows_staging`, then `BEGIN; DELETE FROM rows WHERE app_id=? AND entity=?; INSERT … SELECT FROM rows_staging; UPDATE sync_state …; COMMIT;`

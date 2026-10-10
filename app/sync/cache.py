@@ -42,6 +42,13 @@ CREATE TABLE IF NOT EXISTS sync_state (
   acquired_at TEXT NOT NULL,
   PRIMARY KEY (app_id, entity)
 );
+-- a read method (clipboard, export) that failed on this grid, so later reads skip it (G §4.4)
+CREATE TABLE IF NOT EXISTS unusable (
+  app_id TEXT NOT NULL,
+  entity TEXT NOT NULL,
+  method TEXT NOT NULL,
+  PRIMARY KEY (app_id, entity, method)
+);
 """
 
 Probe = Callable[[str], tuple[int, str]]
@@ -162,6 +169,13 @@ class Cache:
         """Re-probe the change log after our own write-through, so our entry is not read as a change."""
         if changelog := self._changelog():
             self._watermark(changelog["entity"])
+
+    def unusable(self, entity: str, method: str) -> bool:
+        return self._one("SELECT 1 FROM unusable WHERE app_id=? AND entity=? AND method=?", entity, method) is not None
+
+    def mark_unusable(self, entity: str, method: str) -> None:
+        with self.db:
+            self.db.execute("INSERT OR IGNORE INTO unusable VALUES (?,?,?)", (self.app_id, entity, method))
 
     def query(self, sql: str, params: tuple = ()) -> list[tuple]:
         """SQL over `json_extract(data_json, '$.Col')`; a retired header is translated through `column_map`."""
