@@ -97,6 +97,7 @@ class Cache:
             )
             (staged,) = self.db.execute(
                 "SELECT COUNT(*) FROM rows_staging WHERE app_id=? AND entity=?", (self.app_id, entity)).fetchone()
+            self._event("sync.probe", scope="entity", entity=entity, outcome="hit" if staged >= count else "miss")
             if staged < count:  # a short read never replaces good rows
                 self.db.execute(
                     "INSERT INTO sync_state (app_id, entity, header_hash, status, method, acquired_at) VALUES (?,?,?,'partial',?,?)"
