@@ -1,0 +1,22 @@
+[
+  ["FV-10159", "Distribuciones Gómez La 14", "01/03/2026", "31/03/2026", "1.810.000", "Vencida"],
+  ["FV-10004", "Ferretería Ruiz", "02/03/2026", "01/04/2026", "450.000", "Pendiente"],
+  ["FV-10020", "Comercializadora Gómez y Cía.", "03/03/2026", "02/04/2026", "990.000", "Pagada"],
+  ["FV-10107", "Depósito Hernández", "03/03/2026", "02/04/2026", "4.090.000", "Vencida"],
+  ["FV-10225", "Almacén Díaz", "04/03/2026", "03/04/2026", "3.900.000", "Pagada"],
+  ["FV-10136", "Almacén Pardo y Cía.", "05/03/2026", "04/04/2026", "3.210.000", "Pagada"],
+  ["FV-10029", "Supermercado Moreno S.A.S.", "07/03/2026", "06/04/2026", "1.600.000", "Pagada"],
+  ["FV-10120", "Miscelánea Castro Central", "07/03/2026", "06/04/2026", "2.380.000", "Pagada"],
+  ["FV-10080", "Ferretería Castro", "08/03/2026", "07/04/2026", "3.500.000", "Vencida"],
+  ["FV-10047", "Ferretería Ruiz", "11/03/2026", "10/04/2026", "2.070.000", "Vencida"],
+  ["FV-10073", "Ferretería Ruiz", "11/03/2026", "10/04/2026", "2.700.000", "Pagada"],
+  ["FV-10224", "Panadería López Express", "11/03/2026", "10/04/2026", "4.680.000", "Anulada"],
+  ["FV-10119", "Comercializadora Rojas La 14", "12/03/2026", "11/04/2026", "2.280.000", "Vencida"],
+  ["FV-10206", "Ferretería Ruiz", "13/03/2026", "12/04/2026", "140.000", "Pagada"],
+  ["FV-10013", "Depósito Rodríguez La 14", "14/03/2026", "13/04/2026", "1.870.000", "Anulada"],
+  ["FV-10049", "Comercializadora López La 14", "14/03/2026", "13/04/2026", "5.900.000", "Anulada"],
+  ["FV-10150", "Depósito Martínez La 14", "15/03/2026", "14/04/2026", "5.890.000", "Pagada"],
+  ["FV-10088", "Panadería Ortiz Central", "16/03/2026", "15/04/2026", "3.950.000", "Vencida"],
+  ["FV-10056", "Panadería Pardo Ltda.", "17/03/2026", "16/04/2026", "4.600.000", "Anulada"],
+  ["FV-10067", "Panadería Quintero S.A.S.", "17/03/2026", "16/04/2026", "4.160.000", "Pagada"]
+]
