@@ -17,6 +17,7 @@ dependencies = [
     "openai",
     "typesafe-sdk",
     "pyyaml",
+    "pydantic-evals>=2.55.0",
 ]
 
 [dependency-groups]
