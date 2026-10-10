@@ -1,0 +1,20 @@
+[
+  {"id": 0, "text": "SIGECOM · Distribuidora Andina   v3.9", "bbox": [0, 0, 500, 22], "kind": "title"},
+  {"id": 1, "text": "Hoy: 14/10/2026 · Usuario: operador", "bbox": [900, 2, 1250, 20], "kind": "text"},
+  {"id": 2, "text": "Archivo", "bbox": [8, 26, 70, 44], "kind": "menu"},
+  {"id": 3, "text": "Comercial", "bbox": [80, 26, 170, 44], "kind": "menu"},
+  {"id": 4, "text": "Cartera", "bbox": [180, 26, 250, 44], "kind": "menu"},
+  {"id": 5, "text": "Herramientas", "bbox": [260, 26, 370, 44], "kind": "menu"},
+  {"id": 6, "text": "Ayuda", "bbox": [380, 26, 430, 44], "kind": "menu"},
+  {"id": 7, "text": "Nuevo cliente", "bbox": [8, 55, 300, 78], "kind": "title"},
+  {"id": 8, "text": "NIT", "bbox": [450, 160, 530, 178], "kind": "text", "paired_input": 9},
+  {"id": 9, "text": "", "bbox": [540, 160, 730, 178], "kind": "field"},
+  {"id": 10, "text": "Nombre", "bbox": [450, 190, 530, 208], "kind": "text", "paired_input": 11},
+  {"id": 11, "text": "", "bbox": [540, 190, 730, 208], "kind": "field"},
+  {"id": 12, "text": "Ciudad", "bbox": [450, 220, 530, 238], "kind": "text", "paired_input": 13},
+  {"id": 13, "text": "", "bbox": [540, 220, 730, 238], "kind": "field"},
+  {"id": 14, "text": "Teléfono", "bbox": [450, 250, 530, 268], "kind": "text", "paired_input": 15},
+  {"id": 15, "text": "", "bbox": [540, 250, 730, 268], "kind": "field"},
+  {"id": 16, "text": "Guardar", "bbox": [540, 300, 620, 322], "kind": "button"},
+  {"id": 17, "text": "Cancelar", "bbox": [640, 300, 720, 322], "kind": "button"}
+]

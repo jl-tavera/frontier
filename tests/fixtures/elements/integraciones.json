@@ -1,0 +1,14 @@
+[
+  {"id": 0, "text": "SIGECOM · Distribuidora Andina   v3.9", "bbox": [0, 0, 500, 22], "kind": "title"},
+  {"id": 1, "text": "Hoy: 14/10/2026 · Usuario: operador", "bbox": [900, 2, 1250, 20], "kind": "text"},
+  {"id": 2, "text": "Archivo", "bbox": [8, 26, 70, 44], "kind": "menu"},
+  {"id": 3, "text": "Comercial", "bbox": [80, 26, 170, 44], "kind": "menu"},
+  {"id": 4, "text": "Cartera", "bbox": [180, 26, 250, 44], "kind": "menu"},
+  {"id": 5, "text": "Herramientas", "bbox": [260, 26, 370, 44], "kind": "menu"},
+  {"id": 6, "text": "Ayuda", "bbox": [380, 26, 430, 44], "kind": "menu"},
+  {"id": 7, "text": "Integraciones", "bbox": [8, 55, 300, 78], "kind": "title"},
+  {"id": 8, "text": "Conector con el sistema contable.", "bbox": [8, 100, 400, 120], "kind": "text"},
+  {"id": 9, "text": "Clave de integración", "bbox": [8, 140, 88, 158], "kind": "text", "paired_input": 10},
+  {"id": 10, "text": "SGC-XXXX-XXXX", "bbox": [98, 140, 288, 158], "kind": "field"},
+  {"id": 11, "text": "No comparta esta clave.", "bbox": [8, 180, 300, 200], "kind": "text"}
+]
