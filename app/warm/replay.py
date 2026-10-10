@@ -196,6 +196,16 @@ async def replay_edge(edge: dict, fb: np.ndarray, session: Session, m: AppMap, *
         return observe(session.fb, m, node=edge["to"], perceive=perceive).node
 
     xy, how, moved = _guard(m, edge, look["xy"], _rgb(before))
+    if menu := edge["action"]["params"].get("menu"):
+        # W1's `menu › item` edge: the item is in a dropdown the from-node's snapshot never shows, so open the menu
+        # and perceive the item. lazy: one perception per menu hop; store the open dropdown's look if hops get hot
+        appearance = _newest(m, edge["from"]) if edge["from"] in m.nodes else None
+        opener = next((e for e in _snapshot(appearance) if e.kind == "menu" and e.text == menu), None) if appearance else None
+        if opener is None:
+            return effect(False, f"miss:cold, menu {menu} not in snapshot", edge["from"])
+        await session.click(*_centre(opener.bbox))
+        await session.settle()
+        xy, how = None, "target_missing"
     if xy is not None:
         if await land(xy) == edge["to"]:
             if moved:
@@ -219,7 +229,8 @@ async def replay_edge(edge: dict, fb: np.ndarray, session: Session, m: AppMap, *
         return effect(False, f"miss:{how}, repair landed elsewhere", None)
     label = next(e.text for e in obs.elements if e.bbox == bbox)
     _rewrite(m, edge, look, xy, label=label, cell=list(cell(bbox, *obs.size)))
-    if m.identify(fingerprint(obs.elements, *obs.size)).node_id == edge["from"]:  # recovery really got back
+    seen = m.identify(fingerprint(obs.elements, *obs.size))
+    if (seen.kind, seen.node_id) == ("same", edge["from"]):  # recovery really got back, not an open menu over it
         _refresh(m, edge["from"], obs.elements, frame)
     m.save()
     log.info("fastpath: repaired edge=%s xy=%s", label, xy)
