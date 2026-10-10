@@ -245,6 +245,6 @@ class Cache:
 
     @staticmethod
     def _natural_key(row: dict, key: str | None) -> str:
-        if key and key in row:
+        if key and row.get(key) is not None:  # an unreadable id falls back to the hash, never collides on 'None'
             return str(row[key])
         return _sha(sorted(map(str, row.values())))  # values only, so a header rename keeps the key
