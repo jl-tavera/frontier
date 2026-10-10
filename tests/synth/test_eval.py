@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from pydantic_evals.evaluators import EvaluatorContext
 
 from app.contracts import Summary
+from synth.__main__ import main
 from synth.eval import (PRUEBAS, AnswerMatches, Expected, LogMetrics, NoSecret, OracleCheck, Output, ReasonKeysNamed,
                         StatusMatches, load, publish, run, save, show)
 
@@ -157,3 +158,11 @@ async def test_publish_stores_the_report_on_the_service(cases, monkeypatch, tmp_
     assert stored["pub"] == json.loads(path.read_text("utf-8"))
     assert len(stored["pub"]["cases"]) == 3
 
+
+def test_eval_fake_runs_the_trees_plus_the_official_five_and_writes_the_report(monkeypatch, tmp_path, capsys):
+    monkeypatch.setenv("EVALS_DIR", str(tmp_path / "reports"))
+    explored = Path(__file__).parents[1] / "fixtures" / "synth" / "explored"
+    assert main(["eval", "--fake", "--tasks", str(explored), "--name", "smoke"]) == 1  # the unscripted LLM fails them
+    report = json.loads((tmp_path / "reports" / "smoke.json").read_text("utf-8"))
+    assert sorted(c["name"] for c in report["cases"]) == ["E1", "E2", "E3", "E4", "E5", "explored-01", "explored-02"]
+    assert "E         0/5" in capsys.readouterr().out
