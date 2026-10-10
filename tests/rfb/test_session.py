@@ -52,6 +52,25 @@ async def test_type_and_key_arrive_as_key_events(screen):
         await s.close()
 
 
+@pytest.mark.parametrize("name, keysyms", [
+    ("ctrl+a", [0xFFE3, 0x61]),
+    ("shift+tab", [0xFFE1, 0xFF09]),
+    ("ctrl+shift+end", [0xFFE3, 0xFFE1, 0xFF57]),
+])
+async def test_chord_presses_in_order_and_releases_in_reverse(screen, name, keysyms):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        await s.key(name)
+        await _until(lambda: len(srv.events) >= 2 * len(keysyms))
+        assert srv.events == [("key", 1, k) for k in keysyms] + [("key", 0, k) for k in reversed(keysyms)]
+        await s.close()
+
+
+async def test_unknown_key_name_is_named_in_the_error():
+    with pytest.raises(ValueError, match="'banana'.*ctrl"):
+        await RFBSession().key("ctrl+banana")
+
+
 async def test_wrong_password_raises(screen):
     async with FakeRFBServer(screen[0], "secret") as srv:
         with pytest.raises(RuntimeError, match="auth"):

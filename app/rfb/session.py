@@ -15,7 +15,9 @@ from websockets.exceptions import ConnectionClosed
 from app.contracts import Session
 
 KEYS = {"enter": 0xFF0D, "tab": 0xFF09, "backspace": 0xFF08, "esc": 0xFF1B,
-        "up": 0xFF52, "down": 0xFF54, "left": 0xFF51, "right": 0xFF53}
+        "up": 0xFF52, "down": 0xFF54, "left": 0xFF51, "right": 0xFF53,
+        "home": 0xFF50, "end": 0xFF57, "delete": 0xFFFF}
+MODIFIERS = {"ctrl": 0xFFE3, "shift": 0xFFE1, "alt": 0xFFE9}
 RECONNECT_ATTEMPTS = 2
 
 
@@ -181,12 +183,22 @@ class RFBSession:
         self.mark = time.perf_counter()
         await self._send(b"".join(struct.pack(">BBHH", 5, m, x, y) for m in (0, 1, 0)))
 
-    async def _keysym(self, keysym):
+    async def _keysym(self, *syms):
+        """Press each keysym in order, release in reverse, as one message."""
         self.mark = time.perf_counter()
-        await self._send(struct.pack(">BBxxI", 4, 1, keysym) + struct.pack(">BBxxI", 4, 0, keysym))
+        await self._send(b"".join(struct.pack(">BBxxI", 4, 1, k) for k in syms)
+                         + b"".join(struct.pack(">BBxxI", 4, 0, k) for k in reversed(syms)))
 
     async def key(self, name):
-        await self._keysym(KEYS[name])
+        """One key or a chord like 'ctrl+shift+end': press each part in order, release in reverse."""
+        syms = []
+        for part in name.split("+"):
+            sym = MODIFIERS.get(part) or KEYS.get(part) or (ord(part) if len(part) == 1 else None)
+            if sym is None:
+                raise ValueError(f"unknown key {part!r} in {name!r}; modifiers: {', '.join(MODIFIERS)}; "
+                                 f"keys: {', '.join(KEYS)} or one character")
+            syms.append(sym)
+        await self._keysym(*syms)
 
     async def type(self, text):
         for c in text:  # Latin-1 chars (ñ, á...) map 1:1 to keysyms
