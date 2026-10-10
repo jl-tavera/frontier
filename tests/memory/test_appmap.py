@@ -99,3 +99,14 @@ def test_load_opens_a_version_directory_saved_without_this_title(v39, tmp_path):
     v39.titles = []  # a committed map, say
     v39.save()
     assert AppMap.load(tmp_path, V39).dir == v39.dir
+
+
+def test_both_ocr_readings_of_the_real_title_load_the_same_map(tmp_path):
+    """Locally the title read with a spaced version, on Railway with it glued on; OCR also misreads a letter."""
+    local = AppMap(tmp_path, "SIGEcoM·Distribuidora Andina", "V4.2")  # as the first local run saved it
+    local.titles = ["SIGEcoM·Distribuidora Andina V4.2"]
+    local.save()
+    for reading in ("SIGEcoM·Distribuidora Andinav4.2", "SIGECOM · Distribuidora Andlna v4.2"):
+        m = AppMap.load(tmp_path, reading)
+        assert (m.dir, m.app_id, m.version) == (local.dir, local.app_id, local.version)
+    assert AppMap.load(tmp_path, "CONTABILIDAD · Distribuidora Andina v4.2").dir != local.dir

@@ -6,7 +6,7 @@ from app.contracts import BBox, Element
 
 COLS, ROWS = 12, 8
 STATIC = {"title", "menu", "button", "link", "header"}
-_VERSION = re.compile(r"^(.*?)\s+(v\d+(?:\.\d+)*)$", re.I)
+_VERSION = re.compile(r"^(.*?)(?:\s+|(?<=[^\W\d_]))(v\d+(?:\.\d+)*)$", re.I)  # OCR may glue it on: 'Andinav4.2'
 
 
 @dataclass(frozen=True)
@@ -20,10 +20,10 @@ class Fingerprint:
 
 
 def split_title(text: str) -> tuple[str, str | None]:
-    """'SIGECOM · Distribuidora Andina   v3.9' -> ('SIGECOM · Distribuidora Andina', 'v3.9')."""
+    """'SIGECOM · Distribuidora Andina   v3.9' -> ('SIGECOM · Distribuidora Andina', 'v3.9'); 'V3.9' -> 'v3.9'."""
     text = " ".join(text.split())
     m = _VERSION.match(text)
-    return (m[1], m[2]) if m else (text, None)
+    return (m[1], m[2].lower()) if m else (text, None)
 
 
 def jaccard(a, b) -> float:
