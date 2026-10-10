@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 
 from app.memory.appmap import AppMap
-from app.memory.planner import compact
+from app.memory.planner import compact, route
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "maps" / "sigecom_v40.json"
 
@@ -32,3 +32,19 @@ def m(tmp_path):
 
 def test_compact_renders_the_map_with_the_inherited_edge_marked(m):
     assert compact(m, "leer las facturas pendientes de octubre") == GOLDEN
+
+
+def test_route_takes_the_verified_edge_over_the_inherited_one_with_the_better_ratio(m):
+    assert route(m, "inicio", "facturas") == ["inicio|click|Cartera › Facturas"]
+
+
+def test_route_chains_stored_edges_and_is_empty_when_no_path_exists(m):
+    assert route(m, "inicio", "cliente-nuevo") == ["inicio|click|Comercial › Clientes", "clientes|click|Nuevo"]
+    assert route(m, "facturas", "inicio") == []
+
+
+def test_route_prefers_a_longer_verified_path_to_a_shorter_inherited_one(m):
+    m.edges["inicio|click|Ventas › Cliente nuevo"] = {**m.edges["inicio|click|Ventas › Facturas"], "to": "cliente-nuevo"}
+    assert route(m, "inicio", "cliente-nuevo") == ["inicio|click|Comercial › Clientes", "clientes|click|Nuevo"]
+    del m.edges["clientes|click|Nuevo"]
+    assert route(m, "inicio", "cliente-nuevo") == ["inicio|click|Ventas › Cliente nuevo"]  # the hint, when it's all there is
