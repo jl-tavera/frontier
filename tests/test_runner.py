@@ -54,7 +54,11 @@ def test_overrunning_worker_is_cut_at_the_budget_and_still_summarised(client, mo
     assert s["status"] == "fallida" and "presupuesto" in s["summary"]
 
 
-def test_each_task_logs_start_and_end_to_its_jsonl(client):
+def test_each_task_logs_start_and_end_to_its_jsonl(client, monkeypatch):
+    async def done(task, session, log, budget_s):
+        return Summary("terminada", "hecho")
+
+    monkeypatch.setattr(runner, "run_task", done)
     task_id = _post(client)
     _wait(client, task_id)
     lines = (Path(os.environ["LOG_DIR"]) / f"{task_id}.jsonl").read_text("utf-8").splitlines()
