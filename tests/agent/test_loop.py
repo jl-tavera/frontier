@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 from functools import partial
+from itertools import groupby
 from pathlib import Path
 
 import pytest
@@ -23,7 +24,7 @@ V39 = "SIGECOM · Distribuidora Andina   v3.9"
 NAV = {("inicio", "Herramientas"): "menu-herramientas", ("menu-herramientas", "Bitácora de cambios"): "bitacora",
        ("inicio", "Comercial"): "menu-comercial", ("menu-comercial", "Clientes"): "clientes",
        ("clientes", "Nuevo"): "cliente-nuevo", ("cliente-nuevo", "Guardar"): "clientes",
-       ("clientes", "Herramientas"): "menu-herramientas"}
+       ("clientes", "Herramientas"): "menu-herramientas", ("bitacora", "Comercial"): "menu-comercial"}
 CREATE_CLIENTE = {"op": "create", "entity": "clientes", "task_text": "crear cliente", "steps": [
     {"tool": "go_to", "args": ["clientes"]},
     {"tool": "click_text", "args": ["Nuevo"], "expect": "cliente-nuevo"},
@@ -165,3 +166,50 @@ def test_a_task_that_never_finishes_is_cut_and_still_summarised(monkeypatch, fix
                      {"text": "No se creó el pedido: se agotó el tiempo", "data": {}}, fallback=never)
     assert status["status"] == "fallida" and status["summary"]
     assert "no terminó a tiempo" not in status["summary"]  # the run's own summary, not the runner's guard text
+
+
+VENCIDAS = {"op": "read", "entity": "facturas", "where": {"Estado": "Vencida"}, "aggregate": "count"}
+PAGADAS = {"op": "read", "entity": "facturas", "where": {"Estado": "Pagada"}, "aggregate": "count"}
+
+
+def summarised(llm) -> list[dict]:
+    return json.loads(llm.calls[-1]["messages"][-1]["content"])["results"]
+
+
+def test_cache_answers_go_first_and_a_hand_off_gets_only_the_unrun_queries(monkeypatch, fixtures_dir, memory):
+    calls = []
+
+    async def fallback(task, plan, ex):
+        calls.append([(q.op, q.entity) for q in plan.queries])
+        return {"ok": False, "reason": "sin pedidos"}
+
+    _, _, _, _, llm = run(monkeypatch, fixtures_dir, memory, "Vencidas, actualiza C-1 y pagadas",
+                          parse(VENCIDAS, {"op": "update", "entity": "clientes", "key": "C-1", "fields": {}}, PAGADAS),
+                          {"text": "respuesta: 2; 1", "data": {}}, fallback=fallback)
+    assert calls == [[("update", "clientes")]]
+    assert [r.get("answer") for r in summarised(llm)] == [2, None, 1]  # asked order, the fallback at its query
+
+
+def test_reads_on_a_hit_answer_before_the_create_and_come_out_in_asked_order(monkeypatch, fixtures_dir, memory):
+    status, events, _, _, llm = run(
+        monkeypatch, fixtures_dir, memory, "Vencidas, crea Ferretería Sur y pagadas",
+        parse(VENCIDAS, {"op": "create", "entity": "clientes", "fields": {"NIT": "900555111-2", "Nombre": "Ferretería Sur"}},
+              PAGADAS), {"text": "respuesta: 2; 1", "data": {}})
+    assert status["status"] == "terminada"
+    assert [r["op"] for r in summarised(llm)] == ["read", "create", "read"]
+    assert [r.get("answer") for r in summarised(llm)][::2] == [2, 1]
+    assert not any(e["event"] == "step" and e["args"] == ["facturas"] for e in events)  # no screen for the reads
+
+
+def test_a_missed_entity_read_twice_costs_one_go_to(monkeypatch, fixtures_dir, memory):
+    cache = Cache("SIGECOM · Distribuidora Andina", None, path=memory / "cache.sqlite")
+    with cache.db:  # no change log: every `need` probes its entity on screen
+        cache.db.execute("DELETE FROM sync_state WHERE role = 'changelog'")
+    cache.db.close()
+    clientes = {"op": "read", "entity": "clientes", "where": {}, "aggregate": "count"}
+    bitacora = {"op": "read", "entity": "bitacora", "where": {}, "aggregate": "count"}
+    status, events, *_ = run(monkeypatch, fixtures_dir, memory, "Clientes, cambios y clientes",
+                             parse(clientes, bitacora, clientes), {"text": "respuesta: 2; 2; 2", "data": {}})
+    assert status["status"] == "terminada"
+    visits = [k for k, _ in groupby(e["args"][0] for e in events if e["event"] == "step" and e["tool"] == "go_to")]
+    assert visits == ["clientes", "bitacora"]  # acquisition re-probes on the screen it is on; no second trip back
