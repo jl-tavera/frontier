@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from app.rfb.session import open_session
+from app.rfb.session import RFBSession, open_session
 from tests.fakes.rfb_server import FakeRFBServer
 
 
@@ -141,3 +141,59 @@ async def test_settle_returns_elapsed_at_timeout_when_the_region_never_changes(s
         took = await s.settle(quiet=0.1, timeout=0.5, expect=(40, 30, 50, 40))
         assert 0.5 <= took < 0.7
         await s.close()
+
+
+async def test_dropped_socket_reconnects_restores_fb_and_the_next_click_arrives(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        srv.fb[:] = 7  # the desktop changes while the client is away
+        await srv.drop()
+        await _until(lambda: (s.fb == 7).all(), timeout=5)
+        assert (s.fb == 7).all()
+        assert srv.connections == 2
+        await s.click(3, 4)
+        await _until(lambda: len(srv.events) >= 3)
+        assert srv.events[-3:] == [("pointer", 0, 3, 4), ("pointer", 1, 3, 4), ("pointer", 0, 3, 4)]
+        await s.close()
+
+
+async def test_click_on_a_dropped_socket_waits_for_the_reconnect_and_arrives(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        await srv.drop()
+        await s.click(3, 4)
+        await _until(lambda: len(srv.events) >= 3)
+        assert srv.events == [("pointer", 0, 3, 4), ("pointer", 1, 3, 4), ("pointer", 0, 3, 4)]
+        await s.close()
+
+
+async def test_call_raises_after_two_failed_reconnects(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = RFBSession(backoff=0.05)
+        await s.connect(srv.url, "secret")
+        srv.refuse = True
+        await srv.drop()
+        with pytest.raises(ConnectionError, match="2x"):
+            await asyncio.wait_for(s.click(1, 1), 3)
+        await s.close()
+
+
+async def test_idle_session_sends_an_incremental_request_within_the_keepalive(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = RFBSession(keepalive=0.1)
+        await s.connect(srv.url, "secret")
+        await asyncio.sleep(0.05)
+        seen = len(srv.requests)  # the reader's own request after the first frame is already in
+        await _until(lambda: len(srv.requests) >= seen + 2, timeout=0.35)
+        assert [r[0] for r in srv.requests[seen:seen + 2]] == [1, 1]
+        await s.close()
+
+
+async def test_close_stops_the_keepalive_and_does_not_reconnect(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = RFBSession(keepalive=0.05)
+        await s.connect(srv.url, "secret")
+        await s.close()
+        seen = len(srv.requests)
+        await asyncio.sleep(0.2)
+        assert srv.connections == 1 and len(srv.requests) == seen
