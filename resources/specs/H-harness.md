@@ -4,17 +4,17 @@ Design: `resources/docs/solution.md` §5 unit 3.6, §6 ("Proving it before 15:30
 
 ## Problem
 
-One command must print the success % and the per-task metrics the design promised, before and after 15:30, and the Challenge 2 spec must cite a log line for every behaviour it claims.
+The success % and the per-task metrics are printed by Spec S's `synth eval` (S3). H must prove the mutation suite (§6) by its expected log lines, before 15:30 and on the real change, and the Challenge 2 spec must cite a log line for every behaviour it claims.
 
 ## Owns
 
-`harness/` (package; `harness/tasks.yaml` is written by a human in run book step 0.3), `tests/harness/`, `tests/fixtures/logs/`.
+`harness/` (package), `tests/harness/`, `tests/fixtures/logs/`. Imports `synth.eval.run` (S3); never edits `synth/`.
 
 ## Slices
 
-**H1 · Harness run with fake and mutate modes** (3.6, §6)
+**H1 · Mutation suite** (§6)
 
-As the team, `uv run -m harness run [--fake] [--mutate <kind>] [--tasks harness/tasks.yaml]` runs each NL task through `run_task` (the five official practice tasks in `resources/docs/references/pruebas/` included) and prints a table: success %, mean s/task, steps/task, click hit rate, fastpath breakdown per step (`hit` / `moved` / `perceived` / `llm`), probe outcome (`changelog` or `entity`, hit or miss), drift detected/recovered, LLM calls/task per tier (fast / vlm / planner), Jev decisions and escalation rate, and on a redesign the seconds to recognise the epoch, nodes re-identified / inherited and columns aligned / total (§7), all read from the JSONL logs; `--fake` uses `FakeSession` + the fake LLM so the harness itself is testable; `--mutate` applies one E §6.1 mutation and asserts the expected log lines, and exits non-zero when they are missing. Seam: `--fake` on a 3-task fixture; done when the table shows the known success %, `--mutate rename --fake` exits 0 with the expected lines, `--mutate shifted_cell --fake` reports 0 drift lines, and `--mutate version_bump --fake` reports a rung 0 line and 0 edge failures. Blocked by **F3 · Replay-first executor, end to end** (and uses F5's `mutate` when present; without it `--mutate` reports "not wired").
+As the team, `uv run -m harness mutate <kind> [--fake] [--tasks ...]` applies one E §6.1 mutation to a copy of the stored map (F5's `mutate`; without it the command prints "not wired" and exits 2), runs the task suite through S3's `synth.eval.run` with one extra evaluator, `ExpectedLogLines(TABLE[kind])`, which asserts the E §6.1 expected log lines for that kind in each task's JSONL (`{event, field: value}` subsets; a line matches when every listed field equals), prints the same table S3 prints, and exits non-zero when any expected line is missing. Seam: `--fake` on a 3-task fixture with a scripted task; done when `--mutate rename --fake` exits 0 with the expected lines, `--mutate shifted_cell --fake` reports 0 drift lines, and `--mutate version_bump --fake` reports a rung 0 line and 0 edge failures. Blocked by **F3 · Replay-first executor, end to end** and **S3 · Eval run with pydantic-evals** (and uses F5's `mutate` when present).
 
 **H2 · Evidence table for the Challenge 2 spec** (Track 6)
 
@@ -22,13 +22,13 @@ As the Challenge 2 author, `uv run -m harness evidence <jsonl...>` emits a markd
 
 ## Decisions already made
 
-Metrics exactly §7; the JSONL log is the single source of evidence for the harness, the debrief and the Challenge 2 spec; mutation suite instead of waiting for the real change (§6).
+Metrics exactly §7, computed by S3's `LogMetrics` evaluator; the runner is S3's `synth.eval.run` and H only adds the `ExpectedLogLines` evaluator to it; the JSONL log is the single source of evidence for the harness, the debrief and the Challenge 2 spec; mutation suite instead of waiting for the real change (§6).
 
 ## Assumed
 
-- `tasks.yaml` entries: `id, text, category, expect` where `expect` is an exact string, a number with tolerance, or a `contains` list.
-- A task counts as success when the summary matches `expect`; time is `task.end.ts − task.start.ts`.
-- Live runs on the desktop call `POST /__reset` before each task and `POST /__check` with the practice-task JSON after it (team token); success then also needs `pass: true`, the expected `estado`, the `respuesta:` line or the `claves_razon` named, and no secret in the summary (Appendix A §5–§6).
+- Task files, their scoring and the live `__reset` / `__check` sequence are S3's; `mutate` only adds the expected-log-line assertions on top.
+- The E §6.1 table of expected log lines per mutation kind lives in `harness/` as data, keyed by kind.
+- Time per task is `task.end.ts − task.start.ts`.
 
 ## Not building
 
@@ -36,4 +36,4 @@ CI gate on every deploy (§10; trigger: any change after the baseline is frozen)
 
 ## Live checks (human)
 
-Baseline run on SIGECOM before 15:30, re-run after; mutation suite before and on the real change; evidence table pasted into the Challenge 2 spec.
+Mutation suite before 15:30 and on the real change (`uv run -m harness mutate <kind>` per kind); the baseline and after runs are S3's `synth eval --live`; evidence table pasted into the Challenge 2 spec.
