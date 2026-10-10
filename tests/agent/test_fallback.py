@@ -75,3 +75,19 @@ def test_a_batch_stops_at_its_first_failed_effect(monkeypatch, fixtures_dir, tmp
     assert session.clicks == [] and session.screen == "inicio"
     results = [m["content"] for m in llm.calls[2]["messages"] if m["role"] == "tool"]
     assert results[0].startswith("failed") and all(r.startswith("not run") for r in results[1:]) and len(results) == 3
+
+
+def test_a_tool_that_raises_comes_back_as_a_failed_call_and_the_loop_goes_on(monkeypatch, fixtures_dir, tmp_path):
+    async def no_chords(self, name):
+        raise ValueError(f"unknown key {name}")
+
+    monkeypatch.setattr(FakeSession, "key", no_chords)
+    status, events, _, llm = run(monkeypatch, fixtures_dir, tmp_path / "memory", READ,
+                                 [("key", {"name": "ctrl+a"})], LEARN, [("done", {"answer": "1"})],
+                                 {"text": "respuesta: 1"})
+
+    assert status["status"] == "terminada"
+    assert [(s["tool"], s["outcome"]) for s in events if s["event"] == "step"][0] == ("key", "fail")
+    result = next(m["content"] for m in llm.calls[2]["messages"] if m["role"] == "tool")
+    assert result.startswith("failed") and "unknown key ctrl+a" in result
+
