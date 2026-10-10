@@ -98,9 +98,9 @@ def test_fill_field_clicks_the_paired_input_then_types(three_nodes):
     assert session.keys == ["tab"] and session.typed == ["Ruiz"]  # no caret showed on the fake, so Tab first
 
 
-def test_navigate_to_replays_the_stored_edges_at_their_xy(three_nodes):
+def test_go_to_replays_the_stored_edges_at_their_xy(three_nodes):
     t, session, perceive = tools(*three_nodes, "inicio")
-    effect = run(t.navigate_to("Facturas"))
+    effect = run(t.go_to("Facturas"))
     assert (effect.ok, effect.screen_id, session.screen, perceive.calls) == (True, "facturas", "facturas", 0)
     assert session.clicks == [(215, 35), (280, 101)]
 

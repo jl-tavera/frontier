@@ -1,7 +1,7 @@
 """The executor's tools (solution §3.1): plain async Python that names targets, never coordinates, and returns
 the observed Effect instead of raising on a miss.
 
-Low: click, type, key, screenshot. Mid: click_text, fill_field, read_region, wait_for. High: navigate_to.
+Low: click, type, key, screenshot. Mid: click_text, fill_field, read_region, wait_for. High: go_to.
 Mapped edges replay through `replay_edge`; everything else observes through `observe` and grounds through
 `replay_target`, perceiving only when the snapshot doesn't hold the target."""
 import asyncio
@@ -142,7 +142,7 @@ class Tools:
 
     # high
 
-    async def navigate_to(self, screen: str) -> Effect:
+    async def go_to(self, screen: str) -> Effect:
         """Follow the map's edges from the current node, each replayed at its stored xy."""
         t0, want = time.monotonic(), _fold(screen)
         goal = (screen if screen in self.m.nodes else None) or next(

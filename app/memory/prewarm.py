@@ -47,7 +47,7 @@ async def prewarm(session: Session, m: AppMap, perceive: Perceive, *, clock: Cal
                 await session.settle()
             elif to != src and (back := next((e for e in m.edges.values() if e["to"] == src), None)):
                 # lazy: walks back along any confirmed menu edge into src, as SIGECOM's menu bar is on every screen;
-                # navigate_to src when an app's menus are per screen
+                # go_to src when an app's menus are per screen
                 look = back["action"]["target"]["appearances"][0]
                 await _click_item(session, m, perceive, to, back["action"]["params"]["menu"],
                                   Target(look["label"], look["role"], tuple(look["cell"])), look["xy"])

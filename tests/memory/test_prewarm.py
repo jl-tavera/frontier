@@ -16,7 +16,7 @@ SCREENS = ["inicio", *ITEMS.values()]
 
 
 def menu_tree():
-    """Every top menu opens its dropdown from any screen; Esc closes it, an item navigates."""
+    """Every top menu opens its dropdown from any screen; Esc closes it, an item opens its screen."""
     t = {(s, label): menu for s in SCREENS for label, menu in MENUS.items()}
     for menu in MENUS.values():
         t[(menu, "esc")] = "inicio"
