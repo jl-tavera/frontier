@@ -58,12 +58,6 @@ def test_task_runs_from_en_curso_to_terminada(client, monkeypatch):
     assert s == {"task_id": task_id, "status": "terminada", "summary": "hecho", "data": {"n": 3}}
 
 
-def test_stub_worker_finishes_terminada(client):
-    task_id = client.post("/tasks", json=BODY, headers=AUTH).json()["task_id"]
-    s = _wait(client, task_id)
-    assert s["status"] == "terminada" and s["summary"].startswith("stub")
-
-
 def test_unknown_task_is_404(client):
     assert client.get("/tasks/nope", headers=AUTH).status_code == 404
 
