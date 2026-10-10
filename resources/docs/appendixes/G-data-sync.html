@@ -62,7 +62,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
 <p><strong>Scope:</strong> an expansion of <a href="../solution.html">solution.md §5 Track 4</a> (4.1–4.4).
-<strong>Decision:</strong> a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.</p>
+<strong>Decision:</strong> a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, cheapest scope first: the app's own change log when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>, one screen for every entity), else the entity's grid. The app always wins, and write tasks never read from the cache.</p>
 <hr />
 <h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
 <p>What "sync" means here. There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (<a href="B-target-recon.html">Appendix B</a>). In this project, "sync" means:</p>
@@ -182,6 +182,11 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
      │                      │── yes ─────────────────►│ probe()                      │
+     │                      │                         │ change log registered? once: │
+     │                      │                         │── navigate + read page 1 ───►│  (Bitácora)
+     │                      │                         │◄─ page-1 hash ───────────────│
+     │                      │                         │ == watermark? ── yes: all fresh
+     │                      │                         │ (no change log, or changed:) │
      │                      │                         │── navigate + read footer ───►│
      │                      │                         │◄─ count=812, page1 hash ─────│
      │                      │                         │ matches sync_state? ── yes   │
@@ -199,7 +204,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </code></pre>
 <p>The steps:
 1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
-2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation plus one footer/first-page read, a few seconds.
+2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
 3. <strong>Miss or mismatch:</strong> acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
    - <strong>Export (4.1):</strong> the whole table in one action. Lossless if the file or screen it produces can be read.
    - <strong>Clipboard (4.4):</strong> select-all + copy → <code>ServerCutText</code>. Lossless text, usually tab-separated.
@@ -212,11 +217,10 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <h3 id="42-keeping-it-in-sync">4.2 Keeping it in sync<a class="headerlink" href="#42-keeping-it-in-sync" title="Permanent link">¶</a></h3>
 <p>Nothing pushes changes to us. Freshness has to be <strong>detected</strong> by looking at the screen. In order of use:</p>
 <ol>
-<li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
-<li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed":
-   - the grid's <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size), and
-   - a <strong>hash of page 1</strong>, sorted newest first if the grid can sort.
-   Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
+<li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. Then re-read change-log page 1 so the watermark includes our own entry; that entry is also the proof of the write for the summary. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
+<li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed", cheapest scope first:
+   - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
+   - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
 <li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
 <li><strong>Optional pre-warm.</strong> If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.</li>
 </ol>
@@ -252,7 +256,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 </tbody>
 </table></div>
-<p>The last row is the <strong>known staleness window</strong>, and we accept it. Mitigations:
+<p>The last row is the <strong>known staleness window</strong>, and we accept it. When the app has a change log that records edits, the change-log probe closes it: an old-row edit is a new log entry. Mitigations when it has none:
 - the expiry time puts an upper bound on it
 - any answer that depends on one specific record goes through the targeted path (§4.1.2), which always reads live
 - the task summary states when an answer came from the cache and how old that cache was</p>
@@ -273,8 +277,14 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <p>Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" (<a href="../solution.html">solution.md §8</a>). A human <code>operador2</code> is not ruled out, and steps 2 and 4 are what protect us from them.</p>
 <h4 id="434-schema-or-ui-drift-the-1530-change">4.3.4 Schema or UI drift (the 15:30 change)<a class="headerlink" href="#434-schema-or-ui-drift-the-1530-change" title="Permanent link">¶</a></h4>
 <ul>
-<li>Each entity stores a <strong>header hash</strong> (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, <strong>drop that entity's rows and re-acquire them</strong>. No attempt is made to migrate them.</li>
+<li>Each entity stores a <strong>header hash</strong> (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, <strong>re-acquire the entity's rows</strong> (they are disposable, so re-acquire is the migration) and then <strong>align the old headers to the new ones</strong>, cheapest rung first:
+  1. normalised exact match (case, accents, whitespace, punctuation);
+  2. <code>difflib.SequenceMatcher</code> ratio ≥ 0.8 (stdlib);
+  3. value match: join old rows to new rows on the natural key, when the key column aligned in 1–2, and pair the columns whose parsed values agree on ≥ 90 % of the shared keys;
+  4. leftovers: one LLM call with the old headers, the new headers and 3 sample rows, "no counterpart" allowed.</li>
+<li>The result is <code>sync_state.column_map</code>, <code>{"old header": "new header"}</code>, chained across epochs so the oldest name stays usable. <code>data_json</code> is always keyed by the <strong>live</strong> header; a query written against an older name is translated through the map. This is what keeps learned procedures and the planner's "Valor is the amount" valid across a rename. Headers with no counterpart are left out of the map and logged (<code>sync.schema_drift {old, new, aligned, unaligned}</code>). If the alignment is inconclusive, the behaviour is the old one: an empty entity, no map.</li>
 <li>Columns are mapped by header text, so a column that only <strong>moves</strong> doesn't break anything.</li>
+<li>The entity key is the nav map's <strong>node id</strong> for the grid screen, not the screen title; the title is one of that node's appearances (<a href="E-mapping-methodology.html">Appendix E §4.2</a>). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.</li>
 <li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="E-mapping-methodology.html">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
 </ul>
 <h4 id="435-conflict-policy-in-one-line">4.3.5 Conflict policy, in one line<a class="headerlink" href="#435-conflict-policy-in-one-line" title="Permanent link">¶</a></h4>
@@ -335,6 +345,11 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <td>The sync engine never clicks it; read-only actions only</td>
 </tr>
 <tr>
+<td>Header hash changed (a column renamed, added or removed)</td>
+<td><code>sync_state.header_hash</code> differs from the live header row</td>
+<td>Re-acquire, then the §4.3.4 alignment ladder → <code>column_map</code>; inconclusive → empty entity, no map; log <code>sync.schema_drift</code></td>
+</tr>
+<tr>
 <td>Cache file lost (Railway redeploy, corruption)</td>
 <td>Missing file or <code>PRAGMA integrity_check</code> fails</td>
 <td>Delete it and start cold; correctness is unaffected</td>
@@ -345,7 +360,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <h3 id="45-database-schema">4.5 Database schema<a class="headerlink" href="#45-database-schema" title="Permanent link">¶</a></h3>
 <pre><code class="language-sql">CREATE TABLE rows (
   app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
-  entity      TEXT NOT NULL,          -- e.g. 'Facturas', named from the screen
+  entity      TEXT NOT NULL,          -- nav-map node id of the grid screen; its title is an appearance (E §4.2)
   natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
   data_json   TEXT NOT NULL,          -- {&quot;Numero&quot;: &quot;F-0042&quot;, &quot;Total&quot;: 1520.00, ...}, keyed by header text
   row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
@@ -358,6 +373,8 @@ CREATE TABLE sync_state (
   app_id      TEXT NOT NULL,
   entity      TEXT NOT NULL,
   header_hash TEXT NOT NULL,          -- §4.3.4 schema drift
+  column_map  TEXT,                   -- §4.3.4 {&quot;old header&quot;: &quot;new header&quot;}, chained across epochs
+  role        TEXT NOT NULL DEFAULT 'entity',  -- §4.2: 'entity' | 'changelog' (the app-wide probe)
   row_count   INTEGER,                -- §4.2 probe
   probe_hash  TEXT,                   -- §4.2 probe (page 1)
   status      TEXT NOT NULL CHECK (status IN ('complete','partial','stale')),
@@ -386,6 +403,12 @@ CREATE TABLE sync_state (
 <td>Lookups under 30 s; repeated reads cost almost nothing</td>
 </tr>
 <tr>
+<td>The change log as the first probe</td>
+<td>Per-entity probes only</td>
+<td>Trusts the app's own log; an unlogged edit waits for the expiry backstop</td>
+<td>One navigation per task instead of one per entity; edits to old rows are caught</td>
+</tr>
+<tr>
 <td>Lazy per-entity sync</td>
 <td>Pre-loading everything</td>
 <td>The first read of each entity is slow</td>
@@ -402,6 +425,12 @@ CREATE TABLE sync_state (
 <td>Typed tables</td>
 <td>Weaker typing; <code>json_extract</code> in queries</td>
 <td>Works on an app we have never seen</td>
+</tr>
+<tr>
+<td>Align columns on a header change</td>
+<td>Drop and forget</td>
+<td>One LLM call on the headers the cheap rungs miss</td>
+<td>Procedures and queries survive a rename; the planner keeps knowing which column is the amount</td>
 </tr>
 <tr>
 <td>App-always-wins, read-before-write</td>
@@ -423,12 +452,14 @@ CREATE TABLE sync_state (
 <hr />
 <h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
 <ul>
+<li><strong>4.3 / run book step 0.5:</strong> what <code>Bitácora de cambios</code> lists (timestamp, user, entity or module, action, record code), its sort order and pagination, and whether every data edit appears as a row. v1 of the probe needs only its page 1 to change; naming the touched entity (v2) needs an entity column.</li>
 <li><strong>4.1:</strong> where <code>Exportar</code> output goes (a download, a new screen, a printer dialog), and whether we can read it over RFB.</li>
 <li><strong>4.4:</strong> whether select-all + copy works on grids or only on text fields, and what format it produces.</li>
 <li>Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.</li>
 <li>Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.</li>
 <li>Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.</li>
 <li>Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.</li>
+<li>Whether the natural-key column survives the 15:30 change. If it doesn't, the value-match rung of §4.3.4 is off, the leftovers go to the LLM rung, and the entity simply restarts.</li>
 </ul>
 <hr />
 <h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>

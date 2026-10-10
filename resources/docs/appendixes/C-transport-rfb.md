@@ -48,7 +48,7 @@ The decision therefore has two layers:
 | WebSocket client | `websockets` (asyncio, mature) | `ws` | `coder/websocket`, `gorilla` | `tokio-tungstenite` |
 | RFB reuse | our own ~200 LOC, or asyncvnc | could run noVNC's own `core/rfb.js` headless, but it's coupled to the DOM and canvas (Display, Keyboard) and would need shims | `go-vnc` (unmaintained) | `vnc-rs` |
 | Image and vision stack | numpy, Pillow, OpenCV, Tesseract / EasyOCR / PaddleOCR | weak (sharp, tesseract.js) | weak | weak |
-| Agent and service | Anthropic SDK, FastAPI, all in one process | good SDKs | OK | thin |
+| Agent and service | `openai` SDK against OpenRouter, `typesafe-sdk`, FastAPI, all in one process | good SDKs | OK | thin |
 | Team speed | POC already works | rewrite | rewrite | rewrite, slower iteration |
 
 ### 3.3 Layer B — WebSocket library within Python

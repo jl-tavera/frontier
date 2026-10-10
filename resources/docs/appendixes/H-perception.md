@@ -8,8 +8,8 @@
 - **OCR** (RapidOCR with a Latin model) gives exact text and boxes.
 - **Classic CV** (OpenCV) gives widget boxes: fields, buttons, grid lines.
 - **Heuristics** turn those into a **UI tree**: containment, grouping, label↔field pairing, grids.
-- **Claude** sees an element list, plus a Set-of-Mark image only when the screen is new, and answers with an **element id**, never x,y.
-- **Raw coordinates from Claude** are a last-resort fallback.
+- **The model** (the planner or the VLM, through OpenRouter) sees an element list, plus a Set-of-Mark image only when the screen is new, and answers with an **element id**, never x,y. On a mapped app it is not asked at all: the saved snapshot replays first (Spec W).
+- **Raw coordinates from the VLM** are a last-resort fallback.
 
 The whole pipeline is built around caching, because measurement (§6) shows that recognizing every line is the expensive part, not finding them.
 
@@ -50,7 +50,7 @@ There's no DOM and no accessibility tree; the transport only gives us pixels ([A
 | EasyOCR | Simple API | Pulls in PyTorch; slow on CPU | Discarded |
 | docTR, Surya | Strong document OCR + layout | Tuned for documents; want a GPU | Discarded |
 | Cloud OCR (Google Vision, Azure Read) | Very accurate | Network round trip per screen, cost, a key to manage | Discarded: latency inside the 5-minute budget |
-| VLM as OCR (Claude reading the image) | Understands context | Imprecise boxes, seconds per call, tokens | Semantics only (§3.3), never as the source of boxes |
+| VLM as OCR (the VLM reading the image) | Understands context | Imprecise boxes, seconds per call, tokens | Semantics only (§3.3), never as the source of boxes |
 
 ### 3.2 Non-text widgets — fields, buttons, grid lines, icons
 
@@ -65,7 +65,7 @@ Chen et al. (2020) asked exactly this question: old-fashioned CV, deep learning,
 
 | Option | Pros | Cons | Verdict |
 |---|---|---|---|
-| **Claude + element list (text) + Set-of-Mark image on new screens**: numbered boxes drawn on the screenshot; the model answers `click #12` | The model never predicts pixels. SoM and OmniParser show that marks plus a parsed element list greatly improve grounding for general-purpose VLMs. Text-only on known screens keeps it cheap | Only as good as the element list (§3.1/§3.2) | **Chosen** |
+| **The model + element list (text) + Set-of-Mark image on new screens**: numbered boxes drawn on the screenshot; the model answers `click #12` | The model never predicts pixels. SoM and OmniParser show that marks plus a parsed element list greatly improve grounding for general-purpose VLMs. Text-only on known screens keeps it cheap | Only as good as the element list (§3.1/§3.2) | **Chosen** |
 | Claude computer-use with direct x,y | Nothing to build | Pixel guesses; no element tree to feed the map or drift detection; can't tell why a click missed | **Last-resort fallback** for targets with no text and no box |
 | Specialist grounding models (UI-TARS, OS-Atlas, UGround, ShowUI, SeeClick) | State of the art on ScreenSpot / ScreenSpot-Pro | Need a GPU and model serving; another service to deploy | Discarded for the hackathon; listed as next step |
 
@@ -104,6 +104,7 @@ That's our tracks 2.2 and 2.4. Perception only has to deliver a stable tree and 
 ### 4.2 Fingerprint and change detection
 
 - **Fingerprint:** the sorted set of *stable* texts (title, menu, labels, column headers), plus a coarse layout hash of the tree. Values are excluded: grid cells, dates, the "Hoy:" clock. It doesn't depend on resolution, because it uses text and relative structure, not pixels.
+- **Moved, not changed:** before any OCR, a static element whose crop no longer matches at its stored bbox is searched over the frame with `cv2.matchTemplate`; lossless frames make the match exact, so a hit at ≥ 0.95 updates the bbox and skips perception (Spec W). Only a crop found nowhere triggers OCR.
 - **Drift (15:30):**
   - Same fingerprint but a known element is missing or has moved means a **changed screen**.
   - An unknown fingerprint after a known action means a **changed navigation**.
@@ -124,8 +125,8 @@ merge → elements → tree (containment · grouping · label↔field · grids �
   │
   ├─► fingerprint → screen cache: known screen = reuse whole tree, re-read only changed region
   ├─► app map (2.4) / drift (2.6)
-  └─► Claude: element list as text; + SoM image only on new or unexpected screens
-fallbacks: conf < 0.8 → upscale + Tesseract cross-check · no text/no box → Claude raw x,y
+  └─► the model: element list as text; + SoM image only on new or unexpected screens
+fallbacks: conf < 0.8 → upscale + Tesseract cross-check · no text/no box → VLM raw x,y
 ```
 
 **Two caches make this fast:**
@@ -136,7 +137,7 @@ fallbacks: conf < 0.8 → upscale + Tesseract cross-check · no text/no box → 
 
 ## 5. Trade-offs we accept
 
-- **Icons with no text aren't understood.** They fall back to Claude raw coordinates, or to the optional detector.
+- **Icons with no text aren't understood.** They fall back to the VLM's raw coordinates, or to the optional detector.
 - **Heuristic grouping can mis-pair labels** on dense forms. Action verification (3.3) catches it: "typed into a field, the wrong area changed."
 - **CPU only:** no specialist grounding models and no learned tree models. They're next steps if we get a GPU.
 - **Latin-script, horizontal text** is an assumption already stated in the design.
