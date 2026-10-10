@@ -27,7 +27,7 @@ APPENDIXES = {
     "c": ("C-transport-rfb", "Transport: raw RFB over WebSocket"),
     "d": ("D-mapping-papers", "Platform mapping: paper comparison"),
     "e": ("E-mapping-methodology", "Platform mapping: methodology"),
-    "f": ("F-agent-loop", "Agent loop"),
+    "f": ("F-agent-loop", "Executor"),
     "g": ("G-data-sync", "Data sync and read cache"),
     "h": ("H-perception", "Screen perception"),
     "i": ("I-poc-reference", "POC reference"),
@@ -117,18 +117,18 @@ def mini_tocs(body: str) -> str:
     return re.sub(r'<h2 id="appendix-([a-i])".*?(?=<h2 id="appendix-|\Z)', add, body, flags=re.S)
 
 
-SVG = """<figure class="arch"><svg viewBox="0 0 1180 545" role="img" aria-label="Components and deployment: the evaluator calls one Railway service holding the entrypoint, task runner, agent, data sync engine, perception, tools and replay, SQLite read cache, app memory, RFB session and JSONL log; the agent calls OpenRouter and Jev, and the RFB session talks to the target desktop">
+SVG = """<figure class="arch"><svg viewBox="0 0 1180 545" role="img" aria-label="Components and deployment: the evaluator calls one Railway service holding the entrypoint, task runner, executor, data sync engine, perception, tools and replay, SQLite read cache, app memory, RFB session and JSONL log; the executor calls OpenRouter and Jev, and the RFB session talks to the target desktop">
 <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker><marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
 <g class="rail"><rect x="210" y="20" width="720" height="480" rx="14"/><text x="230" y="46" class="t">Railway service · <tspan class="m">frontier-agent</tspan> · one container, one process</text></g>
 <g class="ext"><rect x="16" y="70" width="150" height="56" rx="8"/><text x="28" y="92" class="t">Evaluator</text><text x="28" y="111" class="l">HTTPS + Bearer · 5 min</text></g>
 <g class="box"><rect x="230" y="70" width="210" height="56" rx="8"/><text x="242" y="92" class="t">[A] Entrypoint API</text><text x="242" y="111" class="l">FastAPI · Bearer · task_id &lt; 2 s</text></g>
 <g class="box"><rect x="465" y="70" width="445" height="56" rx="8"/><text x="477" y="92" class="t">[B] Task runner</text><text x="477" y="111" class="l">asyncio task per job · 270 s guard · always writes a summary</text></g>
-<g class="box"><rect x="230" y="160" width="680" height="56" rx="8"/><text x="242" y="182" class="t">[C] Agent</text><text x="242" y="201" class="l">parse → executor (replay + probe) → summarize · fallbacks: Jev → VLM → planner tool-use loop</text></g>
+<g class="box"><rect x="230" y="160" width="680" height="56" rx="8"/><text x="242" y="182" class="t">[C] Executor</text><text x="242" y="201" class="l">parse → executor (replay + probe) → summarize · fallbacks: Jev → VLM → planner tool-use loop</text></g>
 <g class="box hi"><rect x="230" y="250" width="210" height="56" rx="8"/><text x="242" y="272" class="t">[S] Data sync engine</text><text x="242" y="291" class="l">probe, else Exportar → OCR</text></g>
 <g class="box"><rect x="465" y="250" width="210" height="56" rx="8"/><text x="477" y="272" class="t">[E] Perception</text><text x="477" y="291" class="l">RapidOCR + OpenCV · on change</text></g>
 <g class="box hi"><rect x="700" y="250" width="210" height="56" rx="8"/><text x="712" y="272" class="t">[D] Tools + [W] Replay</text><text x="712" y="291" class="l">stored xy → verify → repair</text></g>
 <g class="box hi"><rect x="230" y="340" width="210" height="56" rx="8"/><text x="242" y="362" class="t">[DB] SQLite read cache</text><text x="242" y="381" class="l">SQL answers · app always wins</text></g>
-<g class="box"><rect x="465" y="340" width="210" height="56" rx="8"/><text x="477" y="362" class="t">[F] App memory</text><text x="477" y="381" class="l">nav map per app epoch (JSON)</text></g>
+<g class="box"><rect x="465" y="340" width="210" height="56" rx="8"/><text x="477" y="362" class="t">[F] App memory</text><text x="477" y="381" class="l">app map per app epoch (JSON)</text></g>
 <g class="box"><rect x="700" y="340" width="210" height="56" rx="8"/><text x="712" y="362" class="t">[G] RFB session</text><text x="712" y="381" class="l">RFB 3.8 over WSS · clipboard</text></g>
 <g class="box log"><rect x="230" y="430" width="680" height="48" rx="8"/><text x="242" y="450" class="t">[H] JSONL log</text><text x="242" y="468" class="l">every step: tool · screen · effect · signal · rung · cost → Challenge 2 spec, debrief, eval harness</text></g>
 <text x="210" y="527" class="e">One Railway service · Docker python:3.12-slim + uv · uvicorn, 1 worker · no volume · CPU-only · SIGECOM's map and seeded cache ship in the image</text>

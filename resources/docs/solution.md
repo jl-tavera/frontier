@@ -6,18 +6,18 @@
 
 **Problem.** A 15-year-old management system with no API, no docs and no vendor. The evaluator sends a natural-language task plus a VNC desktop (URL + password) and expects a result within 5 minutes. Evaluation runs on an app **we have never seen**, on a clean desktop, and the app **changes at 15:30**.
 
-**Approach.** Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop. A task is a natural-language CRUD action: one fast-model call splits it into typed queries, and a deterministic executor answers reads from a SQLite cache behind a freshness probe and replays learned procedures for writes, clicking stored positions as long as the pixels still match. Perception (CPU-only OCR + classic CV) runs only when something changed, Jev answers the typed questions a changed screen raises, and the tool-use agent loop, which picks **named elements**, never coordinates, is the last resort. Everything the agent learns about an app (screens, nav graph, procedures, data) is a per-app memory built **at run time**, so the unseen app is handled exactly like SIGECOM: its first task perceives and learns, every later task replays. For SIGECOM the same memory is built ahead of time (`map --visit`, `seed`) and ships in the image. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.
+**Approach.** Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop. A task is a natural-language CRUD action: one fast-model call splits it into typed queries, and a deterministic executor answers reads from a SQLite cache behind a freshness probe and replays learned procedures for writes, clicking stored positions as long as the pixels still match. Perception (CPU-only OCR + classic CV) runs only when something changed, Jev answers the typed questions a changed screen raises, and the tool-use loop, which picks **named elements**, never coordinates, is the last resort. Everything the agent learns about an app (screens, app map, procedures, data) is a per-app memory built **at run time**, so the unseen app is handled exactly like SIGECOM: its first task perceives and learns, every later task replays. For SIGECOM the same memory is built ahead of time (`map --visit`, `seed`) and ships in the image. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.
 
 **What makes it work on an unseen app**
-1. No hand-coded map: perception + a learned nav graph keyed by the app's title bar.
+1. No hand-coded map: perception + a learned app map keyed by the app's title bar.
 2. Semantic targets (label + role + grid cell) with the last click point that worked cached beside them: replay clicks it while the pixels match, finds a moved target by template match, and re-grounds by perception only on a miss, so a moved or renamed button still works. Each screen and target keeps one **appearance** per app version, and the map is frozen per **epoch**, so a redesign adds a version instead of breaking memory.
 3. A disposable SQLite read cache behind a freshness probe (the app's own change log when it has one, like SIGECOM's Bitácora de cambios), so lookups answer in seconds instead of OCR-paging every time.
-4. A parse → replay → verify executor with a 270 s guard that always writes a summary; the tool-use agent loop runs only when there is nothing to replay.
+4. A parse → replay → verify executor with a 270 s guard that always writes a summary; the tool-use loop runs only when there is nothing to replay.
 5. One JSONL log of every step, which feeds the Challenge 2 spec, the debrief and the eval harness.
 
-**Eight decisions** (full table in §4): raw RFB instead of a headless browser · lossless Raw+CopyRect · hybrid OCR+CV perception with Set-of-Mark · learned per-app map instead of a hand map · export/clipboard before OCR for data · online localized repair instead of a full re-learn · replay and probe first, perception on change, the agent last · every model through OpenRouter, Jev for typed decisions.
+**Eight decisions** (full table in §4): raw RFB instead of a headless browser · lossless Raw+CopyRect · hybrid OCR+CV perception with Set-of-Mark · learned per-app map instead of a hand map · export/clipboard before OCR for data · online localized repair instead of a full re-learn · replay and probe first, perception on change, the tool-use loop last · every model through OpenRouter, Jev for typed decisions.
 
-**Measurement.** About 15 NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable answers. Metrics: success %, time per task, steps per task, click hit rate, drift detected/recovered. Baseline before 15:30, re-run after, plus a map-mutation suite that simulates the change in advance (§6).
+**Measurement.** About 15 NL tasks on SIGECOM: the 5 official practice tasks E1–E5 (create, update, count question, export, an ambiguous name that must fail) plus about 10 of our own (lookup, filter, create, edit, export, multi-screen), scored by the desktop's own `POST /__check` oracle plus checks on status and summary. Metrics: success %, time per task, steps per task, click hit rate, drift detected/recovered. Baseline before 15:30, re-run after, plus a map-mutation suite that simulates the change in advance (§6).
 
 ---
 
@@ -25,7 +25,7 @@
 
 **Inputs we have.** The brief ([Appendix A](appendixes/A-challenge-brief.md)), the recon of the target ([Appendix B](appendixes/B-target-recon.md): noVNC → websockify → RFB → SIGECOM shown only as pixels), and `poc/rfb_poc.py`, which already speaks raw RFB with no browser: VNC auth, Raw+CopyRect frames, click/type/key, quiet-time `settle`, and 4 tool functions (screenshot/click/type/key). See Appendix I.
 
-**The entrypoint contract** (Appendix A): `Authorization: Bearer <token>` on every call; `GET /health` → 200; `POST /tasks` receives the task and the desktop (URL + password) and must answer `{"task_id": …}` in **under 2 s**; `GET /tasks/{task_id}` returns `en_curso` / `terminada` / `fallida` plus a summary; **5 minutes per task**.
+**The entrypoint contract** (Appendix A): `Authorization: Bearer <token>` on every call; `GET /health` → 200; `POST /tasks` receives the task and the desktop (URL + password) and must answer `{"task_id": …}` in **under 2 s**; `GET /tasks/{task_id}` returns `en_curso` / `terminada` / `fallida` plus a summary; **5 minutes per task**. The summary carries one `respuesta: <value>` line for a question (a number first, two values joined by `;`, no line when unanswerable), names the data behind a `fallida`, and never repeats the desktop password or any other secret. After the final status the agent stops acting: anything later lands in the next task as an out-of-task change. Full rules in Appendix A §6.
 
 **The constraint that shapes everything:** evaluation runs on an app we have never seen, on a clean desktop, with 5 minutes per task, and the app changes at 15:30. So "mapping" can't be a hand-built coordinate map of SIGECOM. It has to be something the agent learns while it runs. SIGECOM is only for development.
 
@@ -40,6 +40,7 @@ Digest of the recon in Appendix B:
 - Wire: browser → `wss://…/websockify` → websockify proxy → TCP RFB 3.8 → VNC server in a Docker container (`86a79607eef2:0`). Auth is VNC Authentication (DES challenge-response). Native framebuffer is **1280×800**.
 - The desktop is **shared**: the user label flipped between `operador` and `operador2`, so a human or another client may be on the same display.
 - SIGECOM menu tree: Archivo › Inicio · Comercial › Maestros › Clientes, Ventas › Pedidos · Cartera › Facturas · Herramientas › Bitácora de cambios, Reportes generados, Configuración › Integraciones · Ayuda › Acerca de. Facturas has filters (Cliente, Estado), **Buscar / Limpiar / Exportar**, a grid (Código, Cliente, Fecha, Vence, Valor, Estado) and Anterior · Página 1 · Siguiente.
+- From the organizers (Appendix A §5): a screen repaints up to 1 s after a click, a click held under 100 ms is ignored, and typing into a non-empty field concatenates, so every fill selects all first. The desktop also exposes `POST /__reset` (reload the seed data) and `POST /__check` (score a practice task against the app's state).
 - **Integraciones** shows an accounting-connector key with "No comparta esta clave": denylisted.
 
 ## 3. Architecture
@@ -55,11 +56,11 @@ Digest of the recon in Appendix B:
 | Runtime | Python 3.12, `uv` (PEP 723 inline deps + lockfile), one process | One language for transport, vision and agent, no IPC. Node/Go/Rust rewrite discarded (Appendix C §3.2) |
 | [A] Entrypoint | FastAPI + uvicorn | Async-native next to the asyncio RFB client. `POST /tasks` validates the Bearer, stores `en_curso`, schedules the job and returns in well under 2 s |
 | [B] Task runner | `asyncio` task per job, in-process state dict, 270 s guard | No broker to deploy before 20:00 (upgrade path in §10) |
-| [C] Agent | `openai` SDK pointed at OpenRouter, three model tiers from env: `MODEL_FAST` (task → typed CRUD queries, summary), `MODEL_VLM` (re-ground and re-identify with a Set-of-Mark image), `MODEL_PLANNER` (the tool-use fallback loop, replans). Jev (TypeSafe AI, `typesafe-sdk`) as System 1 for the typed per-step questions behind a 0.8 confidence gate, with `MODEL_FAST` as its keyless fallback. Prompt caching where OpenRouter passes it through | Parse → deterministic executor first, tool-use loop last (Appendix F). Anthropic SDK discarded: one vendor door for every model. Agent frameworks and MCP discarded: no latency gain, more to explain |
-| [D] Tools | Plain Python functions in three levels (low: click/type/key/screenshot · mid: click_text, fill_field, read_region, wait_for · high: navigate_to, read_grid, export) | Every tool returns an observed effect (diff bbox, new screen id), never just an image |
+| [C] Executor | `openai` SDK pointed at OpenRouter, three model tiers from env: `MODEL_FAST` (task → typed CRUD queries, summary), `MODEL_VLM` (re-ground and re-identify with a Set-of-Mark image), `MODEL_PLANNER` (the tool-use fallback loop, replans). Jev (TypeSafe AI, `typesafe-sdk`) as System 1 for the typed per-step questions behind a 0.8 confidence gate, with `MODEL_FAST` as its keyless fallback. Prompt caching where OpenRouter passes it through | Parse → deterministic executor first, tool-use loop last (Appendix F). Anthropic SDK discarded: one vendor door for every model. Agent frameworks and MCP discarded: no latency gain, more to explain |
+| [D] Tools | Plain Python functions in three levels (low: click/type/key/screenshot · mid: click_text, fill_field, read_region, wait_for · high: go_to, read_grid, export) | Every tool returns an observed effect (diff bbox, new screen id), never just an image |
 | [W] Replay | Plain Python over [F]'s stored appearances: `observe` compares the node's static-region crops byte-for-byte with the frame and returns the stored element snapshot on a match; `cv2.matchTemplate` (≥ 0.95, found once) for a target that only moved; `replay_edge` clicks the edge's last-good `xy`, verifies the destination and on a miss perceives, re-grounds and rewrites `xy`. Logs `fastpath: hit / moved / repaired / miss:<reason>` | OCR on every step: about a second per step and more noise on a screen the map already knows. Lossless frames make byte equality and exact template match safe (Appendix H §4) |
 | [E] Perception | RapidOCR on ONNX Runtime (Latin PP-OCRv5 rec model, angle classifier off), OpenCV contours + grid lines, numpy, Pillow; lines under 0.8 confidence flagged (Tesseract `spa` cross-check deferred, §10) | CPU-only hybrid. Detect once, recognize lazily, cache by line pixels (Appendix H). GPU grounding models discarded for the hackathon |
-| [F] App memory | Nav graph: one map per app epoch (`memory/<app_id>/<version>/map.json`, next to that version's reference PNGs and crops, Appendix E §4.2): nodes and targets with one appearance per version, edges, procedures, frontier | Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded |
+| [F] App memory | App map: one per app epoch (`memory/<app_id>/<version>/map.json`, next to that version's reference PNGs and crops, Appendix E §4.2): nodes and targets with one appearance per version, edges, procedures, frontier | Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded |
 | [S] Data sync engine | Plain Python: `need(entity)` → probe: the app's change-log page 1 when one is registered (once per task, one screen for every entity), else the entity's row count + page-1 hash → cache hit or acquire through the ladder Exportar → clipboard (`ServerCutText`) → OCR paging; normalise by header text; staging table → one-transaction swap; write-through read-back after our own writes; on a header change, align old → new columns into `column_map` (Appendix G) | Always reading live: 30–120 s per entity. Push/CDC: impossible, there is only pixels |
 | [DB] SQLite read cache | stdlib `sqlite3`, WAL, one file, generic JSON rows (`rows`, `sync_state`), `json_extract` queries so filters and sums are SQL, not LLM arithmetic | JSON files: no queries, half-written on crash. DuckDB: extra dep. Postgres/Redis: ops work, no benefit for ~1k rows (§10 for later) |
 | [G] RFB session | `websockets` ≥ 13 (asyncio client, `binary` subprotocol), `pycryptodome` (VNC DES auth), numpy framebuffer; Raw + CopyRect only; `shared=1`; `ClientCutText`/`ServerCutText` clipboard | ~200 LOC we own instead of a headless browser (+300 MB, lossy JPEG, canvas offsets) or a TCP-only VNC library (Appendix C §3.1) |
@@ -75,7 +76,7 @@ Digest of the recon in Appendix B:
 3. [E] fingerprints the screen and identifies the app (title bar) → [F] loads the map for that app and version if one exists, inherits the previous version's map as hints if only the version is new, otherwise starts cold (first task on an app or on a new version: ≤ 45 s menu pre-warm, Appendix E §4.3).
 4. [C] splits the task into typed CRUD queries with one fast-model call. The executor runs them: reads go change-log probe → [DB] cache → SQL (on a miss, the [S] ladder); writes replay the stored procedure for that (op, entity) with the query's fields. Every step: `observe` replays the stored bbox while the static pixels match (a target that only moved is found by template match) → act → settle → compare with the edge's expected effect → return the observed effect. Perception runs only on a changed screen.
 5. Unexpected screen / no effect → [E] flags drift → [F] marks the node stale → [C] runs the repair ladder (§6): Jev picks the new target from the element list, the VLM when Jev is unsure, local re-explore, replan. The tool-use loop with `MODEL_PLANNER` takes over only when a query has no procedure, the parse is unsure or the ladder is exhausted, and it stores what it did as the procedure for next time. This is the 15:30 path and the unseen-app path.
-6. Finish or 270 s guard → [C] writes the summary in the README format → status `terminada` / `fallida`. [F] persists anything new it learned.
+6. Finish or 270 s guard → [C] writes the summary in the README format (`respuesta:` line, the reason's data on `fallida`, secrets scrubbed) → status `terminada` / `fallida` → the session stops acting. [F] persists anything new it learned.
 
 ### 3.4 Deployment on Railway
 
@@ -115,16 +116,16 @@ curl -s https://<service>.up.railway.app/tasks/<task_id> -H "Authorization: Bear
 | Edge target | Semantic target (label + role + cell) plus the last-good `xy` as a cache: tried first, verified by the destination, re-grounded by perception and rewritten on a miss | Stored x,y alone: breaks the moment a button moves, which is exactly 15:30, with nothing to repair it. Semantic target only: perception on every replay |
 | Initial mapping | Task-driven incremental graph + ≤ 45 s menu pre-warm; traces written back after each task, so the unseen app replays from its second task. SIGECOM only: a dev-time `map --visit` (the same pre-warm function with a flag) and a cache `seed`, committed (Appendix E §4.3) | Full up-front exploration at task time: 10 min to hours per app |
 | Settle | Quiet-time + expected-change check | Fixed sleeps: slow and flaky |
-| Data reads | Disposable SQLite cache behind a probe: the app's change log when it has one, else the entity's grid; on a miss native export / clipboard first, OCR paging last (Appendix G) | OCR every page: slow and error-prone. Always-live reads: too slow for lookups. Per-entity probe only: one navigation per entity per task |
+| Data reads | Disposable SQLite cache behind a probe: the app's change log when it has one, else the entity's grid; on a miss native export / clipboard first, OCR paging last (Appendix G) | OCR every page: slow and error-prone. Always-live reads: too slow for lookups. Per-entity probe only: one route replay per entity per task |
 | Concurrency | One RFB session per task, `shared=1` | Exclusive session: would kick the evaluator/human viewer |
 | Change handling | Detect drift with fingerprint + action-effect checks → 4-rung localized repair, written back (§6) | Full re-learn: too slow inside 5 min. Offline-only repair: fails exactly when the change hits |
 | Redesign-scale change | Rung 0: open a new epoch that inherits the old map as hints, re-run the pre-warm; screens and targets keep one appearance per version; data columns aligned old → new (§6) | Treating it as N independent edge failures: ≈ 50 s each, budget gone after 3. Deleting the old map: loses the flip-back and the before/after diff |
 | Tool exposure | Plain Python functions called by the loop | MCP: an extra process and hop; nothing outside the service needs the tools |
-| Agent loop | One fast-model call parses the task into typed CRUD queries; a deterministic executor replays and verifies; Jev answers the typed questions a changed screen raises; the tool-use loop with batched actions runs only as the fallback and learns the procedure (Appendix F) | Tool-use loop on every task: 3–5× the LLM calls and a second of OCR per step. Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain |
+| Executor | One fast-model call parses the task into typed CRUD queries; a deterministic executor replays and verifies; Jev answers the typed questions a changed screen raises; the tool-use loop with batched actions runs only as the fallback and learns the procedure (Appendix F) | Tool-use loop on every task: 3–5× the LLM calls and a second of OCR per step. Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain |
 | Model access | Every LLM through OpenRouter (`openai` SDK with `base_url`), three tiers from env; Jev through `typesafe-sdk` with a keyless fallback behind the same `decide` | Anthropic SDK: a second vendor door and a second fake to maintain; one API shape for every tier is less to build and easier to swap |
 | Storage | One JSON per app for the map; one SQLite file for data | Neo4j + vector DB: two services for a 10–20 node graph. Postgres/Redis: ops work with no benefit today (§10 for later) |
 
-Per-track decision tables with more alternatives: transport Appendix C §3, mapping Appendix E §5, agent loop Appendix F §3, data sync Appendix G §3, perception Appendix H §3.
+Per-track decision tables with more alternatives: transport Appendix C §3, mapping Appendix E §5, executor Appendix F §3, data sync Appendix G §3, perception Appendix H §3.
 
 ## 5. Work breakdown
 
@@ -159,7 +160,7 @@ The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools +
 | # | Sub-problem | Done when |
 |---|---|---|
 | 2.1 | **Screen perception**: screenshot → structured elements (text + bbox + kind: menu, button, field, link, grid cell) → UI tree. **Split out into track 7** | ≥90% of the labels on 5 SIGECOM screens found with correct boxes |
-| 2.2 | **Exploration**: the agent walks menus by itself and builds a nav graph (screen → action → screen), with a denylist of dangerous actions (Integraciones, delete, anular) | full SIGECOM menu tree in under N minutes with no hand-written coordinates (methodology: the 9 menu screens inside the 45 s pre-warm) |
+| 2.2 | **Exploration**: the agent walks menus by itself and builds the app map (screen → action → screen), with a denylist of dangerous actions (Integraciones, delete, anular) | full SIGECOM menu tree in under N minutes with no hand-written coordinates (methodology: the 9 menu screens inside the 45 s pre-warm) |
 | 2.3 | **Screen fingerprint**: recognize "which screen am I on" (title text + layout hash), resolution-independent | the same screen at 2 resolutions → same ID; 10 distinct screens → 10 ids; dropdown open/closed → same node |
 | 2.4 | **Map storage**: a per-app memory (screens, fields, paths, learned procedures), keyed by app identity (title bar) | a second task on the same app reuses the map and finishes faster |
 | 2.5 | **Pre-warm vs cold start**: is there time to explore inside 5 minutes, or only on demand? Decide what's explored up front and what's learned during the task | decision written in the design doc, with timings (decided: cold + incremental, one ≤ 45 s menu pre-warm, Appendix E §4.3) |
@@ -169,12 +170,12 @@ The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools +
 
 | # | Sub-problem | Done when |
 |---|---|---|
-| 3.1 | **Tool set by level**: low (`click`, `type`, `key`, `screenshot`) → mid (`click_text("Buscar")`, `fill_field(label, value)`, `read_region`, `wait_for(text)`) → high (`navigate_to(screen)`, `read_grid()`, `export()`) | each tool has one test against SIGECOM |
+| 3.1 | **Tool set by level**: low (`click`, `type`, `key`, `screenshot`) → mid (`click_text("Buscar")`, `fill_field(label, value)`, `read_region`, `wait_for(text)`) → high (`go_to(screen)` replays the stored route, `read_grid()`, `export()`) | each tool has one test against SIGECOM |
 | 3.2 | **Coordinate grounding**: the model says a target and the tool resolves it to pixels with 2.1, so the LLM never guesses raw coordinates | ≥95% click hit rate on named targets |
 | 3.3 | **Action verification**: every tool returns an observed effect (diff bbox, new screen ID), not just an image | failed actions are reported, not hidden |
 | 3.4 | **Token / latency budget**: screenshot size, crops, when to send an image vs text | average step under X s, task under 5 min (options in Appendix F) |
 | 3.5 | **Executor + fallback loop** (strategy in Appendix F): parse → replay → verify, the tool-use loop as the last resort; budget guard that stops at about 4:30 and writes a summary | never times out without a summary; a mapped lookup runs with 2 LLM calls |
-| 3.6 | **Eval harness**: about 15 written NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable expected answers → success rate | a single command prints the success % (this is also the measurement plan in the design doc) |
+| 3.6 | **Eval harness**: the 5 official practice tasks (`resources/docs/references/pruebas/`) plus about 10 written NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable expected answers → success rate | a single command prints the success % (this is also the measurement plan in the design doc) |
 | 3.7 | **Fast loop strategy**: replay before perception, Jev System 1 on a changed screen, batching inside the fallback (see Appendix F) | s/step and steps/task measured on the 3.6 harness; the chosen strategy beats the baseline |
 
 ### Track 4 — Data sync for quick wins (owner: shared with 2; Appendix G)
@@ -232,7 +233,7 @@ After rung 3 the tool-use loop takes the step with the planner model and writes 
 
 ## 7. Measurement plan
 
-Eval harness (3.6): about 15 NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.
+Eval harness (3.6): the 5 official practice tasks E1–E5 ([`references/pruebas/`](references/pruebas/)) plus about 10 written NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Each run is `POST /__reset` → `POST /tasks` → poll → `POST /__check` with the task JSON (expected changes, no out-of-task actions, no duplicates) plus our own checks on `estado`, the `respuesta:` line, the `claves_razon` named on a failure and no secret in the summary: the same five conditions the evaluator scores (Appendix A §6). Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.
 
 Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, fastpath breakdown per step (hit / moved / perceived / llm), probe outcome (change log or entity, hit or miss), LLM calls per task by tier, steps per task, recoveries, escalation rate (Jev → VLM → planner). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §6). On a redesign: seconds to recognise the epoch at task start, nodes re-identified / inherited, columns aligned / total.
 
@@ -241,6 +242,9 @@ Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for e
 - The unseen app is a GUI with readable text (Latin script, horizontal) and conventional widgets. Canvas-heavy, drawing-style apps are out of scope.
 - No CAPTCHA or 2FA inside the remote app.
 - Destructive actions (delete, anular, Integraciones) need the task to state them explicitly. Denylist by default: `Integraciones, Eliminar, Anular, Borrar, Guardar*, Enviar, Configuración`.
+- "Today" is the date the app shows, not the server clock; relative dates in a task are resolved from it.
+- An ambiguous target (two customers with the same name, practice task E5) is never guessed: the task ends `fallida` and the summary names the candidates' ids.
+- The evaluation desktop can differ from one task to the next; nothing is tied to a URL, the map is keyed by the app's title bar.
 - One task at a time per desktop. Parallel tasks on the same desktop aren't supported.
 - VNC Authentication (type 2) only; type 1 (None) is trivial to add; VeNCrypt and RA2 are out of scope.
 - Icons with no text fall back to the VLM's raw coordinates. CPU-only deploy, no specialist grounding models.
@@ -273,7 +277,7 @@ Everything below was considered and deliberately left out of the one-day build; 
 | Map growth | Rank down, never delete; whole map in the prompt | Pruning of dead edges, macro-action mining from frequent traces (Executable Agentic Memory), map summary retrieval instead of the whole graph | The map no longer fits comfortably in the planning prompt |
 | Perception | CPU OCR + CV heuristics, Set-of-Mark, exact-scale template match | Upscale + Tesseract `spa` re-OCR of low-confidence lines; scale-tolerant matching; GPU grounding service (UI-TARS, OmniParser V2, UGround) and a learned icon detector; learned tree models (ScreenAI-style) | Accent errors, a resolution change or lossy encoding, an icon-heavy app, or click hit rate below 95 % on the harness |
 | Transport | Raw + CopyRect, VNC auth only, quiet-time settle | Tight with JPEG off (lossless zlib), auth types None/VeNCrypt, websocat bridge + asyncvnc as fallback (A4), hardened reconnect and keep-alive | Bandwidth hurts, or a target server offers an unsupported encoding or auth type |
-| Agent loop | Parse → executor, Jev on a changed screen, the tool-use loop as the fallback | Jev for `effect_ok` and `done` on every step, not only on a miss; per-tier model ids tuned on the harness; prompt caching verified through OpenRouter's usage fields; parallel tool calls | Seconds per step or LLM calls per task above the harness targets |
+| Executor | Parse → executor, Jev on a changed screen, the tool-use loop as the fallback | Jev for `effect_ok` and `done` on every step, not only on a miss; per-tier model ids tuned on the harness; prompt caching verified through OpenRouter's usage fields; parallel tool calls | Seconds per step or LLM calls per task above the harness targets |
 | Freshness probe | Change-log page 1 marks every entity stale | Parse the change-log rows to invalidate only the entities they name | The Bitácora names the entity per row and re-acquires cost more than the parse |
 | Mapping across tasks | Learn on the task path, write back at task end | Offline consolidation between tasks (merge traces, dedupe nodes), background frontier exploration on a spare session, transfer of generic procedures (login, search, export) across apps | A spare desktop session exists, or several apps share UI conventions |
 | Observability | One JSONL file | OpenTelemetry traces + a log store, a dashboard for the 3.6 metrics, a replay tool that re-renders a task from its JSONL | More than one person debugging, or more than one deployment |
@@ -284,7 +288,7 @@ Everything below was considered and deliberately left out of the one-day build; 
 
 ## 11. Known unknowns (consolidated)
 
-From the brief (Appendix A): summary format and evaluation rules (material README), details of the 15:30 change, access to the test app, team token.
+From the brief (Appendix A): details of the 15:30 change.
 
 From the recon (Appendix B): exact RFB server version and security type; VNC server implementation and what wraps SIGECOM; whether SIGECOM is a web app in an embedded browser or a native toolkit; the true native resolution/DPI (1280×800 measured by the POC); the accounting connector behind the Integraciones key; per-IP / rate / concurrency limits.
 
@@ -292,7 +296,7 @@ From data sync (Appendix G §7): what the Bitácora de cambios lists (columns, o
 
 From perception (Appendix H §7): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; `click_text` hit rate; timings on Railway.
 
-From the agent loop (Appendix F §7): Jev's out-of-distribution behaviour on the unseen app, vendor-run benchmarks, which OpenRouter models fill the three tiers.
+From the executor (Appendix F §7): Jev's out-of-distribution behaviour on the unseen app, vendor-run benchmarks, which OpenRouter models fill the three tiers.
 
 ---
 
@@ -307,7 +311,7 @@ The source documents live in `resources/docs/appendixes/`, letter-prefixed in th
 | C | Transport: raw RFB over WebSocket | [C-transport-rfb.md](appendixes/C-transport-rfb.md) | [open](appendixes/C-transport-rfb.html) | where the RFB client runs, language and library, measurements |
 | D | Platform mapping: paper comparison | [D-mapping-papers.md](appendixes/D-mapping-papers.md) | [open](appendixes/D-mapping-papers.html) | 12 GUI-agent papers compared, what to take from each |
 | E | Platform mapping: methodology | [E-mapping-methodology.md](appendixes/E-mapping-methodology.md) | [open](appendixes/E-mapping-methodology.html) | fingerprint, map schema, appearances and epochs, pre-warm, planning, repair ladder, budget, tests |
-| F | Agent loop | [F-agent-loop.md](appendixes/F-agent-loop.md) | [open](appendixes/F-agent-loop.html) | time budget, loop options L1–L7, Jev System 1 |
+| F | Executor | [F-agent-loop.md](appendixes/F-agent-loop.md) | [open](appendixes/F-agent-loop.html) | time budget, loop options L1–L7, Jev System 1 |
 | G | Data sync and read cache | [G-data-sync.md](appendixes/G-data-sync.md) | [open](appendixes/G-data-sync.html) | cache, freshness probe, conflicts, column alignment, errors, SQLite schema |
 | H | Screen perception | [H-perception.md](appendixes/H-perception.md) | [open](appendixes/H-perception.html) | OCR/CV options, UI tree, pipeline, measured timings |
 | I | POC reference | [../../poc/rfb_poc.py](../../poc/rfb_poc.py) | [open](appendixes/I-poc-reference.html) | raw RFB over WSS: VNC auth, Raw+CopyRect, settle, click/type/key, clipboard receive, MCP stub |

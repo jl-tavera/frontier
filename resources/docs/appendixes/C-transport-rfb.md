@@ -72,7 +72,7 @@ The decision therefore has two layers:
 
 A raw RFB client in our own process (A1), in Python, on `websockets`, with our own protocol code. The verdict column in §3 gives the reason for each.
 
-**Why Python.** The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's `rfb.js`, is cancelled out by that code's DOM coupling.
+**Why Python.** The transport is the smallest part of the system. Perception (track 2), the executor and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's `rfb.js`, is cancelled out by that code's DOM coupling.
 
 - **Our own code:** about 150 lines of protocol. We control the encodings (lossless) and see every update, so nothing hides inside the 5-minute budget.
   - Risk: the unseen app's server may use an encoding or auth type we don't handle.

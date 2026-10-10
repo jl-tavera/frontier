@@ -53,7 +53,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
 <p>Question: how do published GUI agents build an <strong>initial map</strong> of an app as a graph (screens = nodes, actions = edges), and how do they <strong>remap</strong> when the app changes?</p>
-<p>Research for track 2 of <a href="../solution.html">solution.md §5</a> (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).</p>
+<p>Research for track 2 of <a href="../solution.html">solution.md §5</a> (2.2 exploration → app map, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).</p>
 <hr />
 <h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
 <p>Our constraints, which every "steal" below is filtered through:
@@ -216,7 +216,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </thead>
 <tbody>
 <tr>
-<td><strong>2.2 Exploration → nav graph</strong></td>
+<td><strong>2.2 Exploration → app map</strong></td>
 <td>Pick <strong>unexplored</strong> actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one <code>open row</code> action"). Denylist destructive labels. One action per step so every edge is clean.</td>
 <td>LLM-Explorer, UI-KOBE</td>
 </tr>

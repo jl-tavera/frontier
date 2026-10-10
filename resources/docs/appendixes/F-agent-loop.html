@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Appendix F — Agent loop</title>
+<title>Appendix F — Executor</title>
 <style>
 :root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
@@ -49,7 +49,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </ul>
 </div>
 </nav>
-<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix F of I</span><a href="../solution.html#appendix-f">inline version</a><a href="E-mapping-methodology.html">← Appendix E</a><a href="G-data-sync.html">Appendix G →</a></div><h1 id="agent-loop-fast-plan-act-verify-track-3">Agent loop — fast plan → act → verify (track 3)<a class="headerlink" href="#agent-loop-fast-plan-act-verify-track-3" title="Permanent link">¶</a></h1>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix F of I</span><a href="../solution.html#appendix-f">inline version</a><a href="E-mapping-methodology.html">← Appendix E</a><a href="G-data-sync.html">Appendix G →</a></div><h1 id="executor-fast-plan-act-verify-track-3">Executor — fast plan → act → verify (track 3)<a class="headerlink" href="#executor-fast-plan-act-verify-track-3" title="Permanent link">¶</a></h1>
 <blockquote>
 <p>Appendix F of <a href="../solution.html">solution.md</a> · Status: adopted as component [C] (solution.md §3.2): parse → executor first, Jev as System 1 on a changed screen, the tool-use loop as the fallback; every model through OpenRouter · Links checked 2026-10-10.</p>
 </blockquote>
@@ -169,7 +169,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </tr>
 <tr>
 <td><strong>L3. Parse, then execute</strong></td>
-<td>One fast-model call turns the task into typed CRUD queries; a deterministic executor answers reads from the cache behind the probe and replays the stored procedure for writes (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>) with per-step checks, and a model is called again only when a check fails</td>
+<td>One fast-model call turns the task into typed CRUD queries; a deterministic executor answers reads from the cache behind the probe and replays the stored procedure for writes (<code>go_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>) with per-step checks, and a model is called again only when a check fails</td>
 <td><ul><li>The fewest LLM calls.</li><li>The plan doubles as the summary skeleton.</li><li>Pairs with App Memory shortcuts.</li></ul></td>
 <td><ul><li>On an unseen app there is nothing to replay yet: the fallback runs once and stores the procedure.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
 <td><strong>Adopt</strong> as the happy path</td>
@@ -226,7 +226,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li><strong>Text over images.</strong> Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.</li>
 <li><strong>Prompt caching</strong> on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.</li>
 <li><strong>Model tiering.</strong> Three OpenRouter tiers from env: <code>MODEL_FAST</code> (parse, summary, Jev's keyless fallback), <code>MODEL_VLM</code> (image questions), <code>MODEL_PLANNER</code> (fallback loop, replan). Tune the ids on the harness, never in code; the Anthropic SDK is not used anywhere.</li>
-<li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="D-mapping-papers.html">Appendix D</a> and <a href="E-mapping-methodology.html">Appendix E §4.4</a>).</li>
+<li><strong>App Memory shortcuts.</strong> <code>go_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="D-mapping-papers.html">Appendix D</a> and <a href="E-mapping-methodology.html">Appendix E §4.4</a>).</li>
 <li><strong>Settle.</strong> Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.</li>
 </ul>
 <h3 id="43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)<a class="headerlink" href="#43-jev-as-system-1-l4" title="Permanent link">¶</a></h3>

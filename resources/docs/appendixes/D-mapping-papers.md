@@ -6,7 +6,7 @@
 
 Question: how do published GUI agents build an **initial map** of an app as a graph (screens = nodes, actions = edges), and how do they **remap** when the app changes?
 
-Research for track 2 of [solution.md §5](../solution.md) (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).
+Research for track 2 of [solution.md §5](../solution.md) (2.2 exploration → app map, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).
 
 ---
 
@@ -52,7 +52,7 @@ What we take for each sub-problem:
 
 | Sub-problem | Technique to take | From |
 |---|---|---|
-| **2.2 Exploration → nav graph** | Pick **unexplored** actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one `open row` action"). Denylist destructive labels. One action per step so every edge is clean. | LLM-Explorer, UI-KOBE |
+| **2.2 Exploration → app map** | Pick **unexplored** actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one `open row` action"). Denylist destructive labels. One action per step so every edge is clean. | LLM-Explorer, UI-KOBE |
 | **2.3 Screen fingerprint** | `fingerprint = title-bar text + set of static OCR labels binned to a coarse grid` (drop numbers, dates, grid-cell contents). Merge on Jaccard ≥ ~0.9. If ambiguous, use a VLM yes/no against a reference screenshot. Coarse grid + text makes it independent of resolution. | ScreenSearch, ActionEngine (static vs dynamic atoms), UI-KOBE |
 | **2.4 Map storage** | One JSON per app (keyed by title bar). Nodes: `{id, fingerprint, description, ref_screenshot, affordances[]}`. Edges: `{from, action:{kind, target_label, target_role}, to, desc, success, fail, last_ok}`. Data-reading actions as self-loops. No x,y stored. Neo4j (AppAgentX, EAM) is overkill. | MobileGPT, UI-KOBE, ActionEngine |
 | **2.5 Pre-warm vs cold** | **Cold + incremental by default.** At most a ~30–60 s shallow BFS of the top menu bar on first contact (one level, read-only items), then learn on demand. Every task's trace is written back as edges, so the next task on the same app is warm (MobileGPT: warm 98.75% vs cold 82.7%, latency −62.5%). | MobileGPT, AppAgentX |

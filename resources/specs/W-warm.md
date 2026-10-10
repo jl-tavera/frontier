@@ -38,7 +38,7 @@ As the team, `uv run -m app.warm seed [--entities …]` finds every node whose s
 
 - `--visit` budget default 10 min at dev time; the eval-time pre-warm stays menus only, ≤45 s.
 - The crop around a stored `xy` is checked before the click, so a stale `xy` never clicks whatever moved under it (a delete or anular button after 15:30).
-- Return path after a visit: Esc, else the recorded back edge, else `navigate_to` the first node.
+- Return path after a visit: Esc, else the recorded back edge, else `go_to` the first node.
 - `memory/` is committed and the Dockerfile copies the repo, so the image carries the SIGECOM map and cache; regenerate before 15:30 and before the demo.
 - Ref PNGs and crops are stored as files next to that epoch's `map.json`, named by node id; an appearance's `version` says which epoch directory holds its files.
 

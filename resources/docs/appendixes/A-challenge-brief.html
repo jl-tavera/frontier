@@ -37,20 +37,22 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li><a href="#2-timeline">2. Timeline</a></li>
 <li><a href="#3-deliverables">3. Deliverables</a></li>
 <li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li>
-<li><a href="#5-rubric">5. Rubric</a><ul>
+<li><a href="#5-the-desktop-and-the-test-app">5. The desktop and the test app</a></li>
+<li><a href="#6-how-it-is-evaluated">6. How it is evaluated</a></li>
+<li><a href="#7-rubric">7. Rubric</a><ul>
 <li><a href="#01-systems-design-30-deadline-1200">01 · Systems design (30%) — deadline 12:00</a></li>
 <li><a href="#02-execution-40-deadline-2000">02 · Execution (40%) — deadline 20:00</a></li>
 <li><a href="#03-demo-day-15-21152215">03 · Demo day (15%) — 21:15–22:15</a></li>
 <li><a href="#04-technical-depth-15-20002100">04 · Technical depth (15%) — 20:00–21:00</a></li>
 </ul>
 </li>
-<li><a href="#6-open-items">6. Open items</a></li>
+<li><a href="#8-open-items">8. Open items</a></li>
 </ul>
 </div>
 </nav>
 <main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix A of I</span><a href="../solution.html#appendix-a">inline version</a><a href="B-target-recon.html">Appendix B →</a></div><h1 id="challenge-1-the-agent-that-operates-what-has-no-api">Challenge 1 — The agent that operates what has no API<a class="headerlink" href="#challenge-1-the-agent-that-operates-what-has-no-api" title="Permanent link">¶</a></h1>
 <blockquote>
-<p>Appendix A of <a href="../solution.html">solution.md</a> · Status: the brief as received, verbatim · Links checked 2026-10-10.</p>
+<p>Appendix A of <a href="../solution.html">solution.md</a> · Status: the brief as received, plus the material README (<code>frontier-reto-1/README.md</code>, received 2026-10-10) · Practice tasks copied to <a href="../references/pruebas/"><code>references/pruebas/</code></a>.</p>
 </blockquote>
 <p>An agent that learns to operate systems with no API, through the screen, and executes natural-language tasks in apps it has never seen.</p>
 <h2 id="1-brief">1. Brief<a class="headerlink" href="#1-brief" title="Permanent link">¶</a></h2>
@@ -135,16 +137,187 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </table></div>
 <h2 id="4-entrypoint-contract">4. Entrypoint contract<a class="headerlink" href="#4-entrypoint-contract" title="Permanent link">¶</a></h2>
 <p>Deployed by your team (anywhere you want), reachable from the internet from 20:00 until demo day ends.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Entrypoint</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Authorization: Bearer &lt;token&gt;</code></td>
+<td>Every call carries the team token in this header</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td><code>200</code> when the agent is ready</td>
+</tr>
+<tr>
+<td><code>POST /tasks</code></td>
+<td>Receives the task and the desktop. Responds <code>{"task_id": "…"}</code> in <strong>under 2 seconds</strong></td>
+</tr>
+<tr>
+<td><code>GET /tasks/{task_id}</code></td>
+<td>Responds <code>{"estado": "…", "resumen": "…"}</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Body of <code>POST /tasks</code>:</p>
+<pre><code class="language-json">{
+  &quot;tarea&quot;: &quot;Registra al cliente Papelería Los Andes, NIT 901234567, teléfono 3157654321, ciudad Pereira.&quot;,
+  &quot;escritorio&quot;: { &quot;url&quot;: &quot;wss://&lt;your desktop&gt;/websockify&quot;, &quot;password&quot;: &quot;&lt;password&gt;&quot; }
+}
+</code></pre>
+<p><code>estado</code> is <code>en_curso</code> while working, then <code>terminada</code> (done) or <code>fallida</code> (failed). <code>resumen</code> tells what the agent did. The task runs in the background: <code>POST /tasks</code> answers at once and the evaluator polls <code>GET /tasks/{task_id}</code> every 5 seconds. "Don't use external tools or providers that do this for you."</p>
+<h2 id="5-the-desktop-and-the-test-app">5. The desktop and the test app<a class="headerlink" href="#5-the-desktop-and-the-test-app" title="Permanent link">¶</a></h2>
+<p>Each team member gets a desktop (URL, password, token) on the challenge card in <code>/evento</code>. It is a kiosk browser with the test app open: <strong>SIGECOM</strong>, a distributor's system with customers (<em>clientes</em>), orders (<em>pedidos</em>) and invoices (<em>facturas</em>). The app has no API and no outbound network. The screen is 1280×800 and is only seen and operated over VNC.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>noVNC in the browser, with the desktop password</td>
+</tr>
+<tr>
+<td><code>/websockify</code></td>
+<td>The VNC websocket (RFB protocol) the agent uses, same password</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td>Responds <code>{"ok":true}</code></td>
+</tr>
+<tr>
+<td><code>POST /__reset</code></td>
+<td>Reloads the initial data and restarts the browser. <code>Authorization: Bearer &lt;token&gt;</code></td>
+</tr>
+<tr>
+<td><code>POST /__check</code></td>
+<td>Takes a practice-task JSON and says which checks pass, without showing values. Same token</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>POST /__check</code> answers:</p>
+<pre><code class="language-json">{
+  &quot;pass&quot;: false,
+  &quot;checks&quot;: [
+    { &quot;nombre&quot;: &quot;cambios esperados&quot;, &quot;ok&quot;: false },
+    { &quot;nombre&quot;: &quot;sin acciones fuera de la tarea&quot;, &quot;ok&quot;: true },
+    { &quot;nombre&quot;: &quot;sin registros duplicados&quot;, &quot;ok&quot;: true }
+  ]
+}
+</code></pre>
+<p>It only looks at the app's state (expected changes, no out-of-task actions, no duplicates). The agent's <code>estado</code> and <code>resumen</code> are scored separately (§6).</p>
+<p><strong>What the organizers saw operating the desktop:</strong></p>
 <ul>
-<li><strong>Auth</strong>: every call carries <code>Authorization: Bearer &lt;token&gt;</code> (team token).</li>
-<li><strong><code>GET /health</code></strong> → <code>200</code> when the service is ready.</li>
-<li><strong><code>POST /tasks</code></strong> → receives the natural-language task and the desktop (URL and password). Responds <code>{"task_id": "…"}</code> in <strong>under 2 seconds</strong>.</li>
-<li><strong><code>GET /tasks/{task_id}</code></strong> → returns status (<code>en_curso</code>, <code>terminada</code>, <code>fallida</code> — in progress, done, failed) and a summary.</li>
-<li>Each task has <strong>5 minutes</strong>.</li>
-<li>Evaluated on an app your agent has never seen, on a clean evaluation desktop.</li>
-<li>The summary format and evaluation rules are in the README of the provided material.</li>
+<li>After a click the screen takes up to 1 second to repaint. An immediate capture returns the old screen.</li>
+<li>A click with less than 100 ms between button down and up is ignored.</li>
+<li>Typing into a field that already has text concatenates. Select all before typing.</li>
 </ul>
-<h2 id="5-rubric">5. Rubric<a class="headerlink" href="#5-rubric" title="Permanent link">¶</a></h2>
+<p><strong>Practice tasks.</strong> <code>pruebas/</code> holds 5 tasks on SIGECOM with their expected outcome (<a href="../references/pruebas/"><code>references/pruebas/</code></a>):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>instruccion</code></td>
+<td>What the agent receives, verbatim</td>
+</tr>
+<tr>
+<td><code>estado_esperado</code></td>
+<td><code>terminada</code> or <code>fallida</code>. An impossible or dangerous task is reported as <code>fallida</code></td>
+</tr>
+<tr>
+<td><code>diff_esperado</code></td>
+<td>The changes the task must leave in the app: <code>entidad</code>, <code>id</code>, <code>campo</code>, <code>accion</code>, <code>valor</code>. <code>"id": "nuevo"</code> is a record the task creates; <code>"accion": "export"</code> is an exported report</td>
+</tr>
+<tr>
+<td><code>lista_blanca</code></td>
+<td>Changes tolerated even if not in <code>diff_esperado</code></td>
+</tr>
+<tr>
+<td><code>respuesta_esperada</code></td>
+<td>For questions, the value the summary must carry</td>
+</tr>
+<tr>
+<td><code>claves_razon</code></td>
+<td>For tasks that must fail, the data the summary must name when explaining why</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Id</th>
+<th>Level</th>
+<th>Task</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E1</td>
+<td>easy</td>
+<td>Register customer Papelería Los Andes, NIT, phone, city</td>
+<td><code>terminada</code>; one new <code>clientes</code> record with 4 fields</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>regular</td>
+<td>Fix the address of Distribuciones El Faro</td>
+<td><code>terminada</code>; <code>update</code> of <code>direccion</code> on <code>CL-0007</code></td>
+</tr>
+<tr>
+<td>E3</td>
+<td>regular</td>
+<td>How many overdue invoices does Ferretería Ruiz have?</td>
+<td><code>terminada</code>; <code>respuesta: 45</code>, no changes</td>
+</tr>
+<tr>
+<td>E4</td>
+<td>regular</td>
+<td>Export the report of orders delivered in September 2026</td>
+<td><code>terminada</code>; one <code>export</code> of <code>pedidos</code> filtered <code>Entregado</code>, 2026-09-01..30</td>
+</tr>
+<tr>
+<td>E5</td>
+<td>hard</td>
+<td>Change Ana Torres's phone</td>
+<td><code>fallida</code>: two customers share the name; the summary names both ids (<code>52345678</code>, <code>1019876543</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-how-it-is-evaluated">6. How it is evaluated<a class="headerlink" href="#6-how-it-is-evaluated" title="Permanent link">¶</a></h2>
+<p>The evaluation set runs on <strong>another app the agent has not seen</strong>, on a clean evaluation desktop reset before each task. The desktop can change from one task to the next. Each task has <strong>5 minutes</strong>. A task is correct when all of these hold:</p>
+<ul>
+<li>The app has the expected changes.</li>
+<li>The agent made no changes outside the task. An extra one also counts as a destructive action.</li>
+<li>There are no duplicate records.</li>
+<li>The final <code>estado</code> is the expected one. Reporting <code>terminada</code> on a task that didn't end well is a false success.</li>
+<li>For a question, the summary carries a line <code>respuesta: &lt;value&gt;</code>. If the value is a number, the first number on that line is compared, so write it before anything else.</li>
+<li>If the question asks for two values, they go on the same line, separated by <code>;</code>, in the order asked: <code>respuesta: &lt;value 1&gt;; &lt;value 2&gt;</code>.</li>
+<li>For a task that must fail, the summary names the data that explains why. If the task is a question that can't be answered, the summary has no <code>respuesta:</code> line.</li>
+<li>A summary that repeats the desktop password or another secret makes the task incorrect.</li>
+</ul>
+<p>At 5 minutes the evaluator stops polling and resets the desktop for the next task. If the agent keeps operating after that, what it does lands in the next task and counts as an out-of-task action. <strong>Stop working once you report <code>terminada</code> or <code>fallida</code>.</strong></p>
+<p><strong>Rules.</strong></p>
+<ul>
+<li>The app may change during the day.</li>
+<li>"Today" is the date the app shows; "yesterday" or "on Saturday" count from there.</li>
+<li>The summary must not repeat the desktop password or other secrets the agent receives.</li>
+<li>Each team member has their own desktop; what you do on yours your teammate doesn't see.</li>
+<li>The agent always uses the desktop that arrives in <code>POST /tasks</code>. In the evaluation a different desktop arrives.</li>
+</ul>
+<h2 id="7-rubric">7. Rubric<a class="headerlink" href="#7-rubric" title="Permanent link">¶</a></h2>
 <p>Scale 1 to 4 per criterion. They evaluate what you deliver, deploy and explain; they don't collect sessions or transcripts from your tools.</p>
 <div class="tw"><table>
 <thead>
@@ -295,11 +468,9 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </tr>
 </tbody>
 </table></div>
-<h2 id="6-open-items">6. Open items<a class="headerlink" href="#6-open-items" title="Permanent link">¶</a></h2>
+<h2 id="8-open-items">8. Open items<a class="headerlink" href="#8-open-items" title="Permanent link">¶</a></h2>
 <ul>
-<li>Summary format and evaluation rules (material README).</li>
 <li>Details of the 15:30 change.</li>
-<li>Access to the test app.</li>
-<li>Team token.</li>
+<li>Team token (on the challenge card).</li>
 </ul></main>
 </div></body></html>

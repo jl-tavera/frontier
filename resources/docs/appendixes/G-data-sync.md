@@ -22,7 +22,7 @@ What "sync" means here. There is no API, no change feed and no second database t
 - **Direction:** one way. Data only flows from the app into the cache.
 - **Who wins:** the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.
 - **Why it exists:** read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.
-- **What it is not:** it is not the nav map. Screens, paths and procedures stay in the per-app JSON from [Appendix E §4.2](E-mapping-methodology.md). This page covers **business data** only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).
+- **What it is not:** it is not the app map. Screens, paths and procedures stay in the per-app JSON from [Appendix E §4.2](E-mapping-methodology.md). This page covers **business data** only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).
 
 ---
 
@@ -51,7 +51,7 @@ What "sync" means here. There is no API, no change feed and no second database t
 |---|---|---|
 | Data cache store | **SQLite** (Python stdlib `sqlite3`, WAL mode, one file per deployment) | **JSON files:** no queries for filter tasks, and a crash can leave a half-written file. **DuckDB:** an extra dependency, and analytics is overkill for about 1k rows. **Postgres (Railway):** network hop + ops work for a single writer, and no benefit. **Redis:** no ad-hoc filtering or aggregates, and one more service |
 | Schema style | **Generic** rows with a JSON payload | Typed tables per entity (`facturas(numero, fecha, total…)`): impossible, because the grading app is unseen and its columns are unknown until runtime |
-| Nav map store | Stays as JSON per app ([Appendix E §4.2](E-mapping-methodology.md)) | Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON |
+| App map store | Stays as JSON per app ([Appendix E §4.2](E-mapping-methodology.md)) | Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON |
 | Durability | No volume. On SIGECOM a dev-time seed (`memory/cache.sqlite`, §4.2 step 4) is committed and ships in the image, and the probe validates it on first use; on the unseen app the cache starts empty and losing it is accepted | A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy unprobed is worse than an empty one |
 
 ---
@@ -63,16 +63,16 @@ What "sync" means here. There is no API, no change feed and no second database t
 #### 4.1.1 Read task, full entity
 
 ```
- Agent Loop            Cache (SQLite)            Sync Engine                 Remote app (RFB)
+ Executor              Cache (SQLite)            Sync Engine                 Remote app (RFB)
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
      │                      │── yes ─────────────────►│ probe()                      │
      │                      │                         │ change log registered? once: │
-     │                      │                         │── navigate + read page 1 ───►│  (Bitácora)
+     │                      │                         │── go to + read page 1 ──────►│  (Bitácora)
      │                      │                         │◄─ page-1 hash ───────────────│
      │                      │                         │ == watermark? ── yes: all fresh
      │                      │                         │ (no change log, or changed:) │
-     │                      │                         │── navigate + read footer ───►│
+     │                      │                         │── go to + read footer ──────►│
      │                      │                         │◄─ count=812, page1 hash ─────│
      │                      │                         │ matches sync_state? ── yes   │
      │◄──── SQL result ─────│◄────── fresh ───────────│                              │
@@ -89,8 +89,8 @@ What "sync" means here. There is no API, no change feed and no second database t
 ```
 
 The steps:
-1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
-2. **Cache hit + probe matches:** answer from SQL. Cost: one navigation to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
+1. The agent asks for an entity, not for a screen. The sync engine keeps moving between screens and reading out of the LLM's context.
+2. **Cache hit + probe matches:** answer from SQL. Cost: one route replay to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
 3. **Miss or mismatch:** acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
    - **Export (4.1):** the whole table in one action. Lossless if the file or screen it produces can be read.
    - **Clipboard (4.4):** select-all + copy → `ServerCutText`. Lossless text, usually tab-separated.
@@ -109,8 +109,8 @@ Nothing pushes changes to us. Freshness has to be **detected** by looking at the
 
 1. **Our own writes → write-through read-back.** After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. Then re-read change-log page 1 so the watermark includes our own entry; that entry is also the proof of the write for the summary. If the read-back fails, fall back to marking the whole entity `stale`.
 2. **Probe before trusting the cache.** A probe is the cheapest signal that "something changed", cheapest scope first:
-   - **The app's change log**, when it has one (SIGECOM: `Herramientas › Bitácora de cambios`). It is registered as an entity with `role = 'changelog'` and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked `stale`, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
-   - **The entity's own grid**: the **total count** (footer, "Mostrando 1-20 de 812", or the page count × page size) and a **hash of page 1**, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.
+   - **The app's change log**, when it has one (SIGECOM: `Herramientas › Bitácora de cambios`). It is registered as an entity with `role = 'changelog'` and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity route replay. It differs → every entity is marked `stale`, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
+   - **The entity's own grid**: the **total count** (footer, "Mostrando 1-20 de 812", or the page count × page size) and a **hash of page 1**, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one route replay plus one OCR region.
 3. **Expiry time as a backstop.** Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.
 4. **Dev-time seed (SIGECOM only).** After `map --visit` ([Appendix E §4.3](E-mapping-methodology.md) step 6), `seed` finds every mapped node whose snapshot has a grid, registers it as an entity (keyed by the node id, header hash from its columns) and acquires it through the §4.4 ladder into `memory/cache.sqlite`; the node whose title matches `bitácora|cambios|log|historial|auditor` is registered with `role = 'changelog'` (a fast-model tie-break when several or none match). The file is committed, so a lookup right after deploy hits the cache; a stale seed costs one re-acquire, never a wrong answer, because the probe runs first. Never seed inside a task, and never on the unseen app: there, entities are acquired lazily the first time a query needs them, and the in-task pre-warm stays menus only.
 
@@ -162,8 +162,8 @@ Two agents editing the same record at the same time is ruled out by the assumpti
   4. leftovers: one LLM call with the old headers, the new headers and 3 sample rows, "no counterpart" allowed.
 - The result is `sync_state.column_map`, `{"old header": "new header"}`, chained across epochs so the oldest name stays usable. `data_json` is always keyed by the **live** header; a query written against an older name is translated through the map. This is what keeps learned procedures and the planner's "Valor is the amount" valid across a rename. Headers with no counterpart are left out of the map and logged (`sync.schema_drift {old, new, aligned, unaligned}`). If the alignment is inconclusive, the behaviour is the old one: an empty entity, no map.
 - Columns are mapped by header text, so a column that only **moves** doesn't break anything.
-- The entity key is the nav map's **node id** for the grid screen, not the screen title; the title is one of that node's appearances ([Appendix E §4.2](E-mapping-methodology.md)). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.
-- If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in [Appendix E §4.5](E-mapping-methodology.md). The sync engine marks the entity `stale` and waits for navigation to recover.
+- The entity key is the app map's **node id** for the grid screen, not the screen title; the title is one of that node's appearances ([Appendix E §4.2](E-mapping-methodology.md)). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.
+- If a screen or grid can't be found, that's the app map's job: drift detection (2.6) and the repair ladder in [Appendix E §4.5](E-mapping-methodology.md). The sync engine marks the entity `stale` and waits for the app map to repair.
 
 #### 4.3.5 Conflict policy, in one line
 
@@ -177,8 +177,8 @@ Two agents editing the same record at the same time is ruled out by the assumpti
 | Export goes nowhere readable (download we can't reach, PDF) | Nothing appears on screen or clipboard within the settle time | Mark `export=unusable` for this app in memory and drop to the clipboard step |
 | Clipboard returns nothing or garbage | Empty `ServerCutText`, or no tab/newline structure | Drop to OCR paging and remember that clipboard doesn't work for this grid |
 | Paging gets stuck in a loop | The page fingerprint was already seen, or `Siguiente` has no effect (action verification, design 3.3) | Stop and treat what we have as the end; check it against the probe count |
-| Empty grid vs failed load | Zero rows **and** no "no results" text or footer | Retry the navigation once; if still unclear, mark `stale`, not `complete` with 0 rows |
-| WebSocket drop mid-sync | RFB exception (1.2) | Reconnect, navigate back, resume from page N (stored in staging); after 2 failures, give up and mark `partial` |
+| Empty grid vs failed load | Zero rows **and** no "no results" text or footer | Retry the route once; if still unclear, mark `stale`, not `complete` with 0 rows |
+| WebSocket drop mid-sync | RFB exception (1.2) | Reconnect, go back along the route, resume from page N (stored in staging); after 2 failures, give up and mark `partial` |
 | Partial read (time ran out or errors) | Staging count < probe count | **Never swapped in.** The old snapshot stays and the entity is marked `partial`, so answers say so |
 | Time budget | Sync running longer than about 60 s inside one task | Stop syncing and use the targeted path; the 4:30 guard (design 3.5) still writes a summary |
 | Destructive control near a grid (Eliminar, Anular, Integraciones) | Denylist | The sync engine never clicks it; read-only actions only |
@@ -191,8 +191,8 @@ Every row above writes a JSONL event (`sync.probe`, `sync.acquire`, `sync.fallba
 
 ```sql
 CREATE TABLE rows (
-  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
-  entity      TEXT NOT NULL,          -- nav-map node id of the grid screen; its title is an appearance (E §4.2)
+  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the app map
+  entity      TEXT NOT NULL,          -- app-map node id of the grid screen; its title is an appearance (E §4.2)
   natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
   data_json   TEXT NOT NULL,          -- {"Numero": "F-0042", "Total": 1520.00, ...}, keyed by header text
   row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
@@ -225,7 +225,7 @@ Queries use `json_extract(data_json, '$.Total')`, which is built into SQLite, so
 | We chose | Over | We pay | We get |
 |---|---|---|---|
 | A cache + probe | Always reading live | A small staleness window (§4.3.1) | Lookups under 30 s; repeated reads cost almost nothing |
-| The change log as the first probe | Per-entity probes only | Trusts the app's own log; an unlogged edit waits for the expiry backstop | One navigation per task instead of one per entity; edits to old rows are caught |
+| The change log as the first probe | Per-entity probes only | Trusts the app's own log; an unlogged edit waits for the expiry backstop | One route replay per task instead of one per entity; edits to old rows are caught |
 | Lazy per-entity sync | Pre-loading everything | The first read of each entity is slow | No budget spent on tables the task doesn't touch |
 | Targeted reads for single records | One sync path for everything | Two code paths | A one-record answer in seconds, and it is always live |
 | A generic JSON-row schema | Typed tables | Weaker typing; `json_extract` in queries | Works on an app we have never seen |
@@ -256,4 +256,4 @@ Nothing measured yet. Probe cost and the ladder's success rate are measured in t
 
 ## 8. Sources
 
-[Appendix B](B-target-recon.md) for the transport facts, [Appendix E](E-mapping-methodology.md) for the nav map this cache sits beside, and [solution.md §5 Track 4](../solution.md) for units 4.1–4.4.
+[Appendix B](B-target-recon.md) for the transport facts, [Appendix E](E-mapping-methodology.md) for the app map this cache sits beside, and [solution.md §5 Track 4](../solution.md) for units 4.1–4.4.

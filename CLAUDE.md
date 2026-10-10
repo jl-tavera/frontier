@@ -1,6 +1,6 @@
 # frontier — Challenge 1: the agent that operates what has no API
 
-Hackathon project. Brief and rubric: `resources/docs/challenge.md`. Design doc: `resources/docs/solution.md`, rendered to `resources/docs/solution.html` and published at https://jl-tavera.github.io/frontier/resources/docs/solution.html (that path must not change).
+Hackathon project. Brief, rubric and evaluation rules: `resources/docs/appendixes/A-challenge-brief.md`; the official practice tasks E1–E5: `resources/docs/references/pruebas/`. Design doc: `resources/docs/solution.md`, rendered to `resources/docs/solution.html` and published at https://jl-tavera.github.io/frontier/resources/docs/solution.html (that path must not change).
 
 ## Run
 

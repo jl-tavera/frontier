@@ -214,7 +214,7 @@ Real-pixel drift with no app change: a transform hook in [E] that downscales the
 ### 7.1 Build order inside track 2
 
 1. §4.1 fingerprint + §4.2 schema (one module, pure functions over `elements()` output; the one runnable check is the 10-screen dedup test).
-2. §4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.
+2. §4.3 step 3 task-driven write-back inside the executor; §4.3 step 2 pre-warm.
 3. §4.4 planner prompt with the compact graph.
 4. §4.5 signals + rung 1, then rungs 2–3; `--mutate` flag and the §6.1 table.
 5. Epochs and appearances: a new epoch is a directory with a copied `map.json`, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.

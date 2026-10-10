@@ -74,7 +74,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li><strong>Direction:</strong> one way. Data only flows from the app into the cache.</li>
 <li><strong>Who wins:</strong> the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.</li>
 <li><strong>Why it exists:</strong> read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.</li>
-<li><strong>What it is not:</strong> it is not the nav map. Screens, paths and procedures stay in the per-app JSON from <a href="E-mapping-methodology.html">Appendix E §4.2</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
+<li><strong>What it is not:</strong> it is not the app map. Screens, paths and procedures stay in the per-app JSON from <a href="E-mapping-methodology.html">Appendix E §4.2</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
 </ul>
 <hr />
 <h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
@@ -163,7 +163,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <td>Typed tables per entity (<code>facturas(numero, fecha, total…)</code>): impossible, because the grading app is unseen and its columns are unknown until runtime</td>
 </tr>
 <tr>
-<td>Nav map store</td>
+<td>App map store</td>
 <td>Stays as JSON per app (<a href="E-mapping-methodology.html">Appendix E §4.2</a>)</td>
 <td>Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON</td>
 </tr>
@@ -178,16 +178,16 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
 <h3 id="41-happy-path">4.1 Happy path<a class="headerlink" href="#41-happy-path" title="Permanent link">¶</a></h3>
 <h4 id="411-read-task-full-entity">4.1.1 Read task, full entity<a class="headerlink" href="#411-read-task-full-entity" title="Permanent link">¶</a></h4>
-<pre><code> Agent Loop            Cache (SQLite)            Sync Engine                 Remote app (RFB)
+<pre><code> Executor              Cache (SQLite)            Sync Engine                 Remote app (RFB)
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
      │                      │── yes ─────────────────►│ probe()                      │
      │                      │                         │ change log registered? once: │
-     │                      │                         │── navigate + read page 1 ───►│  (Bitácora)
+     │                      │                         │── go to + read page 1 ──────►│  (Bitácora)
      │                      │                         │◄─ page-1 hash ───────────────│
      │                      │                         │ == watermark? ── yes: all fresh
      │                      │                         │ (no change log, or changed:) │
-     │                      │                         │── navigate + read footer ───►│
+     │                      │                         │── go to + read footer ──────►│
      │                      │                         │◄─ count=812, page1 hash ─────│
      │                      │                         │ matches sync_state? ── yes   │
      │◄──── SQL result ─────│◄────── fresh ───────────│                              │
@@ -203,8 +203,8 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
      │◄──── SQL result ─────│                         │                              │
 </code></pre>
 <p>The steps:
-1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
-2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
+1. The agent asks for an entity, not for a screen. The sync engine keeps moving between screens and reading out of the LLM's context.
+2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one route replay to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
 3. <strong>Miss or mismatch:</strong> acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
    - <strong>Export (4.1):</strong> the whole table in one action. Lossless if the file or screen it produces can be read.
    - <strong>Clipboard (4.4):</strong> select-all + copy → <code>ServerCutText</code>. Lossless text, usually tab-separated.
@@ -219,8 +219,8 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <ol>
 <li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. Then re-read change-log page 1 so the watermark includes our own entry; that entry is also the proof of the write for the summary. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
 <li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed", cheapest scope first:
-   - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
-   - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
+   - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity route replay. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
+   - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one route replay plus one OCR region.</li>
 <li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
 <li><strong>Dev-time seed (SIGECOM only).</strong> After <code>map --visit</code> (<a href="E-mapping-methodology.html">Appendix E §4.3</a> step 6), <code>seed</code> finds every mapped node whose snapshot has a grid, registers it as an entity (keyed by the node id, header hash from its columns) and acquires it through the §4.4 ladder into <code>memory/cache.sqlite</code>; the node whose title matches <code>bitácora|cambios|log|historial|auditor</code> is registered with <code>role = 'changelog'</code> (a fast-model tie-break when several or none match). The file is committed, so a lookup right after deploy hits the cache; a stale seed costs one re-acquire, never a wrong answer, because the probe runs first. Never seed inside a task, and never on the unseen app: there, entities are acquired lazily the first time a query needs them, and the in-task pre-warm stays menus only.</li>
 </ol>
@@ -284,8 +284,8 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
   4. leftovers: one LLM call with the old headers, the new headers and 3 sample rows, "no counterpart" allowed.</li>
 <li>The result is <code>sync_state.column_map</code>, <code>{"old header": "new header"}</code>, chained across epochs so the oldest name stays usable. <code>data_json</code> is always keyed by the <strong>live</strong> header; a query written against an older name is translated through the map. This is what keeps learned procedures and the planner's "Valor is the amount" valid across a rename. Headers with no counterpart are left out of the map and logged (<code>sync.schema_drift {old, new, aligned, unaligned}</code>). If the alignment is inconclusive, the behaviour is the old one: an empty entity, no map.</li>
 <li>Columns are mapped by header text, so a column that only <strong>moves</strong> doesn't break anything.</li>
-<li>The entity key is the nav map's <strong>node id</strong> for the grid screen, not the screen title; the title is one of that node's appearances (<a href="E-mapping-methodology.html">Appendix E §4.2</a>). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.</li>
-<li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="E-mapping-methodology.html">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
+<li>The entity key is the app map's <strong>node id</strong> for the grid screen, not the screen title; the title is one of that node's appearances (<a href="E-mapping-methodology.html">Appendix E §4.2</a>). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.</li>
+<li>If a screen or grid can't be found, that's the app map's job: drift detection (2.6) and the repair ladder in <a href="E-mapping-methodology.html">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for the app map to repair.</li>
 </ul>
 <h4 id="435-conflict-policy-in-one-line">4.3.5 Conflict policy, in one line<a class="headerlink" href="#435-conflict-policy-in-one-line" title="Permanent link">¶</a></h4>
 <p><strong>The app always wins.</strong> We do no merging and no last-write-wins on our side, and the cache never overwrites the app.</p>
@@ -322,12 +322,12 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <tr>
 <td>Empty grid vs failed load</td>
 <td>Zero rows <strong>and</strong> no "no results" text or footer</td>
-<td>Retry the navigation once; if still unclear, mark <code>stale</code>, not <code>complete</code> with 0 rows</td>
+<td>Retry the route once; if still unclear, mark <code>stale</code>, not <code>complete</code> with 0 rows</td>
 </tr>
 <tr>
 <td>WebSocket drop mid-sync</td>
 <td>RFB exception (1.2)</td>
-<td>Reconnect, navigate back, resume from page N (stored in staging); after 2 failures, give up and mark <code>partial</code></td>
+<td>Reconnect, go back along the route, resume from page N (stored in staging); after 2 failures, give up and mark <code>partial</code></td>
 </tr>
 <tr>
 <td>Partial read (time ran out or errors)</td>
@@ -359,8 +359,8 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <p>Every row above writes a JSONL event (<code>sync.probe</code>, <code>sync.acquire</code>, <code>sync.fallback</code>, <code>sync.conflict</code>, …) with the entity, method, counts and duration. These events feed the Challenge 2 spec and debrief.</p>
 <h3 id="45-database-schema">4.5 Database schema<a class="headerlink" href="#45-database-schema" title="Permanent link">¶</a></h3>
 <pre><code class="language-sql">CREATE TABLE rows (
-  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
-  entity      TEXT NOT NULL,          -- nav-map node id of the grid screen; its title is an appearance (E §4.2)
+  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the app map
+  entity      TEXT NOT NULL,          -- app-map node id of the grid screen; its title is an appearance (E §4.2)
   natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
   data_json   TEXT NOT NULL,          -- {&quot;Numero&quot;: &quot;F-0042&quot;, &quot;Total&quot;: 1520.00, ...}, keyed by header text
   row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
@@ -406,7 +406,7 @@ CREATE TABLE sync_state (
 <td>The change log as the first probe</td>
 <td>Per-entity probes only</td>
 <td>Trusts the app's own log; an unlogged edit waits for the expiry backstop</td>
-<td>One navigation per task instead of one per entity; edits to old rows are caught</td>
+<td>One route replay per task instead of one per entity; edits to old rows are caught</td>
 </tr>
 <tr>
 <td>Lazy per-entity sync</td>
@@ -463,5 +463,5 @@ CREATE TABLE sync_state (
 </ul>
 <hr />
 <h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
-<p><a href="B-target-recon.html">Appendix B</a> for the transport facts, <a href="E-mapping-methodology.html">Appendix E</a> for the nav map this cache sits beside, and <a href="../solution.html">solution.md §5 Track 4</a> for units 4.1–4.4.</p></main>
+<p><a href="B-target-recon.html">Appendix B</a> for the transport facts, <a href="E-mapping-methodology.html">Appendix E</a> for the app map this cache sits beside, and <a href="../solution.html">solution.md §5 Track 4</a> for units 4.1–4.4.</p></main>
 </div></body></html>

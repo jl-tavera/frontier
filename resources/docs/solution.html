@@ -66,8 +66,10 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li><a href="#2-timeline">2. Timeline</a></li>
 <li><a href="#3-deliverables">3. Deliverables</a></li>
 <li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li>
-<li><a href="#5-rubric">5. Rubric</a></li>
-<li><a href="#6-open-items">6. Open items</a></li>
+<li><a href="#5-the-desktop-and-the-test-app">5. The desktop and the test app</a></li>
+<li><a href="#6-how-it-is-evaluated">6. How it is evaluated</a></li>
+<li><a href="#7-rubric">7. Rubric</a></li>
+<li><a href="#8-open-items">8. Open items</a></li>
 </ul>
 </li>
 <li><a href="#appendix-b">Appendix B — Target recon (SIGECOM over noVNC)</a><ul>
@@ -113,7 +115,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li><a href="#8-sources_2">8. Sources</a></li>
 </ul>
 </li>
-<li><a href="#appendix-f">Appendix F — Agent loop</a><ul>
+<li><a href="#appendix-f">Appendix F — Executor</a><ul>
 <li><a href="#1-summary_4">1. Summary</a></li>
 <li><a href="#2-problem-and-constraints_3">2. Problem and constraints</a></li>
 <li><a href="#3-options-considered_3">3. Options considered</a></li>
@@ -154,19 +156,19 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <p><strong>The agent that operates what has no API.</strong> This is the one document: sections 0–11 are the design, and the appendix table at the end points at the brief, the recon and every research doc, kept in full in <code>resources/docs/appendixes/</code>. <code>solution.html</code> renders this document, the architecture diagram <strong>and all appendixes in full</strong>; <code>uv run resources/docs/build_html.py</code> regenerates it.</p>
 <h2 id="0-one-page-summary">0. One-page summary<a class="headerlink" href="#0-one-page-summary" title="Permanent link">¶</a></h2>
 <p><strong>Problem.</strong> A 15-year-old management system with no API, no docs and no vendor. The evaluator sends a natural-language task plus a VNC desktop (URL + password) and expects a result within 5 minutes. Evaluation runs on an app <strong>we have never seen</strong>, on a clean desktop, and the app <strong>changes at 15:30</strong>.</p>
-<p><strong>Approach.</strong> Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop. A task is a natural-language CRUD action: one fast-model call splits it into typed queries, and a deterministic executor answers reads from a SQLite cache behind a freshness probe and replays learned procedures for writes, clicking stored positions as long as the pixels still match. Perception (CPU-only OCR + classic CV) runs only when something changed, Jev answers the typed questions a changed screen raises, and the tool-use agent loop, which picks <strong>named elements</strong>, never coordinates, is the last resort. Everything the agent learns about an app (screens, nav graph, procedures, data) is a per-app memory built <strong>at run time</strong>, so the unseen app is handled exactly like SIGECOM: its first task perceives and learns, every later task replays. For SIGECOM the same memory is built ahead of time (<code>map --visit</code>, <code>seed</code>) and ships in the image. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.</p>
+<p><strong>Approach.</strong> Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop. A task is a natural-language CRUD action: one fast-model call splits it into typed queries, and a deterministic executor answers reads from a SQLite cache behind a freshness probe and replays learned procedures for writes, clicking stored positions as long as the pixels still match. Perception (CPU-only OCR + classic CV) runs only when something changed, Jev answers the typed questions a changed screen raises, and the tool-use loop, which picks <strong>named elements</strong>, never coordinates, is the last resort. Everything the agent learns about an app (screens, app map, procedures, data) is a per-app memory built <strong>at run time</strong>, so the unseen app is handled exactly like SIGECOM: its first task perceives and learns, every later task replays. For SIGECOM the same memory is built ahead of time (<code>map --visit</code>, <code>seed</code>) and ships in the image. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.</p>
 <p><strong>What makes it work on an unseen app</strong>
-1. No hand-coded map: perception + a learned nav graph keyed by the app's title bar.
+1. No hand-coded map: perception + a learned app map keyed by the app's title bar.
 2. Semantic targets (label + role + grid cell) with the last click point that worked cached beside them: replay clicks it while the pixels match, finds a moved target by template match, and re-grounds by perception only on a miss, so a moved or renamed button still works. Each screen and target keeps one <strong>appearance</strong> per app version, and the map is frozen per <strong>epoch</strong>, so a redesign adds a version instead of breaking memory.
 3. A disposable SQLite read cache behind a freshness probe (the app's own change log when it has one, like SIGECOM's Bitácora de cambios), so lookups answer in seconds instead of OCR-paging every time.
-4. A parse → replay → verify executor with a 270 s guard that always writes a summary; the tool-use agent loop runs only when there is nothing to replay.
+4. A parse → replay → verify executor with a 270 s guard that always writes a summary; the tool-use loop runs only when there is nothing to replay.
 5. One JSONL log of every step, which feeds the Challenge 2 spec, the debrief and the eval harness.</p>
-<p><strong>Eight decisions</strong> (full table in §4): raw RFB instead of a headless browser · lossless Raw+CopyRect · hybrid OCR+CV perception with Set-of-Mark · learned per-app map instead of a hand map · export/clipboard before OCR for data · online localized repair instead of a full re-learn · replay and probe first, perception on change, the agent last · every model through OpenRouter, Jev for typed decisions.</p>
-<p><strong>Measurement.</strong> About 15 NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable answers. Metrics: success %, time per task, steps per task, click hit rate, drift detected/recovered. Baseline before 15:30, re-run after, plus a map-mutation suite that simulates the change in advance (§6).</p>
+<p><strong>Eight decisions</strong> (full table in §4): raw RFB instead of a headless browser · lossless Raw+CopyRect · hybrid OCR+CV perception with Set-of-Mark · learned per-app map instead of a hand map · export/clipboard before OCR for data · online localized repair instead of a full re-learn · replay and probe first, perception on change, the tool-use loop last · every model through OpenRouter, Jev for typed decisions.</p>
+<p><strong>Measurement.</strong> About 15 NL tasks on SIGECOM: the 5 official practice tasks E1–E5 (create, update, count question, export, an ambiguous name that must fail) plus about 10 of our own (lookup, filter, create, edit, export, multi-screen), scored by the desktop's own <code>POST /__check</code> oracle plus checks on status and summary. Metrics: success %, time per task, steps per task, click hit rate, drift detected/recovered. Baseline before 15:30, re-run after, plus a map-mutation suite that simulates the change in advance (§6).</p>
 <hr />
 <h2 id="1-problem-and-constraints">1. Problem and constraints<a class="headerlink" href="#1-problem-and-constraints" title="Permanent link">¶</a></h2>
 <p><strong>Inputs we have.</strong> The brief (<a href="#appendix-a">Appendix A</a>), the recon of the target (<a href="#appendix-b">Appendix B</a>: noVNC → websockify → RFB → SIGECOM shown only as pixels), and <code>poc/rfb_poc.py</code>, which already speaks raw RFB with no browser: VNC auth, Raw+CopyRect frames, click/type/key, quiet-time <code>settle</code>, and 4 tool functions (screenshot/click/type/key). See Appendix I.</p>
-<p><strong>The entrypoint contract</strong> (Appendix A): <code>Authorization: Bearer &lt;token&gt;</code> on every call; <code>GET /health</code> → 200; <code>POST /tasks</code> receives the task and the desktop (URL + password) and must answer <code>{"task_id": …}</code> in <strong>under 2 s</strong>; <code>GET /tasks/{task_id}</code> returns <code>en_curso</code> / <code>terminada</code> / <code>fallida</code> plus a summary; <strong>5 minutes per task</strong>.</p>
+<p><strong>The entrypoint contract</strong> (Appendix A): <code>Authorization: Bearer &lt;token&gt;</code> on every call; <code>GET /health</code> → 200; <code>POST /tasks</code> receives the task and the desktop (URL + password) and must answer <code>{"task_id": …}</code> in <strong>under 2 s</strong>; <code>GET /tasks/{task_id}</code> returns <code>en_curso</code> / <code>terminada</code> / <code>fallida</code> plus a summary; <strong>5 minutes per task</strong>. The summary carries one <code>respuesta: &lt;value&gt;</code> line for a question (a number first, two values joined by <code>;</code>, no line when unanswerable), names the data behind a <code>fallida</code>, and never repeats the desktop password or any other secret. After the final status the agent stops acting: anything later lands in the next task as an out-of-task change. Full rules in Appendix A §6.</p>
 <p><strong>The constraint that shapes everything:</strong> evaluation runs on an app we have never seen, on a clean desktop, with 5 minutes per task, and the app changes at 15:30. So "mapping" can't be a hand-built coordinate map of SIGECOM. It has to be something the agent learns while it runs. SIGECOM is only for development.</p>
 <p><strong>Deliverables and timeline</strong> (Appendix A): design doc + diagram at 12:00, the change in the system at 15:30, deployed entrypoint, repo and 2-minute video at 20:00, individual debrief 20:00–21:00, demo 21:15–22:15.</p>
 <h2 id="2-what-we-operate-against">2. What we operate against<a class="headerlink" href="#2-what-we-operate-against" title="Permanent link">¶</a></h2>
@@ -177,22 +179,23 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li>Wire: browser → <code>wss://…/websockify</code> → websockify proxy → TCP RFB 3.8 → VNC server in a Docker container (<code>86a79607eef2:0</code>). Auth is VNC Authentication (DES challenge-response). Native framebuffer is <strong>1280×800</strong>.</li>
 <li>The desktop is <strong>shared</strong>: the user label flipped between <code>operador</code> and <code>operador2</code>, so a human or another client may be on the same display.</li>
 <li>SIGECOM menu tree: Archivo › Inicio · Comercial › Maestros › Clientes, Ventas › Pedidos · Cartera › Facturas · Herramientas › Bitácora de cambios, Reportes generados, Configuración › Integraciones · Ayuda › Acerca de. Facturas has filters (Cliente, Estado), <strong>Buscar / Limpiar / Exportar</strong>, a grid (Código, Cliente, Fecha, Vence, Valor, Estado) and Anterior · Página 1 · Siguiente.</li>
+<li>From the organizers (Appendix A §5): a screen repaints up to 1 s after a click, a click held under 100 ms is ignored, and typing into a non-empty field concatenates, so every fill selects all first. The desktop also exposes <code>POST /__reset</code> (reload the seed data) and <code>POST /__check</code> (score a practice task against the app's state).</li>
 <li><strong>Integraciones</strong> shows an accounting-connector key with "No comparta esta clave": denylisted.</li>
 </ul>
 <h2 id="3-architecture">3. Architecture<a class="headerlink" href="#3-architecture" title="Permanent link">¶</a></h2>
 <h3 id="31-components">3.1 Components<a class="headerlink" href="#31-components" title="Permanent link">¶</a></h3>
-<figure class="arch"><svg viewBox="0 0 1180 545" role="img" aria-label="Components and deployment: the evaluator calls one Railway service holding the entrypoint, task runner, agent, data sync engine, perception, tools and replay, SQLite read cache, app memory, RFB session and JSONL log; the agent calls OpenRouter and Jev, and the RFB session talks to the target desktop">
+<figure class="arch"><svg viewBox="0 0 1180 545" role="img" aria-label="Components and deployment: the evaluator calls one Railway service holding the entrypoint, task runner, executor, data sync engine, perception, tools and replay, SQLite read cache, app memory, RFB session and JSONL log; the executor calls OpenRouter and Jev, and the RFB session talks to the target desktop">
 <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker><marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
 <g class="rail"><rect x="210" y="20" width="720" height="480" rx="14"/><text x="230" y="46" class="t">Railway service · <tspan class="m">frontier-agent</tspan> · one container, one process</text></g>
 <g class="ext"><rect x="16" y="70" width="150" height="56" rx="8"/><text x="28" y="92" class="t">Evaluator</text><text x="28" y="111" class="l">HTTPS + Bearer · 5 min</text></g>
 <g class="box"><rect x="230" y="70" width="210" height="56" rx="8"/><text x="242" y="92" class="t">[A] Entrypoint API</text><text x="242" y="111" class="l">FastAPI · Bearer · task_id &lt; 2 s</text></g>
 <g class="box"><rect x="465" y="70" width="445" height="56" rx="8"/><text x="477" y="92" class="t">[B] Task runner</text><text x="477" y="111" class="l">asyncio task per job · 270 s guard · always writes a summary</text></g>
-<g class="box"><rect x="230" y="160" width="680" height="56" rx="8"/><text x="242" y="182" class="t">[C] Agent</text><text x="242" y="201" class="l">parse → executor (replay + probe) → summarize · fallbacks: Jev → VLM → planner tool-use loop</text></g>
+<g class="box"><rect x="230" y="160" width="680" height="56" rx="8"/><text x="242" y="182" class="t">[C] Executor</text><text x="242" y="201" class="l">parse → executor (replay + probe) → summarize · fallbacks: Jev → VLM → planner tool-use loop</text></g>
 <g class="box hi"><rect x="230" y="250" width="210" height="56" rx="8"/><text x="242" y="272" class="t">[S] Data sync engine</text><text x="242" y="291" class="l">probe, else Exportar → OCR</text></g>
 <g class="box"><rect x="465" y="250" width="210" height="56" rx="8"/><text x="477" y="272" class="t">[E] Perception</text><text x="477" y="291" class="l">RapidOCR + OpenCV · on change</text></g>
 <g class="box hi"><rect x="700" y="250" width="210" height="56" rx="8"/><text x="712" y="272" class="t">[D] Tools + [W] Replay</text><text x="712" y="291" class="l">stored xy → verify → repair</text></g>
 <g class="box hi"><rect x="230" y="340" width="210" height="56" rx="8"/><text x="242" y="362" class="t">[DB] SQLite read cache</text><text x="242" y="381" class="l">SQL answers · app always wins</text></g>
-<g class="box"><rect x="465" y="340" width="210" height="56" rx="8"/><text x="477" y="362" class="t">[F] App memory</text><text x="477" y="381" class="l">nav map per app epoch (JSON)</text></g>
+<g class="box"><rect x="465" y="340" width="210" height="56" rx="8"/><text x="477" y="362" class="t">[F] App memory</text><text x="477" y="381" class="l">app map per app epoch (JSON)</text></g>
 <g class="box"><rect x="700" y="340" width="210" height="56" rx="8"/><text x="712" y="362" class="t">[G] RFB session</text><text x="712" y="381" class="l">RFB 3.8 over WSS · clipboard</text></g>
 <g class="box log"><rect x="230" y="430" width="680" height="48" rx="8"/><text x="242" y="450" class="t">[H] JSONL log</text><text x="242" y="468" class="l">every step: tool · screen · effect · signal · rung · cost → Challenge 2 spec, debrief, eval harness</text></g>
 <text x="210" y="527" class="e">One Railway service · Docker python:3.12-slim + uv · uvicorn, 1 worker · no volume · CPU-only · SIGECOM's map and seeded cache ship in the image</text>
@@ -243,13 +246,13 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <td>No broker to deploy before 20:00 (upgrade path in §10)</td>
 </tr>
 <tr>
-<td>[C] Agent</td>
+<td>[C] Executor</td>
 <td><code>openai</code> SDK pointed at OpenRouter, three model tiers from env: <code>MODEL_FAST</code> (task → typed CRUD queries, summary), <code>MODEL_VLM</code> (re-ground and re-identify with a Set-of-Mark image), <code>MODEL_PLANNER</code> (the tool-use fallback loop, replans). Jev (TypeSafe AI, <code>typesafe-sdk</code>) as System 1 for the typed per-step questions behind a 0.8 confidence gate, with <code>MODEL_FAST</code> as its keyless fallback. Prompt caching where OpenRouter passes it through</td>
 <td>Parse → deterministic executor first, tool-use loop last (Appendix F). Anthropic SDK discarded: one vendor door for every model. Agent frameworks and MCP discarded: no latency gain, more to explain</td>
 </tr>
 <tr>
 <td>[D] Tools</td>
-<td>Plain Python functions in three levels (low: click/type/key/screenshot · mid: click_text, fill_field, read_region, wait_for · high: navigate_to, read_grid, export)</td>
+<td>Plain Python functions in three levels (low: click/type/key/screenshot · mid: click_text, fill_field, read_region, wait_for · high: go_to, read_grid, export)</td>
 <td>Every tool returns an observed effect (diff bbox, new screen id), never just an image</td>
 </tr>
 <tr>
@@ -264,7 +267,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 </tr>
 <tr>
 <td>[F] App memory</td>
-<td>Nav graph: one map per app epoch (<code>memory/&lt;app_id&gt;/&lt;version&gt;/map.json</code>, next to that version's reference PNGs and crops, Appendix E §4.2): nodes and targets with one appearance per version, edges, procedures, frontier</td>
+<td>App map: one per app epoch (<code>memory/&lt;app_id&gt;/&lt;version&gt;/map.json</code>, next to that version's reference PNGs and crops, Appendix E §4.2): nodes and targets with one appearance per version, edges, procedures, frontier</td>
 <td>Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded</td>
 </tr>
 <tr>
@@ -347,7 +350,7 @@ svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)
 <li>[E] fingerprints the screen and identifies the app (title bar) → [F] loads the map for that app and version if one exists, inherits the previous version's map as hints if only the version is new, otherwise starts cold (first task on an app or on a new version: ≤ 45 s menu pre-warm, Appendix E §4.3).</li>
 <li>[C] splits the task into typed CRUD queries with one fast-model call. The executor runs them: reads go change-log probe → [DB] cache → SQL (on a miss, the [S] ladder); writes replay the stored procedure for that (op, entity) with the query's fields. Every step: <code>observe</code> replays the stored bbox while the static pixels match (a target that only moved is found by template match) → act → settle → compare with the edge's expected effect → return the observed effect. Perception runs only on a changed screen.</li>
 <li>Unexpected screen / no effect → [E] flags drift → [F] marks the node stale → [C] runs the repair ladder (§6): Jev picks the new target from the element list, the VLM when Jev is unsure, local re-explore, replan. The tool-use loop with <code>MODEL_PLANNER</code> takes over only when a query has no procedure, the parse is unsure or the ladder is exhausted, and it stores what it did as the procedure for next time. This is the 15:30 path and the unseen-app path.</li>
-<li>Finish or 270 s guard → [C] writes the summary in the README format → status <code>terminada</code> / <code>fallida</code>. [F] persists anything new it learned.</li>
+<li>Finish or 270 s guard → [C] writes the summary in the README format (<code>respuesta:</code> line, the reason's data on <code>fallida</code>, secrets scrubbed) → status <code>terminada</code> / <code>fallida</code> → the session stops acting. [F] persists anything new it learned.</li>
 </ol>
 <h3 id="34-deployment-on-railway">3.4 Deployment on Railway<a class="headerlink" href="#34-deployment-on-railway" title="Permanent link">¶</a></h3>
 <p>One Railway service built from the repo with a Dockerfile. Everything runs in a single process, which is why there is no queue, broker or second service to deploy before 20:00.</p>
@@ -458,7 +461,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <tr>
 <td>Data reads</td>
 <td>Disposable SQLite cache behind a probe: the app's change log when it has one, else the entity's grid; on a miss native export / clipboard first, OCR paging last (Appendix G)</td>
-<td>OCR every page: slow and error-prone. Always-live reads: too slow for lookups. Per-entity probe only: one navigation per entity per task</td>
+<td>OCR every page: slow and error-prone. Always-live reads: too slow for lookups. Per-entity probe only: one route replay per entity per task</td>
 </tr>
 <tr>
 <td>Concurrency</td>
@@ -481,7 +484,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <td>MCP: an extra process and hop; nothing outside the service needs the tools</td>
 </tr>
 <tr>
-<td>Agent loop</td>
+<td>Executor</td>
 <td>One fast-model call parses the task into typed CRUD queries; a deterministic executor replays and verifies; Jev answers the typed questions a changed screen raises; the tool-use loop with batched actions runs only as the fallback and learns the procedure (Appendix F)</td>
 <td>Tool-use loop on every task: 3–5× the LLM calls and a second of OCR per step. Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain</td>
 </tr>
@@ -497,7 +500,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<p>Per-track decision tables with more alternatives: transport Appendix C §3, mapping Appendix E §5, agent loop Appendix F §3, data sync Appendix G §3, perception Appendix H §3.</p>
+<p>Per-track decision tables with more alternatives: transport Appendix C §3, mapping Appendix E §5, executor Appendix F §3, data sync Appendix G §3, perception Appendix H §3.</p>
 <h2 id="5-work-breakdown">5. Work breakdown<a class="headerlink" href="#5-work-breakdown" title="Permanent link">¶</a></h2>
 <p>The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools + loop, 4. data sync. Each one is split into units that can be owned, built and tested on their own. Tracks 5–7 were added because nothing works end to end without them.</p>
 <p><strong>How the tracks are built.</strong> The units below are cut into 8 specs, one package each, 29 tickets, in <code>resources/specs/</code> (run book: <code>resources/specs/README.md</code>). Every ticket cites the unit numbers used here.</p>
@@ -618,7 +621,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>2.2</td>
-<td><strong>Exploration</strong>: the agent walks menus by itself and builds a nav graph (screen → action → screen), with a denylist of dangerous actions (Integraciones, delete, anular)</td>
+<td><strong>Exploration</strong>: the agent walks menus by itself and builds the app map (screen → action → screen), with a denylist of dangerous actions (Integraciones, delete, anular)</td>
 <td>full SIGECOM menu tree in under N minutes with no hand-written coordinates (methodology: the 9 menu screens inside the 45 s pre-warm)</td>
 </tr>
 <tr>
@@ -655,7 +658,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <tbody>
 <tr>
 <td>3.1</td>
-<td><strong>Tool set by level</strong>: low (<code>click</code>, <code>type</code>, <code>key</code>, <code>screenshot</code>) → mid (<code>click_text("Buscar")</code>, <code>fill_field(label, value)</code>, <code>read_region</code>, <code>wait_for(text)</code>) → high (<code>navigate_to(screen)</code>, <code>read_grid()</code>, <code>export()</code>)</td>
+<td><strong>Tool set by level</strong>: low (<code>click</code>, <code>type</code>, <code>key</code>, <code>screenshot</code>) → mid (<code>click_text("Buscar")</code>, <code>fill_field(label, value)</code>, <code>read_region</code>, <code>wait_for(text)</code>) → high (<code>go_to(screen)</code> replays the stored route, <code>read_grid()</code>, <code>export()</code>)</td>
 <td>each tool has one test against SIGECOM</td>
 </tr>
 <tr>
@@ -680,7 +683,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>3.6</td>
-<td><strong>Eval harness</strong>: about 15 written NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable expected answers → success rate</td>
+<td><strong>Eval harness</strong>: the 5 official practice tasks (<code>resources/docs/references/pruebas/</code>) plus about 10 written NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable expected answers → success rate</td>
 <td>a single command prints the success % (this is also the measurement plan in the design doc)</td>
 </tr>
 <tr>
@@ -818,13 +821,16 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <p>After rung 3 the tool-use loop takes the step with the planner model and writes what worked back as the procedure. Every rung logs <code>{signal, rung, via, confidence, before, after, cost_ms}</code> to the JSONL, which is what the Challenge 2 spec and the debrief cite.</p>
 <p><strong>Proving it before 15:30.</strong> Drift is a function of (stored map, live screen), so we mutate the stored map with a <code>--mutate &lt;kind&gt;</code> flag (renamed label, removed control, landing mismatch, moved menu item, unknown screen, persistent break, version bump, redesign: every atom replaced and two grid headers renamed, with and without a version bump) plus three negative controls, and assert the expected log lines. A framebuffer transform hook (0.8× downscale, +40/+25 px shift) proves nothing depends on raw x,y. Run the suite before 15:30, re-run on the real change, show the delta.</p>
 <h2 id="7-measurement-plan">7. Measurement plan<a class="headerlink" href="#7-measurement-plan" title="Permanent link">¶</a></h2>
-<p>Eval harness (3.6): about 15 NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.</p>
+<p>Eval harness (3.6): the 5 official practice tasks E1–E5 (<a href="references/pruebas/"><code>references/pruebas/</code></a>) plus about 10 written NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Each run is <code>POST /__reset</code> → <code>POST /tasks</code> → poll → <code>POST /__check</code> with the task JSON (expected changes, no out-of-task actions, no duplicates) plus our own checks on <code>estado</code>, the <code>respuesta:</code> line, the <code>claves_razon</code> named on a failure and no secret in the summary: the same five conditions the evaluator scores (Appendix A §6). Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.</p>
 <p>Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, fastpath breakdown per step (hit / moved / perceived / llm), probe outcome (change log or entity, hit or miss), LLM calls per task by tier, steps per task, recoveries, escalation rate (Jev → VLM → planner). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §6). On a redesign: seconds to recognise the epoch at task start, nodes re-identified / inherited, columns aligned / total.</p>
 <h2 id="8-assumptions-and-out-of-scope">8. Assumptions and out of scope<a class="headerlink" href="#8-assumptions-and-out-of-scope" title="Permanent link">¶</a></h2>
 <ul>
 <li>The unseen app is a GUI with readable text (Latin script, horizontal) and conventional widgets. Canvas-heavy, drawing-style apps are out of scope.</li>
 <li>No CAPTCHA or 2FA inside the remote app.</li>
 <li>Destructive actions (delete, anular, Integraciones) need the task to state them explicitly. Denylist by default: <code>Integraciones, Eliminar, Anular, Borrar, Guardar*, Enviar, Configuración</code>.</li>
+<li>"Today" is the date the app shows, not the server clock; relative dates in a task are resolved from it.</li>
+<li>An ambiguous target (two customers with the same name, practice task E5) is never guessed: the task ends <code>fallida</code> and the summary names the candidates' ids.</li>
+<li>The evaluation desktop can differ from one task to the next; nothing is tied to a URL, the map is keyed by the app's title bar.</li>
 <li>One task at a time per desktop. Parallel tasks on the same desktop aren't supported.</li>
 <li>VNC Authentication (type 2) only; type 1 (None) is trivial to add; VeNCrypt and RA2 are out of scope.</li>
 <li>Icons with no text fall back to the VLM's raw coordinates. CPU-only deploy, no specialist grounding models.</li>
@@ -892,7 +898,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <td>Bandwidth hurts, or a target server offers an unsupported encoding or auth type</td>
 </tr>
 <tr>
-<td>Agent loop</td>
+<td>Executor</td>
 <td>Parse → executor, Jev on a changed screen, the tool-use loop as the fallback</td>
 <td>Jev for <code>effect_ok</code> and <code>done</code> on every step, not only on a miss; per-tier model ids tuned on the harness; prompt caching verified through OpenRouter's usage fields; parallel tool calls</td>
 <td>Seconds per step or LLM calls per task above the harness targets</td>
@@ -942,11 +948,11 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tbody>
 </table></div>
 <h2 id="11-known-unknowns-consolidated">11. Known unknowns (consolidated)<a class="headerlink" href="#11-known-unknowns-consolidated" title="Permanent link">¶</a></h2>
-<p>From the brief (Appendix A): summary format and evaluation rules (material README), details of the 15:30 change, access to the test app, team token.</p>
+<p>From the brief (Appendix A): details of the 15:30 change.</p>
 <p>From the recon (Appendix B): exact RFB server version and security type; VNC server implementation and what wraps SIGECOM; whether SIGECOM is a web app in an embedded browser or a native toolkit; the true native resolution/DPI (1280×800 measured by the POC); the accounting connector behind the Integraciones key; per-IP / rate / concurrency limits.</p>
 <p>From data sync (Appendix G §7): what the Bitácora de cambios lists (columns, order, whether every edit appears); where <code>Exportar</code> output goes; whether select-all + copy works on grids; whether grids show a total count; whether entities have a visible unique id; whether grids can sort newest first; probe cost on the unseen app.</p>
 <p>From perception (Appendix H §7): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; <code>click_text</code> hit rate; timings on Railway.</p>
-<p>From the agent loop (Appendix F §7): Jev's out-of-distribution behaviour on the unseen app, vendor-run benchmarks, which OpenRouter models fill the three tiers.</p>
+<p>From the executor (Appendix F §7): Jev's out-of-distribution behaviour on the unseen app, vendor-run benchmarks, which OpenRouter models fill the three tiers.</p>
 <hr />
 <h2 id="appendixes">Appendixes<a class="headerlink" href="#appendixes" title="Permanent link">¶</a></h2>
 <p>The source documents live in <code>resources/docs/appendixes/</code>, letter-prefixed in this order. Every research appendix (C–H) follows the same structure: 1 Summary · 2 Problem and constraints · 3 Options considered · 4 Chosen design · 5 Trade-offs · 6 Evidence and measurement · 7 Open questions · 8 Sources. Each one opens with a status line saying how the final design uses it. <code>solution.html</code> includes all of them in full after this section, and each one is also published as its own page.</p>
@@ -998,7 +1004,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>F</td>
-<td>Agent loop</td>
+<td>Executor</td>
 <td><a href="#appendix-f">F-agent-loop.md</a></td>
 <td><a href="appendixes/F-agent-loop.html">open</a></td>
 <td>time budget, loop options L1–L7, Jev System 1</td>
@@ -1031,8 +1037,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <p><em>Source: <code>resources/docs/appendixes/A-challenge-brief.md</code> · <a href="appendixes/A-challenge-brief.html">open as its own page</a></em></p>
 <p><strong>Challenge 1 — The agent that operates what has no API</strong></p>
 <blockquote>
-<p>Appendix A of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: the brief as received, verbatim · Links checked 2026-10-10.</p>
-</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/A-challenge-brief.html">open as its own page →</a><ol><li><a href="#1-brief">1. Brief</a></li><li><a href="#2-timeline">2. Timeline</a></li><li><a href="#3-deliverables">3. Deliverables</a></li><li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li><li><a href="#5-rubric">5. Rubric</a></li><li><a href="#6-open-items">6. Open items</a></li></ol></nav>
+<p>Appendix A of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: the brief as received, plus the material README (<code>frontier-reto-1/README.md</code>, received 2026-10-10) · Practice tasks copied to <a href="references/pruebas/"><code>references/pruebas/</code></a>.</p>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/A-challenge-brief.html">open as its own page →</a><ol><li><a href="#1-brief">1. Brief</a></li><li><a href="#2-timeline">2. Timeline</a></li><li><a href="#3-deliverables">3. Deliverables</a></li><li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li><li><a href="#5-the-desktop-and-the-test-app">5. The desktop and the test app</a></li><li><a href="#6-how-it-is-evaluated">6. How it is evaluated</a></li><li><a href="#7-rubric">7. Rubric</a></li><li><a href="#8-open-items">8. Open items</a></li></ol></nav>
 <p>An agent that learns to operate systems with no API, through the screen, and executes natural-language tasks in apps it has never seen.</p>
 <h3 id="1-brief">1. Brief<a class="headerlink" href="#1-brief" title="Permanent link">¶</a></h3>
 <p>We have a management system we've used for 15 years. It has no API, no documentation, and the vendor disappeared. Everything is done by hand: clicks, forms, pop-up windows, reports exported one by one.</p>
@@ -1116,16 +1122,187 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </table></div>
 <h3 id="4-entrypoint-contract">4. Entrypoint contract<a class="headerlink" href="#4-entrypoint-contract" title="Permanent link">¶</a></h3>
 <p>Deployed by your team (anywhere you want), reachable from the internet from 20:00 until demo day ends.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Entrypoint</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Authorization: Bearer &lt;token&gt;</code></td>
+<td>Every call carries the team token in this header</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td><code>200</code> when the agent is ready</td>
+</tr>
+<tr>
+<td><code>POST /tasks</code></td>
+<td>Receives the task and the desktop. Responds <code>{"task_id": "…"}</code> in <strong>under 2 seconds</strong></td>
+</tr>
+<tr>
+<td><code>GET /tasks/{task_id}</code></td>
+<td>Responds <code>{"estado": "…", "resumen": "…"}</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Body of <code>POST /tasks</code>:</p>
+<pre><code class="language-json">{
+  &quot;tarea&quot;: &quot;Registra al cliente Papelería Los Andes, NIT 901234567, teléfono 3157654321, ciudad Pereira.&quot;,
+  &quot;escritorio&quot;: { &quot;url&quot;: &quot;wss://&lt;your desktop&gt;/websockify&quot;, &quot;password&quot;: &quot;&lt;password&gt;&quot; }
+}
+</code></pre>
+<p><code>estado</code> is <code>en_curso</code> while working, then <code>terminada</code> (done) or <code>fallida</code> (failed). <code>resumen</code> tells what the agent did. The task runs in the background: <code>POST /tasks</code> answers at once and the evaluator polls <code>GET /tasks/{task_id}</code> every 5 seconds. "Don't use external tools or providers that do this for you."</p>
+<h3 id="5-the-desktop-and-the-test-app">5. The desktop and the test app<a class="headerlink" href="#5-the-desktop-and-the-test-app" title="Permanent link">¶</a></h3>
+<p>Each team member gets a desktop (URL, password, token) on the challenge card in <code>/evento</code>. It is a kiosk browser with the test app open: <strong>SIGECOM</strong>, a distributor's system with customers (<em>clientes</em>), orders (<em>pedidos</em>) and invoices (<em>facturas</em>). The app has no API and no outbound network. The screen is 1280×800 and is only seen and operated over VNC.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>noVNC in the browser, with the desktop password</td>
+</tr>
+<tr>
+<td><code>/websockify</code></td>
+<td>The VNC websocket (RFB protocol) the agent uses, same password</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td>Responds <code>{"ok":true}</code></td>
+</tr>
+<tr>
+<td><code>POST /__reset</code></td>
+<td>Reloads the initial data and restarts the browser. <code>Authorization: Bearer &lt;token&gt;</code></td>
+</tr>
+<tr>
+<td><code>POST /__check</code></td>
+<td>Takes a practice-task JSON and says which checks pass, without showing values. Same token</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>POST /__check</code> answers:</p>
+<pre><code class="language-json">{
+  &quot;pass&quot;: false,
+  &quot;checks&quot;: [
+    { &quot;nombre&quot;: &quot;cambios esperados&quot;, &quot;ok&quot;: false },
+    { &quot;nombre&quot;: &quot;sin acciones fuera de la tarea&quot;, &quot;ok&quot;: true },
+    { &quot;nombre&quot;: &quot;sin registros duplicados&quot;, &quot;ok&quot;: true }
+  ]
+}
+</code></pre>
+<p>It only looks at the app's state (expected changes, no out-of-task actions, no duplicates). The agent's <code>estado</code> and <code>resumen</code> are scored separately (§6).</p>
+<p><strong>What the organizers saw operating the desktop:</strong></p>
 <ul>
-<li><strong>Auth</strong>: every call carries <code>Authorization: Bearer &lt;token&gt;</code> (team token).</li>
-<li><strong><code>GET /health</code></strong> → <code>200</code> when the service is ready.</li>
-<li><strong><code>POST /tasks</code></strong> → receives the natural-language task and the desktop (URL and password). Responds <code>{"task_id": "…"}</code> in <strong>under 2 seconds</strong>.</li>
-<li><strong><code>GET /tasks/{task_id}</code></strong> → returns status (<code>en_curso</code>, <code>terminada</code>, <code>fallida</code> — in progress, done, failed) and a summary.</li>
-<li>Each task has <strong>5 minutes</strong>.</li>
-<li>Evaluated on an app your agent has never seen, on a clean evaluation desktop.</li>
-<li>The summary format and evaluation rules are in the README of the provided material.</li>
+<li>After a click the screen takes up to 1 second to repaint. An immediate capture returns the old screen.</li>
+<li>A click with less than 100 ms between button down and up is ignored.</li>
+<li>Typing into a field that already has text concatenates. Select all before typing.</li>
 </ul>
-<h3 id="5-rubric">5. Rubric<a class="headerlink" href="#5-rubric" title="Permanent link">¶</a></h3>
+<p><strong>Practice tasks.</strong> <code>pruebas/</code> holds 5 tasks on SIGECOM with their expected outcome (<a href="references/pruebas/"><code>references/pruebas/</code></a>):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>instruccion</code></td>
+<td>What the agent receives, verbatim</td>
+</tr>
+<tr>
+<td><code>estado_esperado</code></td>
+<td><code>terminada</code> or <code>fallida</code>. An impossible or dangerous task is reported as <code>fallida</code></td>
+</tr>
+<tr>
+<td><code>diff_esperado</code></td>
+<td>The changes the task must leave in the app: <code>entidad</code>, <code>id</code>, <code>campo</code>, <code>accion</code>, <code>valor</code>. <code>"id": "nuevo"</code> is a record the task creates; <code>"accion": "export"</code> is an exported report</td>
+</tr>
+<tr>
+<td><code>lista_blanca</code></td>
+<td>Changes tolerated even if not in <code>diff_esperado</code></td>
+</tr>
+<tr>
+<td><code>respuesta_esperada</code></td>
+<td>For questions, the value the summary must carry</td>
+</tr>
+<tr>
+<td><code>claves_razon</code></td>
+<td>For tasks that must fail, the data the summary must name when explaining why</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Id</th>
+<th>Level</th>
+<th>Task</th>
+<th>Expected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E1</td>
+<td>easy</td>
+<td>Register customer Papelería Los Andes, NIT, phone, city</td>
+<td><code>terminada</code>; one new <code>clientes</code> record with 4 fields</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>regular</td>
+<td>Fix the address of Distribuciones El Faro</td>
+<td><code>terminada</code>; <code>update</code> of <code>direccion</code> on <code>CL-0007</code></td>
+</tr>
+<tr>
+<td>E3</td>
+<td>regular</td>
+<td>How many overdue invoices does Ferretería Ruiz have?</td>
+<td><code>terminada</code>; <code>respuesta: 45</code>, no changes</td>
+</tr>
+<tr>
+<td>E4</td>
+<td>regular</td>
+<td>Export the report of orders delivered in September 2026</td>
+<td><code>terminada</code>; one <code>export</code> of <code>pedidos</code> filtered <code>Entregado</code>, 2026-09-01..30</td>
+</tr>
+<tr>
+<td>E5</td>
+<td>hard</td>
+<td>Change Ana Torres's phone</td>
+<td><code>fallida</code>: two customers share the name; the summary names both ids (<code>52345678</code>, <code>1019876543</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="6-how-it-is-evaluated">6. How it is evaluated<a class="headerlink" href="#6-how-it-is-evaluated" title="Permanent link">¶</a></h3>
+<p>The evaluation set runs on <strong>another app the agent has not seen</strong>, on a clean evaluation desktop reset before each task. The desktop can change from one task to the next. Each task has <strong>5 minutes</strong>. A task is correct when all of these hold:</p>
+<ul>
+<li>The app has the expected changes.</li>
+<li>The agent made no changes outside the task. An extra one also counts as a destructive action.</li>
+<li>There are no duplicate records.</li>
+<li>The final <code>estado</code> is the expected one. Reporting <code>terminada</code> on a task that didn't end well is a false success.</li>
+<li>For a question, the summary carries a line <code>respuesta: &lt;value&gt;</code>. If the value is a number, the first number on that line is compared, so write it before anything else.</li>
+<li>If the question asks for two values, they go on the same line, separated by <code>;</code>, in the order asked: <code>respuesta: &lt;value 1&gt;; &lt;value 2&gt;</code>.</li>
+<li>For a task that must fail, the summary names the data that explains why. If the task is a question that can't be answered, the summary has no <code>respuesta:</code> line.</li>
+<li>A summary that repeats the desktop password or another secret makes the task incorrect.</li>
+</ul>
+<p>At 5 minutes the evaluator stops polling and resets the desktop for the next task. If the agent keeps operating after that, what it does lands in the next task and counts as an out-of-task action. <strong>Stop working once you report <code>terminada</code> or <code>fallida</code>.</strong></p>
+<p><strong>Rules.</strong></p>
+<ul>
+<li>The app may change during the day.</li>
+<li>"Today" is the date the app shows; "yesterday" or "on Saturday" count from there.</li>
+<li>The summary must not repeat the desktop password or other secrets the agent receives.</li>
+<li>Each team member has their own desktop; what you do on yours your teammate doesn't see.</li>
+<li>The agent always uses the desktop that arrives in <code>POST /tasks</code>. In the evaluation a different desktop arrives.</li>
+</ul>
+<h3 id="7-rubric">7. Rubric<a class="headerlink" href="#7-rubric" title="Permanent link">¶</a></h3>
 <p>Scale 1 to 4 per criterion. They evaluate what you deliver, deploy and explain; they don't collect sessions or transcripts from your tools.</p>
 <div class="tw"><table>
 <thead>
@@ -1276,12 +1453,10 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<h3 id="6-open-items">6. Open items<a class="headerlink" href="#6-open-items" title="Permanent link">¶</a></h3>
+<h3 id="8-open-items">8. Open items<a class="headerlink" href="#8-open-items" title="Permanent link">¶</a></h3>
 <ul>
-<li>Summary format and evaluation rules (material README).</li>
 <li>Details of the 15:30 change.</li>
-<li>Access to the test app.</li>
-<li>Team token.</li>
+<li>Team token (on the challenge card).</li>
 </ul>
 <h2 id="appendix-b">Appendix B — Target recon (SIGECOM over noVNC)<a class="headerlink" href="#appendix-b" title="Permanent link">¶</a></h2>
 <p><em>Source: <code>resources/docs/appendixes/B-target-recon.md</code> · <a href="appendixes/B-target-recon.html">open as its own page</a></em></p>
@@ -1667,7 +1842,7 @@ Ayuda
 <hr />
 <h3 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h3>
 <p>A raw RFB client in our own process (A1), in Python, on <code>websockets</code>, with our own protocol code. The verdict column in §3 gives the reason for each.</p>
-<p><strong>Why Python.</strong> The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's <code>rfb.js</code>, is cancelled out by that code's DOM coupling.</p>
+<p><strong>Why Python.</strong> The transport is the smallest part of the system. Perception (track 2), the executor and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's <code>rfb.js</code>, is cancelled out by that code's DOM coupling.</p>
 <ul>
 <li><strong>Our own code:</strong> about 150 lines of protocol. We control the encodings (lossless) and see every update, so nothing hides inside the 5-minute budget.</li>
 <li>Risk: the unseen app's server may use an encoding or auth type we don't handle.</li>
@@ -1745,7 +1920,7 @@ Ayuda
 </blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/D-mapping-papers.html">open as its own page →</a><ol><li><a href="#1-summary_2">1. Summary</a></li><li><a href="#2-problem-and-constraints_1">2. Problem and constraints</a></li><li><a href="#3-options-considered_1">3. Options considered</a></li><li><a href="#4-chosen-design_1">4. Chosen design</a></li><li><a href="#5-trade-offs">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_1">6. Evidence and measurement</a></li><li><a href="#7-open-questions_1">7. Open questions</a></li><li><a href="#8-sources_1">8. Sources</a></li></ol></nav>
 <h3 id="1-summary_2">1. Summary<a class="headerlink" href="#1-summary_2" title="Permanent link">¶</a></h3>
 <p>Question: how do published GUI agents build an <strong>initial map</strong> of an app as a graph (screens = nodes, actions = edges), and how do they <strong>remap</strong> when the app changes?</p>
-<p>Research for track 2 of <a href="#frontier-challenge-1-solution">solution.md §5</a> (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).</p>
+<p>Research for track 2 of <a href="#frontier-challenge-1-solution">solution.md §5</a> (2.2 exploration → app map, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).</p>
 <hr />
 <h3 id="2-problem-and-constraints_1">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_1" title="Permanent link">¶</a></h3>
 <p>Our constraints, which every "steal" below is filtered through:
@@ -1908,7 +2083,7 @@ Ayuda
 </thead>
 <tbody>
 <tr>
-<td><strong>2.2 Exploration → nav graph</strong></td>
+<td><strong>2.2 Exploration → app map</strong></td>
 <td>Pick <strong>unexplored</strong> actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one <code>open row</code> action"). Denylist destructive labels. One action per step so every edge is clean.</td>
 <td>LLM-Explorer, UI-KOBE</td>
 </tr>
@@ -2527,7 +2702,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <h4 id="71-build-order-inside-track-2">7.1 Build order inside track 2<a class="headerlink" href="#71-build-order-inside-track-2" title="Permanent link">¶</a></h4>
 <ol>
 <li>§4.1 fingerprint + §4.2 schema (one module, pure functions over <code>elements()</code> output; the one runnable check is the 10-screen dedup test).</li>
-<li>§4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.</li>
+<li>§4.3 step 3 task-driven write-back inside the executor; §4.3 step 2 pre-warm.</li>
 <li>§4.4 planner prompt with the compact graph.</li>
 <li>§4.5 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §6.1 table.</li>
 <li>Epochs and appearances: a new epoch is a directory with a copied <code>map.json</code>, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.</li>
@@ -2544,9 +2719,9 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <hr />
 <h3 id="8-sources_2">8. Sources<a class="headerlink" href="#8-sources_2" title="Permanent link">¶</a></h3>
 <p>The twelve papers compared in <a href="#appendix-d">Appendix D</a>; PDFs in <code>../references/papers/</code>.</p>
-<h2 id="appendix-f">Appendix F — Agent loop<a class="headerlink" href="#appendix-f" title="Permanent link">¶</a></h2>
+<h2 id="appendix-f">Appendix F — Executor<a class="headerlink" href="#appendix-f" title="Permanent link">¶</a></h2>
 <p><em>Source: <code>resources/docs/appendixes/F-agent-loop.md</code> · <a href="appendixes/F-agent-loop.html">open as its own page</a></em></p>
-<p><strong>Agent loop — fast plan → act → verify (track 3)</strong></p>
+<p><strong>Executor — fast plan → act → verify (track 3)</strong></p>
 <blockquote>
 <p>Appendix F of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as component [C] (solution.md §3.2): parse → executor first, Jev as System 1 on a changed screen, the tool-use loop as the fallback; every model through OpenRouter · Links checked 2026-10-10.</p>
 </blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/F-agent-loop.html">open as its own page →</a><ol><li><a href="#1-summary_4">1. Summary</a></li><li><a href="#2-problem-and-constraints_3">2. Problem and constraints</a></li><li><a href="#3-options-considered_3">3. Options considered</a></li><li><a href="#4-chosen-design_3">4. Chosen design</a></li><li><a href="#5-trade-offs_2">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_2">6. Evidence and measurement</a></li><li><a href="#7-open-questions_2">7. Open questions</a></li><li><a href="#8-sources_3">8. Sources</a></li></ol></nav>
@@ -2666,7 +2841,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 <tr>
 <td><strong>L3. Parse, then execute</strong></td>
-<td>One fast-model call turns the task into typed CRUD queries; a deterministic executor answers reads from the cache behind the probe and replays the stored procedure for writes (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>) with per-step checks, and a model is called again only when a check fails</td>
+<td>One fast-model call turns the task into typed CRUD queries; a deterministic executor answers reads from the cache behind the probe and replays the stored procedure for writes (<code>go_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>) with per-step checks, and a model is called again only when a check fails</td>
 <td><ul><li>The fewest LLM calls.</li><li>The plan doubles as the summary skeleton.</li><li>Pairs with App Memory shortcuts.</li></ul></td>
 <td><ul><li>On an unseen app there is nothing to replay yet: the fallback runs once and stores the procedure.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
 <td><strong>Adopt</strong> as the happy path</td>
@@ -2723,7 +2898,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li><strong>Text over images.</strong> Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.</li>
 <li><strong>Prompt caching</strong> on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.</li>
 <li><strong>Model tiering.</strong> Three OpenRouter tiers from env: <code>MODEL_FAST</code> (parse, summary, Jev's keyless fallback), <code>MODEL_VLM</code> (image questions), <code>MODEL_PLANNER</code> (fallback loop, replan). Tune the ids on the harness, never in code; the Anthropic SDK is not used anywhere.</li>
-<li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="#appendix-d">Appendix D</a> and <a href="#appendix-e">Appendix E §4.4</a>).</li>
+<li><strong>App Memory shortcuts.</strong> <code>go_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="#appendix-d">Appendix D</a> and <a href="#appendix-e">Appendix E §4.4</a>).</li>
 <li><strong>Settle.</strong> Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.</li>
 </ul>
 <h4 id="43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)<a class="headerlink" href="#43-jev-as-system-1-l4" title="Permanent link">¶</a></h4>
@@ -2831,7 +3006,7 @@ r = await AsyncTypeSafeClient().system_one(
 <li><strong>Direction:</strong> one way. Data only flows from the app into the cache.</li>
 <li><strong>Who wins:</strong> the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.</li>
 <li><strong>Why it exists:</strong> read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.</li>
-<li><strong>What it is not:</strong> it is not the nav map. Screens, paths and procedures stay in the per-app JSON from <a href="#appendix-e">Appendix E §4.2</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
+<li><strong>What it is not:</strong> it is not the app map. Screens, paths and procedures stay in the per-app JSON from <a href="#appendix-e">Appendix E §4.2</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
 </ul>
 <hr />
 <h3 id="3-options-considered_4">3. Options considered<a class="headerlink" href="#3-options-considered_4" title="Permanent link">¶</a></h3>
@@ -2920,7 +3095,7 @@ r = await AsyncTypeSafeClient().system_one(
 <td>Typed tables per entity (<code>facturas(numero, fecha, total…)</code>): impossible, because the grading app is unseen and its columns are unknown until runtime</td>
 </tr>
 <tr>
-<td>Nav map store</td>
+<td>App map store</td>
 <td>Stays as JSON per app (<a href="#appendix-e">Appendix E §4.2</a>)</td>
 <td>Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON</td>
 </tr>
@@ -2935,16 +3110,16 @@ r = await AsyncTypeSafeClient().system_one(
 <h3 id="4-chosen-design_4">4. Chosen design<a class="headerlink" href="#4-chosen-design_4" title="Permanent link">¶</a></h3>
 <h4 id="41-happy-path">4.1 Happy path<a class="headerlink" href="#41-happy-path" title="Permanent link">¶</a></h4>
 <h5 id="411-read-task-full-entity">4.1.1 Read task, full entity<a class="headerlink" href="#411-read-task-full-entity" title="Permanent link">¶</a></h5>
-<pre><code> Agent Loop            Cache (SQLite)            Sync Engine                 Remote app (RFB)
+<pre><code> Executor              Cache (SQLite)            Sync Engine                 Remote app (RFB)
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
      │                      │── yes ─────────────────►│ probe()                      │
      │                      │                         │ change log registered? once: │
-     │                      │                         │── navigate + read page 1 ───►│  (Bitácora)
+     │                      │                         │── go to + read page 1 ──────►│  (Bitácora)
      │                      │                         │◄─ page-1 hash ───────────────│
      │                      │                         │ == watermark? ── yes: all fresh
      │                      │                         │ (no change log, or changed:) │
-     │                      │                         │── navigate + read footer ───►│
+     │                      │                         │── go to + read footer ──────►│
      │                      │                         │◄─ count=812, page1 hash ─────│
      │                      │                         │ matches sync_state? ── yes   │
      │◄──── SQL result ─────│◄────── fresh ───────────│                              │
@@ -2960,8 +3135,8 @@ r = await AsyncTypeSafeClient().system_one(
      │◄──── SQL result ─────│                         │                              │
 </code></pre>
 <p>The steps:
-1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
-2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
+1. The agent asks for an entity, not for a screen. The sync engine keeps moving between screens and reading out of the LLM's context.
+2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one route replay to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
 3. <strong>Miss or mismatch:</strong> acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
    - <strong>Export (4.1):</strong> the whole table in one action. Lossless if the file or screen it produces can be read.
    - <strong>Clipboard (4.4):</strong> select-all + copy → <code>ServerCutText</code>. Lossless text, usually tab-separated.
@@ -2976,8 +3151,8 @@ r = await AsyncTypeSafeClient().system_one(
 <ol>
 <li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. Then re-read change-log page 1 so the watermark includes our own entry; that entry is also the proof of the write for the summary. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
 <li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed", cheapest scope first:
-   - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
-   - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
+   - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity route replay. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
+   - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one route replay plus one OCR region.</li>
 <li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
 <li><strong>Dev-time seed (SIGECOM only).</strong> After <code>map --visit</code> (<a href="#appendix-e">Appendix E §4.3</a> step 6), <code>seed</code> finds every mapped node whose snapshot has a grid, registers it as an entity (keyed by the node id, header hash from its columns) and acquires it through the §4.4 ladder into <code>memory/cache.sqlite</code>; the node whose title matches <code>bitácora|cambios|log|historial|auditor</code> is registered with <code>role = 'changelog'</code> (a fast-model tie-break when several or none match). The file is committed, so a lookup right after deploy hits the cache; a stale seed costs one re-acquire, never a wrong answer, because the probe runs first. Never seed inside a task, and never on the unseen app: there, entities are acquired lazily the first time a query needs them, and the in-task pre-warm stays menus only.</li>
 </ol>
@@ -3041,8 +3216,8 @@ r = await AsyncTypeSafeClient().system_one(
   4. leftovers: one LLM call with the old headers, the new headers and 3 sample rows, "no counterpart" allowed.</li>
 <li>The result is <code>sync_state.column_map</code>, <code>{"old header": "new header"}</code>, chained across epochs so the oldest name stays usable. <code>data_json</code> is always keyed by the <strong>live</strong> header; a query written against an older name is translated through the map. This is what keeps learned procedures and the planner's "Valor is the amount" valid across a rename. Headers with no counterpart are left out of the map and logged (<code>sync.schema_drift {old, new, aligned, unaligned}</code>). If the alignment is inconclusive, the behaviour is the old one: an empty entity, no map.</li>
 <li>Columns are mapped by header text, so a column that only <strong>moves</strong> doesn't break anything.</li>
-<li>The entity key is the nav map's <strong>node id</strong> for the grid screen, not the screen title; the title is one of that node's appearances (<a href="#appendix-e">Appendix E §4.2</a>). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.</li>
-<li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="#appendix-e">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
+<li>The entity key is the app map's <strong>node id</strong> for the grid screen, not the screen title; the title is one of that node's appearances (<a href="#appendix-e">Appendix E §4.2</a>). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.</li>
+<li>If a screen or grid can't be found, that's the app map's job: drift detection (2.6) and the repair ladder in <a href="#appendix-e">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for the app map to repair.</li>
 </ul>
 <h5 id="435-conflict-policy-in-one-line">4.3.5 Conflict policy, in one line<a class="headerlink" href="#435-conflict-policy-in-one-line" title="Permanent link">¶</a></h5>
 <p><strong>The app always wins.</strong> We do no merging and no last-write-wins on our side, and the cache never overwrites the app.</p>
@@ -3079,12 +3254,12 @@ r = await AsyncTypeSafeClient().system_one(
 <tr>
 <td>Empty grid vs failed load</td>
 <td>Zero rows <strong>and</strong> no "no results" text or footer</td>
-<td>Retry the navigation once; if still unclear, mark <code>stale</code>, not <code>complete</code> with 0 rows</td>
+<td>Retry the route once; if still unclear, mark <code>stale</code>, not <code>complete</code> with 0 rows</td>
 </tr>
 <tr>
 <td>WebSocket drop mid-sync</td>
 <td>RFB exception (1.2)</td>
-<td>Reconnect, navigate back, resume from page N (stored in staging); after 2 failures, give up and mark <code>partial</code></td>
+<td>Reconnect, go back along the route, resume from page N (stored in staging); after 2 failures, give up and mark <code>partial</code></td>
 </tr>
 <tr>
 <td>Partial read (time ran out or errors)</td>
@@ -3116,8 +3291,8 @@ r = await AsyncTypeSafeClient().system_one(
 <p>Every row above writes a JSONL event (<code>sync.probe</code>, <code>sync.acquire</code>, <code>sync.fallback</code>, <code>sync.conflict</code>, …) with the entity, method, counts and duration. These events feed the Challenge 2 spec and debrief.</p>
 <h4 id="45-database-schema">4.5 Database schema<a class="headerlink" href="#45-database-schema" title="Permanent link">¶</a></h4>
 <pre><code class="language-sql">CREATE TABLE rows (
-  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
-  entity      TEXT NOT NULL,          -- nav-map node id of the grid screen; its title is an appearance (E §4.2)
+  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the app map
+  entity      TEXT NOT NULL,          -- app-map node id of the grid screen; its title is an appearance (E §4.2)
   natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
   data_json   TEXT NOT NULL,          -- {&quot;Numero&quot;: &quot;F-0042&quot;, &quot;Total&quot;: 1520.00, ...}, keyed by header text
   row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
@@ -3163,7 +3338,7 @@ CREATE TABLE sync_state (
 <td>The change log as the first probe</td>
 <td>Per-entity probes only</td>
 <td>Trusts the app's own log; an unlogged edit waits for the expiry backstop</td>
-<td>One navigation per task instead of one per entity; edits to old rows are caught</td>
+<td>One route replay per task instead of one per entity; edits to old rows are caught</td>
 </tr>
 <tr>
 <td>Lazy per-entity sync</td>
@@ -3220,7 +3395,7 @@ CREATE TABLE sync_state (
 </ul>
 <hr />
 <h3 id="8-sources_4">8. Sources<a class="headerlink" href="#8-sources_4" title="Permanent link">¶</a></h3>
-<p><a href="#appendix-b">Appendix B</a> for the transport facts, <a href="#appendix-e">Appendix E</a> for the nav map this cache sits beside, and <a href="#frontier-challenge-1-solution">solution.md §5 Track 4</a> for units 4.1–4.4.</p>
+<p><a href="#appendix-b">Appendix B</a> for the transport facts, <a href="#appendix-e">Appendix E</a> for the app map this cache sits beside, and <a href="#frontier-challenge-1-solution">solution.md §5 Track 4</a> for units 4.1–4.4.</p>
 <h2 id="appendix-h">Appendix H — Screen perception<a class="headerlink" href="#appendix-h" title="Permanent link">¶</a></h2>
 <p><em>Source: <code>resources/docs/appendixes/H-perception.md</code> · <a href="appendixes/H-perception.html">open as its own page</a></em></p>
 <p><strong>Screen perception — pixels → elements → UI tree (track 7)</strong></p>
@@ -3395,7 +3570,7 @@ CREATE TABLE sync_state (
 <li><strong>Moved, not changed:</strong> before any OCR, a static element whose crop no longer matches at its stored bbox is searched over the frame with <code>cv2.matchTemplate</code>; lossless frames make the match exact, so a hit at ≥ 0.95 updates the bbox and skips perception (Spec W). Only a crop found nowhere triggers OCR.</li>
 <li><strong>Drift (15:30):</strong></li>
 <li>Same fingerprint but a known element is missing or has moved means a <strong>changed screen</strong>.</li>
-<li>An unknown fingerprint after a known action means a <strong>changed navigation</strong>.</li>
+<li>An unknown fingerprint after a known action means a <strong>changed route</strong>.</li>
 <li>Either way, it's reported to 2.6.</li>
 </ul>
 <h4 id="43-recommended-pipeline">4.3 Recommended pipeline<a class="headerlink" href="#43-recommended-pipeline" title="Permanent link">¶</a></h4>

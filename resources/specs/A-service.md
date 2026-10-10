@@ -39,7 +39,8 @@ Single process, no broker (§3.2); desktop URL and password arrive per task, nev
 
 ## Assumed
 
-- Summary format: free text plus a `data` dict until the material README is seen.
+- Summary format: the README's (Appendix A §6, built in F3); the runner scrubs the desktop password and `TEAM_TOKEN` from every summary before storing it, since a leaked secret makes the task incorrect.
+- Once the status is final the task closes its RFB session and acts no more: anything after it lands in the next task as an out-of-task change.
 - Task ids are UUID4 strings; state is lost on restart (§10 lists the upgrade).
 - Budget guard 270 s; the summary call gets the last 10 s.
 

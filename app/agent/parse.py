@@ -12,7 +12,7 @@ OPS = set(get_args(Op))
 @dataclass
 class Query:
     op: Op
-    entity: str  # nav-map node id
+    entity: str  # app-map node id
     where: dict[str, Any] = field(default_factory=dict)
     fields: dict[str, Any] = field(default_factory=dict)
     aggregate: str | None = None  # count | sum:<col> | avg:<col> | min:<col> | max:<col>

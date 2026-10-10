@@ -107,7 +107,7 @@ That's our tracks 2.2 and 2.4. Perception only has to deliver a stable tree and 
 - **Moved, not changed:** before any OCR, a static element whose crop no longer matches at its stored bbox is searched over the frame with `cv2.matchTemplate`; lossless frames make the match exact, so a hit at ≥ 0.95 updates the bbox and skips perception (Spec W). Only a crop found nowhere triggers OCR.
 - **Drift (15:30):**
   - Same fingerprint but a known element is missing or has moved means a **changed screen**.
-  - An unknown fingerprint after a known action means a **changed navigation**.
+  - An unknown fingerprint after a known action means a **changed route**.
   - Either way, it's reported to 2.6.
 
 ### 4.3 Recommended pipeline

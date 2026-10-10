@@ -37,7 +37,7 @@ Read priority on a task: change-log probe → cache (E1) → clipboard (E3) → 
 - Expiry 10 min; sync abandoned after 60 s inside a task (G §4.4); page size from page 1.
 - Change-log probe v1: any change on its page 1 marks every entity stale; naming the touched entity from the row (v2) waits for the human spike in run book step 0.5.
 - Money parsed as Colombian format (dot thousands, comma decimals); dates `dd/mm/yyyy` → ISO.
-- Column alignment: `difflib` ratio 0.8, value agreement 90 %; the LLM leftover rung is an injected callable (F wires `MODEL_FAST`); `entity` is an opaque string (F and W3 pass the nav-map node id, G §4.3.4).
+- Column alignment: `difflib` ratio 0.8, value agreement 90 %; the LLM leftover rung is an injected callable (F wires `MODEL_FAST`); `entity` is an opaque string (F and W3 pass the app-map node id, G §4.3.4).
 
 ## Not building
 
