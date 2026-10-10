@@ -65,7 +65,7 @@ One directory per app epoch: `memory/<app_id>/<version>/` holds `map.json` and t
 ```jsonc
 node      = {id, title, description, transient, stale, seen, last_seen,
              appearances: [{version, atoms[], ref_png, elements_snapshot, last_seen}]}   // one per app version, newest first; crops as files
-edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell}]}, params},
+edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell, xy}]}, params},
              to, effect, data?, scroll?, inherited?, ok, fail, last_ok, outcomes: {node_id: count}}
 procedure = {task_text, steps: [edge_id | self_loop + params], ok, last_ok}
 unexplored[node_id] = [action signatures not yet tried]       // the frontier
@@ -74,6 +74,8 @@ denylist  = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Envia
 
 - `description` is written by the LLM **lazily**, in one batched call at write-back, never per node.
 - `appearances` is MAGNET's "function → many appearances" (§3.1 idea 9): the node id and its description are the stable function; each app version adds a look: its atoms, `ref_png`, `elements_snapshot` and the static crops the replay fast path compares, stored as files in that version's directory. Fingerprint matching and target grounding take the newest appearance first and fall back through the older ones. Rung 1 appends an appearance; it never overwrites one.
+- `xy` on a target appearance is the last click point that worked: a cache, never the identity. Replay (Spec W `replay_edge`) checks the crop around it byte-for-byte before clicking, clicks it or its template-matched position, verifies the landing against `to`, and on a miss perceives, grounds label + role + cell, clicks and **overwrites `xy`** (logged `fastpath: repaired`).
+- **Static crops** are the title-band app-title element plus every menu, button, field-label and header bbox padded 2 px, cut from `ref_png`; grid bodies and values are excluded, so a filter, a page change or a selected row still replays. Byte equality of these crops is the gate for "same node, nothing moved".
 - `inherited: true` marks an edge copied from the previous epoch and not yet verified in this one. The planner sees it as a hint, ranked below any verified edge; the first confirmed landing clears the flag.
 - `data: true` when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the **find procedure** (search field → type → Enter → `Siguiente` ≤ N pages), never the repair ladder. We store the procedure, not the row click.
 - `scroll: true` when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.
@@ -91,8 +93,9 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 2. **Pre-warm, first task on an epoch only, ≤ 45 s.** Open each top menu: click → `settle` → OCR → `Esc` ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. **Open menus only, never click items.** Record `menu → item` edges with `to = unknown`. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.
 3. **Task-driven mapping.** Every action during a task: act → `settle` → `elements` → fingerprint → create/match node → upsert edge with the observed `to`. **An edge is persisted only once its landing fingerprint is confirmed.** Nothing is learned off the task path unless the planner is stuck.
 4. **Frontier mode (planner stuck).** Take the unexplored actions on the current node, ranked by label similarity to the task text; one action per step; back out via `Esc` or the recorded return edge. ≤ 40 s per episode.
-5. **Write-back at task end.** Nodes, edges, procedure persisted; new nodes described in one batched LLM call.
-6. `lazy:` background frontier exploration between tasks, only if a spare session exists. Shared session risk: `operador`/`operador2` collisions.
+5. **Write-back at task end.** Nodes (with a refreshed `elements_snapshot` and static crops on the current version's appearance), edges and the procedure persisted; new nodes described in one batched LLM call. So the unseen app replays from its second task.
+6. **Dev-time full mapping (`map --visit`, SIGECOM only).** The same pre-warm function with a `visit` flag also clicks every non-denylisted menu item, settles, perceives, saves the node's appearance with snapshot, `ref_png` and crops plus the confirmed edge with the `xy` it clicked, and returns via `Esc` or the recorded back edge (budget 10 min). It then seeds the read cache from every node with a grid ([Appendix G §4.2](G-data-sync.md) step 4). The result is committed in `memory/` and shipped in the image; the unseen app never gets this run and learns through steps 1–5.
+7. `lazy:` background frontier exploration between tasks, only if a spare session exists. Shared session risk: `operador`/`operador2` collisions.
 
 **Done when:** the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.
 
@@ -120,7 +123,7 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 
 **Order of checks on every step: blocker dialog? → overlay? → data edge? → only then drift.** Each of the first three is a cheap false-positive filter.
 
-**Ladder** — four rungs, each bounded, next rung only on failure. Every rung logs `{signal, rung, before, after, cost_ms}` to the JSONL (this is the evidence the Challenge 2 spec cites).
+**Ladder** — four rungs, each bounded, next rung only on failure. Every rung logs `{signal, rung, via, confidence, before, after, cost_ms}` to the JSONL (this is the evidence the Challenge 2 spec cites).
 
 | Rung | What | Budget | When it fires |
 |---|---|---|---|
@@ -215,11 +218,14 @@ Real-pixel drift with no app change: a transform hook in [E] that downscales the
 3. §4.4 planner prompt with the compact graph.
 4. §4.5 signals + rung 1, then rungs 2–3; `--mutate` flag and the §6.1 table.
 5. Epochs and appearances: a new epoch is a directory with a copied `map.json`, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.
-6. Baseline numbers before 15:30; re-run after.
+6. Replay fast path and dev-time mapping (Spec W): `observe` / `replay_edge` over the stored crops and `xy`, `map --visit`, cache seed.
+7. Baseline numbers before 15:30; re-run after.
+
+The tickets that build this order are Spec D (D1 = item 1, D2 = item 2, D3 = item 3, D4–D5 = items 4–5) and Spec W (item 6) in `resources/specs/`.
 
 ### 7.2 Deferred (`lazy:` notes)
 
-- Background frontier exploration between tasks, only if a spare session exists (§4.3, step 6).
+- Background frontier exploration between tasks, only if a spare session exists (§4.3, step 7).
 - Pruning, once the map grows past what fits in the prompt (§4.5).
 - The techniques skipped on purpose for a one-day build (§3.1, "Deliberately skipped").
 

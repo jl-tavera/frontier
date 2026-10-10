@@ -46,7 +46,7 @@ There's no DOM and no accessibility tree; the transport only gives us pixels ([A
 |---|---|---|---|
 | **RapidOCR** (PaddleOCR PP-OCR models on ONNX Runtime) | PaddleOCR accuracy without the Paddle framework. Pip install, CPU-friendly. Separate det/rec stages we can call independently (§6). Measured: numbers, dates and codes read near-perfectly | Default model is Chinese+English, so it **drops accents** (Gómez → Gomez). Line-level boxes, not word-level | **Primary.** Swap in the Latin rec model (PP-OCRv5 `latin_PP-OCRv5_mobile_rec` lists Spanish) |
 | PaddleOCR 3.x (PP-OCRv5/v6) | Best open-source accuracy; Latin models; v6 is one model for about 50 languages | Heavy framework install, bigger image, slower on CPU | Discarded for deploy weight: RapidOCR runs the same model family |
-| Tesseract 5 (`spa`) | Tiny; word-level boxes + confidence; Spanish pack | Weak on small UI text unless upscaled 2–3× and binarized; weak on text over colored buttons | **Cross-check / fallback** for low-confidence lines |
+| Tesseract 5 (`spa`) | Tiny; word-level boxes + confidence; Spanish pack | Weak on small UI text unless upscaled 2–3× and binarized; weak on text over colored buttons | **Deferred cross-check** for low-confidence lines (Spec C builds without it; added if accents fail or the click hit rate drops below 95 % live) |
 | EasyOCR | Simple API | Pulls in PyTorch; slow on CPU | Discarded |
 | docTR, Surya | Strong document OCR + layout | Tuned for documents; want a GPU | Discarded |
 | Cloud OCR (Google Vision, Azure Read) | Very accurate | Network round trip per screen, cost, a key to manage | Discarded: latency inside the 5-minute budget |
@@ -126,7 +126,7 @@ merge → elements → tree (containment · grouping · label↔field · grids �
   ├─► fingerprint → screen cache: known screen = reuse whole tree, re-read only changed region
   ├─► app map (2.4) / drift (2.6)
   └─► the model: element list as text; + SoM image only on new or unexpected screens
-fallbacks: conf < 0.8 → upscale + Tesseract cross-check · no text/no box → VLM raw x,y
+fallbacks: conf < 0.8 → flagged (upscale + Tesseract deferred) · no text/no box → VLM raw x,y
 ```
 
 **Two caches make this fast:**
@@ -160,7 +160,7 @@ Setup: RapidOCR (`rapidocr_onnxruntime`, default models) on `poc/out/before.png`
 - Menus, buttons, labels, codes (`FV-10159`), dates and amounts (`1.810.000`) were read correctly at 0.97–1.00 confidence.
 - **Accents were dropped** (Gómez → Gomez, Ferretería → Ferreteria, Díaz → Diaz). That's the default Chinese+English model, so we need the Latin rec model.
 - **The angle classifier flipped "Todos" into "sopol"** inside the select. UI text is never rotated, so turn the classifier off (`use_cls=False`), which fixed it.
-- Header "Código" was read as "oo" with **0.52 confidence**. A confidence threshold should trigger re-OCR (upscale or Tesseract).
+- Header "Código" was read as "oo" with **0.52 confidence**. A confidence threshold flags such lines; re-OCR (upscale or Tesseract) is deferred until live numbers ask for it.
 - Small casing errors appeared in the title ("SIGEcoM"), so title text needs case-insensitive matching.
 
 **Conclusion:** detect once, recognize lazily and cache by line pixels. A known screen then costs about 0.7 s (detection) plus near-zero recognition, and a diff region costs a few hundred ms. Full recognition of a 20-row grid stays a deliberate `read_grid()` cost (about 5–7 s) and is a candidate for the clipboard/export path (4.1, 4.4).
