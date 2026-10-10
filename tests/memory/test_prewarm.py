@@ -113,3 +113,20 @@ def test_visit_lands_every_item_but_never_clicks_integraciones(fake_app, tmp_pat
     assert m.file(a, a["ref_png"]).is_file()
     assert {e["from"] for e in m.edges.values() if e["to"] == "inicio"} == {"inicio", "clientes", "pedidos", "facturas",
                                                                    "bitacora-de-cambios", "reportes-generados"}
+
+
+def test_prewarm_takes_items_ocr_reads_as_buttons_under_a_garbled_bar_label(fake_app, tmp_path):
+    """Real SIGECOM: dropdown items OCR as buttons, the cursor on the clicked label garbles it (Cartera → Carjera), and
+    the screen under the dropdown re-reads a pixel off."""
+    session, m = fake_app("inicio", menu_tree()), AppMap.load(tmp_path, V39)
+
+    def seen(fb):
+        if not session.screen.startswith("menu-"):
+            return session.elements
+        return [replace(e, text=e.text[:3] + "j" + e.text[4:]) if e.kind == "menu" and e.bbox[1] < 40
+                else replace(e, kind="button") if e.kind == "menu"
+                else replace(e, bbox=tuple(v + 1 for v in e.bbox)) for e in session.elements]
+    asyncio.run(prewarm(session, m, seen))
+
+    labels = {(e["action"]["params"]["menu"], e["action"]["target"]["appearances"][0]["label"]) for e in m.edges.values()}
+    assert ("Cartera", "Facturas") in labels and len(labels) == 9

@@ -27,11 +27,18 @@ async def prewarm(session: Session, m: AppMap, perceive: Perceive, *, clock: Cal
     for menu in [e for e in elements if e.kind == "menu" and not m.denied(e.text)]:
         if clock() - t0 >= budget:
             break
+        before = perceive(session.fb)
         await session.click(*_xy(menu))
         await session.settle()
         # lazy: a cascade item's path keeps only its top menu; record the submenu header when cascades open on hover
-        items = [(_xy(e), Target(e.text, e.kind, cell(e.bbox, session.w, session.h))) for e in perceive(session.fb)
-                 if e.kind == "menu" and e.text not in top and not m.denied(e.text)]
+        # An item is new text in the dropdown's column under the bar: OCR may call it a button, the cursor garbles the
+        # bar label, and OCR boxes jitter a few px between frames, so "new" means no same text near the same place.
+        # lazy: column = left edge within 60 px of the menu's; read the dropdown's box from a frame diff if menus grow wide
+        items = [(_xy(e), Target(e.text, "menu", cell(e.bbox, session.w, session.h))) for e in perceive(session.fb)
+                 if e.bbox[1] >= menu.bbox[3] - 2 and abs(e.bbox[0] - menu.bbox[0]) <= 60 and e.text not in top
+                 and e.kind in ("menu", "button", "link", "text") and not m.denied(e.text)
+                 and not any(b.text == e.text and abs(b.bbox[0] - e.bbox[0]) <= 6 and abs(b.bbox[1] - e.bbox[1]) <= 6
+                             for b in before)]
         for xy, target in items:
             m.upsert_edge(src, "click", target, xy, None, {"menu": menu.text})
         await session.key("esc")
