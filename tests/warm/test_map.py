@@ -2,6 +2,7 @@ import time
 from itertools import count
 
 from app.memory.appmap import AppMap
+from app.perception.grid import Grid
 from app.warm.__main__ import main
 
 V39 = "SIGECOM · Distribuidora Andina   v3.9"
@@ -28,8 +29,12 @@ def map_cmd(fake_app, tmp_path, *args, clock=time.monotonic):
         assert (url, password) == ("https://app.example", "pw")
         return session
 
+    async def tiebreak(candidates):
+        raise AssertionError(f"tie-break called with {candidates}")
+
     main(["map", "--url", "https://app.example", "--password", "pw", "--memory", str(tmp_path), *args],
-         connect=connect, perceive=lambda fb: session.elements, clock=clock)
+         connect=connect, perceive=lambda fb: session.elements, clock=clock,
+         read_grid=lambda fb: Grid([], []), tiebreak=tiebreak)  # --visit then seeds: empty grids keep it off OCR
     return session, AppMap.load(tmp_path, V39)
 
 
