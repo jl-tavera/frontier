@@ -182,6 +182,19 @@ def _passed(case) -> bool:
     return all(a.value for a in case.assertions.values())
 
 
+def rates(report: EvaluationReport) -> dict[str, list[bool]]:
+    """Pass/fail per case, under `all` and under its category; a case that raised is a fail."""
+    by: dict[str, list[bool]] = {"all": []}
+    for c, ok in [(c, _passed(c)) for c in report.cases] + [(f, False) for f in report.failures]:
+        by["all"].append(ok)
+        by.setdefault(c.metadata["category"], []).append(ok)
+    return by
+
+
+def pct(ok: list[bool]) -> int:
+    return round(100 * sum(ok) / len(ok)) if ok else 0
+
+
 def _first_trouble(log: Path | None) -> str:
     """The first failed step, else the first drift line."""
     evs = events(log)
@@ -214,12 +227,8 @@ def show(report: EvaluationReport, baseline: Path | str | None = None) -> int:
         baseline = EvaluationReportAdapter.validate_json(Path(baseline).read_text(encoding="utf-8"))
     console = Console(width=200)
     report.print(baseline=baseline, console=console, include_averages=True)
-    by: dict[str, list[bool]] = {"all": []}
-    for c, ok in [(c, _passed(c)) for c in report.cases] + [(f, False) for f in report.failures]:
-        by["all"].append(ok)
-        by.setdefault(c.metadata["category"], []).append(ok)
-    for cat, ok in by.items():
-        console.print(f"{cat:<9} {sum(ok)}/{len(ok)}  {round(100 * sum(ok) / len(ok)) if ok else 0}%")
+    for cat, ok in rates(report).items():
+        console.print(f"{cat:<9} {sum(ok)}/{len(ok)}  {pct(ok)}%")
     failed = [c for c in report.cases if not _passed(c)]
     for c in failed:
         console.print(_triage(c), highlight=False, markup=False, soft_wrap=True)
@@ -231,8 +240,12 @@ def show(report: EvaluationReport, baseline: Path | str | None = None) -> int:
     return 1 if failed or report.failures else 0
 
 
+def reports_dir() -> Path:
+    return Path(os.environ.get("EVALS_DIR", "synth/reports"))
+
+
 def save(report: EvaluationReport) -> Path:
-    path = Path(os.environ.get("EVALS_DIR", "synth/reports")) / f"{report.name}.json"
+    path = reports_dir() / f"{report.name}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(EvaluationReportAdapter.dump_json(report, indent=2))
     return path
