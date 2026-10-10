@@ -13,6 +13,7 @@ from typing import Any, Awaitable, Callable
 
 from numpy import ndarray
 
+from app.agent.fallback import agent_loop
 from app.agent.llm import chat_json
 from app.agent.parse import Plan, Query, parse_task
 from app.agent.tools import Tools, _fold
@@ -30,13 +31,8 @@ from app.warm.replay import observe
 CONFIDENT, SUMMARY_S = 0.8, 10.0
 AGGREGATES = {"sum", "avg", "min", "max"}
 COLUMN = re.compile(r"[^'\".\[\]]+")  # a column name that can't step out of its json path
-Fallback = Callable[[str, Plan, Tools, AppMap], Awaitable[dict]]
+Fallback = Callable[[str, Plan, "Executor"], Awaitable[dict]]
 ReadGrid = Callable[[ndarray], Grid]
-
-
-async def no_fallback(task: str, plan: Plan, tools: Tools, m: AppMap) -> dict:
-    """Stand-in until F4's tool-use loop."""
-    return {"ok": False, "detail": "sin procedimiento conocido: el bucle de agente (F4) aún no existe"}
 
 
 def page_probe(grid: Grid) -> tuple[int, str]:
@@ -262,7 +258,7 @@ async def summarize(task: str, status: str, results: list[dict], llm, timeout: f
 
 async def run_task(task: str, session: Session, log: Log, budget_s: float, *, llm=None, memory: Path | str = "memory",
                    perceive: Perceive = ocr_elements, read_grid: ReadGrid = ocr_grid,
-                   fallback: Fallback = no_fallback) -> Summary:
+                   fallback: Fallback = agent_loop) -> Summary:
     ex = Executor(session, log, llm=llm, memory=Path(memory), perceive=perceive, read_grid=read_grid)
     reserve = min(SUMMARY_S, budget_s / 3)
     results: list[dict] = []
@@ -284,7 +280,7 @@ async def run_task(task: str, session: Session, log: Log, budget_s: float, *, ll
             except _HandOff as why:
                 log.event("handoff", args={"reason": str(why)})
                 rest = Plan(plan.queries[len(results):], plan.confidence)  # what is done stays done
-                results.append({"op": "fallback", "reason": str(why), **await fallback(task, rest, ex.tools, ex.m)})
+                results.append({"op": "fallback", "reason": str(why), **await fallback(task, rest, ex)})
     except Exception as e:
         results.append({"ok": False, "detail": f"tiempo agotado: quedaban {reserve:.1f} s para el resumen" if guard.expired()
                         else f"error: {type(e).__name__}: {e}"})
