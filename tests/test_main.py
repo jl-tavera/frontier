@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from app import runner
 from app.contracts import Summary
 from app.main import app
+from tests.fakes.fake_app import FakeSession
 
 AUTH = {"Authorization": "Bearer test-token"}
 BODY = {"task": "¿Cuántas facturas hay?", "desktop": {"url": "wss://desktop.example/ws", "password": "x"}}
@@ -20,7 +21,13 @@ def _wait(client, task_id):
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch, tmp_path):
+    (tmp_path / "blank.json").write_text("[]")
+
+    async def fake_open(url, password):  # the real open_session dials the desktop; tests stay offline
+        return FakeSession("blank", {}, tmp_path)
+
+    monkeypatch.setattr(runner, "open_session", fake_open)
     with TestClient(app) as c:
         yield c
 
