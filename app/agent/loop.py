@@ -133,8 +133,11 @@ class Executor:
         return asyncio.run_coroutine_threadsafe(coro, self.loop).result()
 
     async def step(self, tool: str, *args) -> Effect:
-        """One tool call, one `step` line."""
-        e = await getattr(self.tools, tool)(*args)
+        """One tool call, one `step` line. A tool that raises is a failed step, so the caller can try another way."""
+        try:
+            e = await getattr(self.tools, tool)(*args)
+        except Exception as x:
+            e = Effect(False, None, None, None, f"{type(x).__name__}: {x}", 0.0)
         self.m = self.tools.m  # the ladder may have opened a new epoch
         self.log.event("step", tool=tool, args=list(args), screen_id=e.screen_id, diff=e.changed_bbox,
                        outcome="ok" if e.ok else "fail", signal=e.signal, detail=e.detail, cost_ms=e.cost_ms)
