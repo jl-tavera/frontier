@@ -1,0 +1,9 @@
+{
+  "id": "explored-31",
+  "nivel": "facil",
+  "instruccion": "¿Cuántos pedidos están confirmados ahora mismo?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "49",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

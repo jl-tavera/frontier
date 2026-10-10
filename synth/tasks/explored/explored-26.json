@@ -1,0 +1,9 @@
+{
+  "id": "explored-26",
+  "nivel": "regular",
+  "instruccion": "Revise la bitácora: ¿qué código tiene el cliente que se creó el 14 de octubre?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "CL-0141",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "explored-14",
+  "nivel": "dificil",
+  "instruccion": "¿Cuántas facturas vencidas tiene Depósito Hernández y cuánto suman?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "3; 10860000",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

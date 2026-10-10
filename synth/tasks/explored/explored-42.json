@@ -1,0 +1,9 @@
+{
+  "id": "explored-42",
+  "nivel": "facil",
+  "instruccion": "¿Cuál es el teléfono de Distribuciones El Faro?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "3156781234",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

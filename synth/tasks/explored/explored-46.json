@@ -1,0 +1,9 @@
+{
+  "id": "explored-46",
+  "nivel": "regular",
+  "instruccion": "¿Cuál es el NIT y la ciudad de Ferretería Ruiz?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "800123987; Bogotá",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

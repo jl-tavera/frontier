@@ -1,0 +1,9 @@
+{
+  "id": "explored-11",
+  "nivel": "facil",
+  "instruccion": "Oiga, ¿cuántas facturas pendientes hay en el sistema?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "35",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

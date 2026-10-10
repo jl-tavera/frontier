@@ -1,0 +1,9 @@
+{
+  "id": "explored-43",
+  "nivel": "facil",
+  "instruccion": "Oiga, ¿cuál es el NIT de Comercializadora Valencia?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "852132082",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

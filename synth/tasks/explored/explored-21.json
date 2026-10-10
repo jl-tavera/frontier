@@ -1,0 +1,9 @@
+{
+  "id": "explored-21",
+  "nivel": "regular",
+  "instruccion": "¿Cuántas facturas se emitieron en septiembre de 2026?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "11",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

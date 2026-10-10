@@ -1,0 +1,16 @@
+{
+  "id": "explored-50",
+  "nivel": "regular",
+  "instruccion": "Cámbiale el teléfono a Depósito Hernández, el nuevo es 3101112233.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "clientes",
+      "id": "CL-0038",
+      "campo": "telefono",
+      "accion": "update",
+      "valor": "3101112233"
+    }
+  ],
+  "lista_blanca": []
+}

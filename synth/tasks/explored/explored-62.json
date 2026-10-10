@@ -1,0 +1,12 @@
+{
+  "id": "explored-62",
+  "nivel": "dificil",
+  "instruccion": "Corrige el teléfono de Almacén Rojas Central: ahora es 3157771122.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "833197237",
+    "877345737"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

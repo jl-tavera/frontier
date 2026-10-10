@@ -1,0 +1,9 @@
+{
+  "id": "explored-33",
+  "nivel": "regular",
+  "instruccion": "¿Cuántos pedidos entregados hubo en septiembre de 2026?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "24",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

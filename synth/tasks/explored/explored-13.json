@@ -1,0 +1,9 @@
+{
+  "id": "explored-13",
+  "nivel": "regular",
+  "instruccion": "Porfa, dígame cuánto suman todas las facturas pendientes.",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "113690000",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

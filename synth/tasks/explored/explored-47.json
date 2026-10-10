@@ -1,0 +1,9 @@
+{
+  "id": "explored-47",
+  "nivel": "facil",
+  "instruccion": "¿Qué código de cliente tiene Droguería Osorio La 14?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "CL-0054",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

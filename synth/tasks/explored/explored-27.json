@@ -1,0 +1,9 @@
+{
+  "id": "explored-27",
+  "nivel": "regular",
+  "instruccion": "¿A qué estado se cambió el pedido PD-0010 según la bitácora de cambios?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "Confirmado",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

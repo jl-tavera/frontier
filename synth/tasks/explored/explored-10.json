@@ -1,0 +1,9 @@
+{
+  "id": "explored-10",
+  "nivel": "facil",
+  "instruccion": "¿Cuántas facturas anuladas hay en total?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "31",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

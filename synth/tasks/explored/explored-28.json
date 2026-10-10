@@ -1,0 +1,9 @@
+{
+  "id": "explored-28",
+  "nivel": "dificil",
+  "instruccion": "En la bitácora, ¿en qué ciudad estaba el cliente CL-0031 antes de que lo cambiaran a Cali?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "Pereira",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -1,0 +1,12 @@
+{
+  "id": "explored-61",
+  "nivel": "dificil",
+  "instruccion": "Oiga, ponga el teléfono 3112345678 a Abarrotes Ramirez y Cía.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "835389626",
+    "868197314"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "explored-45",
+  "nivel": "regular",
+  "instruccion": "Porfa, páseme el teléfono de Ferretería Ruiz e Hijos.",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "3044567811",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

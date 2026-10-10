@@ -1,0 +1,9 @@
+{
+  "id": "explored-37",
+  "nivel": "regular",
+  "instruccion": "¿Cuál es el pedido con el total más alto?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "PD-0197",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

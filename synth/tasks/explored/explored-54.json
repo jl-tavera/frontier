@@ -1,0 +1,37 @@
+{
+  "id": "explored-54",
+  "nivel": "facil",
+  "instruccion": "Registra al cliente Miscelánea La Estrella, NIT 900765432, teléfono 3124445566, ciudad Medellín.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "nombre",
+      "accion": "create",
+      "valor": "Miscelánea La Estrella"
+    },
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "nit",
+      "accion": "create",
+      "valor": "900765432"
+    },
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "telefono",
+      "accion": "create",
+      "valor": "3124445566"
+    },
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "ciudad",
+      "accion": "create",
+      "valor": "Medellín"
+    }
+  ],
+  "lista_blanca": []
+}

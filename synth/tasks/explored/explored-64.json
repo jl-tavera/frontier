@@ -1,0 +1,11 @@
+{
+  "id": "explored-64",
+  "nivel": "regular",
+  "instruccion": "Cámbiale el teléfono a Ferretería El Martillo, el nuevo es 3105550000.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "Ferretería El Martillo"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

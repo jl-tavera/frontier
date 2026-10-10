@@ -1,0 +1,16 @@
+{
+  "id": "explored-59",
+  "nivel": "regular",
+  "instruccion": "Marca como entregado el pedido PD-0195.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "pedidos",
+      "id": "PD-0195",
+      "campo": "estado",
+      "accion": "update",
+      "valor": "Entregado"
+    }
+  ],
+  "lista_blanca": []
+}

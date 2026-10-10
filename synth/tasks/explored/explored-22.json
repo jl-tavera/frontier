@@ -1,0 +1,9 @@
+{
+  "id": "explored-22",
+  "nivel": "dificil",
+  "instruccion": "¿Cuánto suman las facturas anuladas de todo el sistema?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "103970000",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

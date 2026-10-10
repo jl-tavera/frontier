@@ -1,0 +1,16 @@
+{
+  "id": "explored-52",
+  "nivel": "regular",
+  "instruccion": "Actualice la dirección de Droguería Pardo: ahora es Carrera 7 # 45-12.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "clientes",
+      "id": "CL-0028",
+      "campo": "direccion",
+      "accion": "update",
+      "valor": "Carrera 7 # 45-12"
+    }
+  ],
+  "lista_blanca": []
+}

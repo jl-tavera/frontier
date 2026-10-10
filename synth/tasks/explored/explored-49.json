@@ -1,0 +1,9 @@
+{
+  "id": "explored-49",
+  "nivel": "regular",
+  "instruccion": "¿El cliente Almacén Díaz del Norte está activo o inactivo?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "Inactivo",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

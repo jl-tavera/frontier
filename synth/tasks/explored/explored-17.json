@@ -1,0 +1,9 @@
+{
+  "id": "explored-17",
+  "nivel": "regular",
+  "instruccion": "¿Cuántas facturas vencen en octubre de 2026?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "11",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

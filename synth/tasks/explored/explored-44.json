@@ -1,0 +1,9 @@
+{
+  "id": "explored-44",
+  "nivel": "facil",
+  "instruccion": "¿En qué ciudad queda el cliente Depósito Hernández?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "Bogotá",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

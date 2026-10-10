@@ -1,0 +1,9 @@
+{
+  "id": "explored-23",
+  "nivel": "facil",
+  "instruccion": "¿Cuál es la factura vencida de Papelería Pardo?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "FV-10199",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

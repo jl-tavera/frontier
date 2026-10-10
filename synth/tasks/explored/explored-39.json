@@ -1,0 +1,9 @@
+{
+  "id": "explored-39",
+  "nivel": "regular",
+  "instruccion": "Este mes, ¿cuántos pedidos se han anulado?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "7",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

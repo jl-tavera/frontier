@@ -1,0 +1,23 @@
+{
+  "id": "explored-57",
+  "nivel": "regular",
+  "instruccion": "Necesito el reporte de pedidos confirmados de septiembre de 2026, expórtelo.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "pedidos",
+      "id": "*",
+      "campo": "*",
+      "accion": "export",
+      "valor": {
+        "lista": "pedidos",
+        "filtros": {
+          "estado": "Confirmado",
+          "desde": "2026-09-01",
+          "hasta": "2026-09-30"
+        }
+      }
+    }
+  ],
+  "lista_blanca": []
+}

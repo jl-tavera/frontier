@@ -1,0 +1,9 @@
+{
+  "id": "explored-35",
+  "nivel": "dificil",
+  "instruccion": "¿Cuánto suman los totales de los pedidos entregados en septiembre de 2026?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "132740000",
+  "diff_esperado": [],
+  "lista_blanca": []
+}
