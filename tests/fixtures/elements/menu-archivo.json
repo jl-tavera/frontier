@@ -1,0 +1,14 @@
+[
+  {"id": 0, "text": "SIGECOM · Distribuidora Andina   v3.9", "bbox": [0, 0, 500, 22], "kind": "title"},
+  {"id": 1, "text": "Hoy: 14/10/2026 · Usuario: operador", "bbox": [900, 2, 1250, 20], "kind": "text"},
+  {"id": 2, "text": "Archivo", "bbox": [8, 26, 70, 44], "kind": "menu"},
+  {"id": 3, "text": "Comercial", "bbox": [80, 26, 170, 44], "kind": "menu"},
+  {"id": 4, "text": "Cartera", "bbox": [180, 26, 250, 44], "kind": "menu"},
+  {"id": 5, "text": "Herramientas", "bbox": [260, 26, 370, 44], "kind": "menu"},
+  {"id": 6, "text": "Ayuda", "bbox": [380, 26, 430, 44], "kind": "menu"},
+  {"id": 7, "text": "Inicio", "bbox": [8, 55, 300, 78], "kind": "title"},
+  {"id": 8, "text": "Bienvenido a SIGECOM", "bbox": [400, 200, 860, 230], "kind": "text"},
+  {"id": 9, "text": "Sistema de gestión comercial: use el menú superior para acceder a los módulos", "bbox": [250, 240, 1010, 265], "kind": "text"},
+  {"id": 10, "text": "Soporte: extensión 214 (fuera de servicio).", "bbox": [400, 280, 860, 300], "kind": "text"},
+  {"id": 11, "text": "Inicio", "bbox": [8, 48, 208, 68], "kind": "menu"}
+]
