@@ -1,4 +1,4 @@
-"""The planner's view of a map (Appendix E §4.4): the map as compact text."""
+"""The planner's view of a map (Appendix E §4.4): the map as compact text, and ranked routes over its edges."""
 import math
 from difflib import SequenceMatcher
 
@@ -36,3 +36,32 @@ def compact(m: AppMap, task_text: str) -> str:
         lines.append(f'- "{p["task_text"]}": {steps}')
     return "\n".join(lines)
 
+
+def route(m: AppMap, src: str, dst: str) -> list[str]:
+    """Edge ids from src to dst over verified edges only, else over any landed edge (inherited hints included):
+    fewest hops, each hop the best-ranked edge between its two nodes. [] when there is no path."""
+    ranked = sorted(m.edges.items(), key=lambda kv: _rank(kv[1]), reverse=True)
+    for edges in ([kv for kv in ranked if _rank(kv[1])[0]], ranked):
+        if path := _bfs(m, edges, src, dst):
+            return path
+    return []
+
+
+def _bfs(m: AppMap, edges: list[tuple[str, dict]], src: str, dst: str) -> list[str]:
+    # lazy: hop count first, rank only among parallel edges, a full edge scan per node; weigh whole paths by rank
+    # and index edges by `from` if maps grow alternatives or past a few dozen nodes
+    came_by: dict[str, str | None] = {src: None}
+    frontier = [src]
+    while frontier and dst not in came_by:
+        nxt = []
+        for node in frontier:
+            for eid, e in edges:
+                if e["from"] == node and e["to"] is not None and e["to"] not in came_by:
+                    came_by[e["to"]] = eid
+                    nxt.append(e["to"])
+        frontier = nxt
+    path, node = [], dst
+    while came_by.get(node):
+        path.append(came_by[node])
+        node = m.edges[came_by[node]]["from"]
+    return path[::-1] if node == src else []
