@@ -40,6 +40,7 @@ def _cut(fb, b: BBox):
 class Tools:
     def __init__(self, session: Session, m: AppMap, task: str = "", *, perceive: Perceive = ocr_elements):
         self.session, self.m, self.task, self.perceive = session, m, _fold(task), perceive
+        self.allow: set[str] = set()  # folded labels a stored procedure for this task may click past the denylist
 
     def _observe(self) -> Observation:
         return observe(self.session.fb, self.m, perceive=self.perceive)
@@ -69,7 +70,7 @@ class Tools:
 
     def _denied(self, *labels: str) -> bool:
         # lazy: "named" = the label is a substring of the task; ask the parse for the targets once F3 has them
-        return any(self.m.denied(x) and _fold(x) not in self.task for x in labels)
+        return any(self.m.denied(x) and _fold(x) not in self.task and _fold(x) not in self.allow for x in labels)
 
     # low
 
