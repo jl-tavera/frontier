@@ -1,11 +1,15 @@
 import json
+import re
 import shutil
 import sqlite3
 from pathlib import Path
 
 import pytest
 
+from app.agent import llm as llm_mod
 from synth.__main__ import main
+from synth.gen import gen as gen_tasks
+from tests.fakes.llm import FakeLLM
 from tests.fixtures.synth.build import build
 
 
@@ -132,3 +136,52 @@ def test_gen_never_repeats_an_official_task_or_deletes_a_hand_written_one(cache,
     official = {json.loads(p.read_text(encoding="utf-8"))["instruccion"] for p in PRUEBAS.glob("*.json")}
     assert "explored-01" in tasks
     assert not official & {t["instruccion"] for t in tasks.values()}
+
+
+
+def _scripted(monkeypatch, cache, tmp_path, rewrite):
+    """A FakeLLM with one reply per base task, built from what a plain run writes, wired in as F1's client."""
+    bases = [json.loads(p.read_text(encoding="utf-8")) for p in gen_tasks(cache, tmp_path / "base", 1)]
+    fake = FakeLLM(*({"variantes": rewrite(t)} for t in bases))
+    monkeypatch.setattr(llm_mod, "openrouter", lambda: fake)
+    return fake, bases
+
+
+def test_paraphrase_writes_k_variants_per_task_with_the_same_expectation(cache, tmp_path, monkeypatch):
+    fake, bases = _scripted(monkeypatch, cache, tmp_path, lambda t: [f"Oye, {t['instruccion']}", f"{t['instruccion']} Gracias."])
+    tasks = gen(cache, tmp_path / "out", "--per-template", "1", "--paraphrase", "2")
+    assert len(fake.calls) == len(bases) and fake.calls[0]["model"] == "test/fast"
+    for b in bases:
+        v1, v2 = tasks[f"{b['id']}-v1"], tasks[f"{b['id']}-v2"]
+        assert v1 == b | {"id": f"{b['id']}-v1", "instruccion": f"Oye, {b['instruccion']}"}
+        assert v2["instruccion"] == f"{b['instruccion']} Gracias."
+    assert len(tasks) == 3 * len(bases)
+    assert check(cache, tmp_path / "out") == 0
+
+
+def test_a_variant_that_drops_the_nit_is_not_written(cache, tmp_path, monkeypatch):
+    def rewrite(t):
+        nit = re.search(r"NIT (\S+?)[?.,]", t["instruccion"])
+        return [f"Oye, {t['instruccion']}", t["instruccion"].replace(nit[1], "su NIT") if nit else f"Hola: {t['instruccion']}"]
+    _scripted(monkeypatch, cache, tmp_path, rewrite)
+    tasks = gen(cache, tmp_path / "out", "--per-template", "1", "--paraphrase", "2")
+    assert "multi-join-01-v1" in tasks and "multi-join-01-v2" not in tasks
+    assert "lookup-sum-01-v2" in tasks
+
+
+def test_paraphrase_0_is_the_default_and_calls_no_model(cache, tmp_path, monkeypatch):
+    def boom():
+        raise AssertionError("no model call expected")
+    monkeypatch.setattr(llm_mod, "openrouter", boom)
+    tasks = gen(cache, tmp_path / "out", "--per-template", "1")
+    assert not any(re.search(r"-v\d+$", k) for k in tasks)
+
+
+def test_paraphrase_is_deterministic_with_a_scripted_client(cache, tmp_path, monkeypatch):
+    rewrite = lambda t: [f"Oye, {t['instruccion']}"]
+    for run in ("a", "b"):
+        _scripted(monkeypatch, cache, tmp_path, rewrite)
+        gen(cache, tmp_path / run, "--per-template", "1", "--paraphrase", "1")
+    a, b = sorted((tmp_path / "a").glob("*.json")), sorted((tmp_path / "b").glob("*.json"))
+    assert [p.name for p in a] == [p.name for p in b] and any("-v1" in p.name for p in a)
+    assert all(x.read_bytes() == y.read_bytes() for x, y in zip(a, b))
