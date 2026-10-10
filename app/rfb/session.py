@@ -1,5 +1,6 @@
 """RFB session over noVNC's /websockify, opened from the task payload alone (copied from poc/rfb_poc.py's RFB)."""
 import asyncio
+import collections
 import io
 import struct
 import time
@@ -24,6 +25,9 @@ class RFBSession:
     def __init__(self):
         self.buf = bytearray()
         self.last_change = 0.0
+        self.mark = 0.0  # last input or settle; only updates after it count toward settle's `expect`
+        # lazy: >512 rects between an input and its settle drop the oldest; grow maxlen if a hit gets lost
+        self.rects = collections.deque(maxlen=512)  # recent updates as (t, x0, y0, x1, y1) inclusive
         self.clipboard = ""
         self.cut_arrived = asyncio.Event()
         self.updated = asyncio.Event()
@@ -62,6 +66,7 @@ class RFBSession:
         self.reader = asyncio.create_task(self._loop())
         await self._request(incremental=False)
         await asyncio.wait_for(self.updated.wait(), 10)  # raise, don't hang, if the socket dies first
+        self.mark = time.perf_counter()  # the initial full frame doesn't count as an expected change
 
     async def _request(self, incremental=True):
         await self.ws.send(struct.pack(">BBHHHH", 3, int(incremental), 0, 0, self.w, self.h))
@@ -73,6 +78,7 @@ class RFBSession:
                 (n,) = struct.unpack(">xH", await self._read(3))
                 for _ in range(n):
                     x, y, w, h, enc = struct.unpack(">HHHHi", await self._read(12))
+                    self.rects.append((time.perf_counter(), x, y, x + w - 1, y + h - 1))
                     if enc == 0:
                         self.fb[y:y + h, x:x + w] = np.frombuffer(await self._read(w * h * 4), np.uint8).reshape(h, w, 4)
                     elif enc == 1:
@@ -96,21 +102,32 @@ class RFBSession:
             else:
                 raise RuntimeError(f"unknown server message {msg}")
 
-    # lazy: quiet-time only, `expect` ignored; B3 adds the expected-region check.
+    def _changed(self, bbox, since):
+        x0, y0, x1, y1 = bbox
+        return any(t >= since and rx0 <= x1 and x0 <= rx1 and ry0 <= y1 and y0 <= ry1
+                   for t, rx0, ry0, rx1, ry1 in self.rects)
+
     async def settle(self, quiet=1.0, timeout=8.0, expect=None):
-        """Return once no screen changes arrived for `quiet` seconds. No fixed sleeps per action."""
-        start = time.perf_counter()
+        """Return the elapsed time once no update arrived for `quiet` seconds and, given `expect`
+        (an inclusive x0, y0, x1, y1 box), an update since the last input or settle intersected it. No fixed
+        sleeps per action. On timeout it returns the elapsed time instead of raising."""
+        start, since = time.perf_counter(), self.mark
         await asyncio.sleep(quiet)
-        while time.perf_counter() - self.last_change < quiet and time.perf_counter() - start < timeout:
+        while time.perf_counter() - start < timeout:
+            if time.perf_counter() - self.last_change >= quiet and (expect is None or self._changed(expect, since)):
+                break
             await asyncio.sleep(0.05)
-        return time.perf_counter() - start
+        self.mark = time.perf_counter()
+        return self.mark - start
 
     async def click(self, x, y):
+        self.mark = time.perf_counter()
         await self.ws.send(struct.pack(">BBHH", 5, 0, x, y))
         await self.ws.send(struct.pack(">BBHH", 5, 1, x, y))
         await self.ws.send(struct.pack(">BBHH", 5, 0, x, y))
 
     async def _keysym(self, keysym):
+        self.mark = time.perf_counter()
         await self.ws.send(struct.pack(">BBxxI", 4, 1, keysym))
         await self.ws.send(struct.pack(">BBxxI", 4, 0, keysym))
 
@@ -122,6 +139,7 @@ class RFBSession:
             await self._keysym(KEYS["enter"] if c == "\n" else ord(c))
 
     async def send_clipboard(self, text):
+        self.mark = time.perf_counter()
         data = text.encode("latin-1")  # RFB 3.8 cut text is Latin-1 only
         await self.ws.send(struct.pack(">B3xI", 6, len(data)) + data)  # ClientCutText
 

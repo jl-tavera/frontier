@@ -103,3 +103,41 @@ async def test_wait_clipboard_is_none_after_timeout(screen):
         s = await open_session(srv.url, "secret")
         assert await s.wait_clipboard(0.1) is None
         await s.close()
+
+
+async def _two_phase_paint(srv):
+    """SIGECOM-style paint: a rectangle now, a second one 300 ms later elsewhere."""
+    await srv.paint(0, 0, np.zeros((4, 4, 3), np.uint8))
+    await asyncio.sleep(0.3)
+    await srv.paint(40, 30, np.zeros((4, 4, 3), np.uint8))
+
+
+async def test_settle_with_expect_waits_for_the_second_paint(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        await s.click(1, 1)
+        painter = asyncio.create_task(_two_phase_paint(srv))
+        took = await s.settle(quiet=0.2, timeout=2, expect=(43, 33, 50, 40))
+        assert painter.done() and 0.45 < took < 1.0
+        await s.close()
+
+
+async def test_settle_without_expect_returns_after_the_first_quiet_gap(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        await s.click(1, 1)
+        painter = asyncio.create_task(_two_phase_paint(srv))
+        took = await s.settle(quiet=0.2, timeout=2)
+        assert not painter.done() and took < 0.3
+        await painter
+        await s.close()
+
+
+async def test_settle_returns_elapsed_at_timeout_when_the_region_never_changes(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        await s.click(1, 1)
+        await srv.paint(0, 0, np.zeros((4, 4, 3), np.uint8))
+        took = await s.settle(quiet=0.1, timeout=0.5, expect=(40, 30, 50, 40))
+        assert 0.5 <= took < 0.7
+        await s.close()
