@@ -11,6 +11,7 @@ from collections import deque
 
 from app.contracts import BBox, Effect, Element, Kind, Perceive, Session, Target
 from app.memory.appmap import AppMap
+from app.memory.drift import Drift
 from app.memory.fingerprint import cell
 from app.perception.ground import elements_text
 from app.perception.ocr import elements as ocr_elements
@@ -43,6 +44,7 @@ class Tools:
         self.session, self.m, self.task, self.perceive = session, m, _fold(task), perceive
         self.allow: set[str] = set()  # folded labels a stored procedure for this task may click past the denylist
         self.last: tuple[Target, tuple[int, int]] | None = None  # click_text's grounded target and xy, for F4's edges
+        self.drift: Drift | None = None  # D's repair ladder for an edge replay can't land; F5 sets it
 
     def _observe(self) -> Observation:
         return observe(self.session.fb, self.m, perceive=self.perceive)
@@ -159,10 +161,25 @@ class Tools:
             return self._fail(t0, f"no path {here} -> {goal}", screen=here)
         effect = Effect(True, None, here, None, "already there", 0.0)
         for edge in path:
-            effect = await replay_edge(edge, self.session.fb, self.session, self.m, perceive=self.perceive)
-            if not effect.ok:
+            if not (effect := await self._edge(edge)).ok:
                 break
         effect.cost_ms = (time.monotonic() - t0) * 1000
+        return effect
+
+    async def _edge(self, edge: dict) -> Effect:
+        """The stored xy first; the ladder when it misses (or for a menu item, which replay_edge never opens), then
+        rung 3's plan if it made one. A failure here is the exhausted ladder: the executor hands off to F4."""
+        if self.drift is None or not edge["action"]["params"].get("menu"):
+            effect = await replay_edge(edge, self.session.fb, self.session, self.m, perceive=self.perceive)
+            if effect.ok or self.drift is None:
+                return effect
+        effect = await self.drift.step(self.session, edge)
+        self.m = self.drift.m  # a rung 0 opened a new epoch
+        plan, self.drift.plan = self.drift.plan, None
+        if not effect.ok and plan:
+            for eid in plan:
+                if not (effect := await self.drift.step(self.session, self.m.edges[eid], ladder=False)).ok:
+                    break
         return effect
 
     def _path(self, src: str, goal: str) -> list[dict] | None:

@@ -13,12 +13,14 @@ from typing import Any, Awaitable, Callable
 
 from numpy import ndarray
 
+from app.agent import repair
 from app.agent.fallback import agent_loop
-from app.agent.llm import chat_json
+from app.agent.llm import chat_json, decide as jev_decide
 from app.agent.parse import Plan, Query, parse_task
 from app.agent.tools import Tools, _fold
 from app.contracts import Effect, Perceive, Session, Summary
 from app.log import Log
+from app.memory import drift
 from app.memory.appmap import AppMap
 from app.perception.grid import Grid
 from app.perception.grid import read_grid as ocr_grid
@@ -118,25 +120,39 @@ class Executor:
     async def step(self, tool: str, *args) -> Effect:
         """One tool call, one `step` line."""
         e = await getattr(self.tools, tool)(*args)
+        self.m = self.tools.m  # the ladder may have opened a new epoch
         self.log.event("step", tool=tool, args=list(args), screen_id=e.screen_id, diff=e.changed_bbox,
                        outcome="ok" if e.ok else "fail", signal=e.signal, detail=e.detail, cost_ms=e.cost_ms)
         return e
 
-    async def open(self, task: str) -> None:
+    async def open(self, task: str, decide=jev_decide, mutate: str | None = None) -> None:
+        """The map, the tools, D's ladder on them and the cache. `mutate` rehearses an E §6.1 change on the map and
+        the screen before the task starts."""
         self.m = _known_map(self.memory, self.session.fb)
+        seen = self.m is not None  # a stored snapshot is on screen: no version or menu drift to check
         if self.m is None:
             els = self.perceive(self.session.fb)
             titles = sorted((e for e in els if e.kind == "title"), key=lambda e: e.bbox[1])
             if not titles:
                 raise RuntimeError("no hay título en pantalla: no se sabe qué aplicación es")
             self.m = AppMap.load(self.memory, titles[0].text, els, self.session.w, self.session.h)
+        if mutate:
+            live, base = drift.mutate(self.m, mutate), self.perceive
+            self.perceive = lambda fb: live(base(fb))
         self.tools = Tools(self.session, self.m, task, perceive=self.perceive)
+        self.tools.drift = drift.Drift(self.m, self.log, self.perceive, decide=repair.jev_target(decide, self.llm),
+                                       vlm=repair.vlm_target(self.llm), which_node=repair.which_node(self.llm),
+                                       replan=repair.replanner(self.llm))
+        # a rehearsal mutates the screen after the snapshot matched, so it checks for drift all the same
+        if (not seen or mutate) and await self.tools.drift.start(self.session):
+            self.m = self.tools.m = self.tools.drift.m
         self.cache = await self.db(lambda: Cache(self.m.app_id, self._probe, self.memory / "cache.sqlite", self.log,
                                                  llm=self._align))
 
     def _probe(self, entity: str) -> tuple[int, str]:
         # lazy: reads the page it lands on; after paging that is the last page, so the next probe misses and re-acquires
-        self._wait(self.step("go_to", entity))
+        if not self._wait(self.step("go_to", entity)).ok:  # the ladder ran out: F4 takes it from this screen
+            raise _HandOff(f"sin ruta a {entity}")
         return page_probe(self.read_grid(self.session.fb))
 
     def _align(self, old: list[str], new: list[str], sample: list[dict]) -> dict:
@@ -203,7 +219,8 @@ class Executor:
                 raise _HandOff(f"falta el dato {e} para el procedimiento") from None
             e = await self.step(s["tool"], *args)
             if not e.ok or (s.get("expect") and (e.screen_id != s["expect"] or e.changed_bbox is None)):
-                # lazy: no repair ladder yet (F5); a failed step is an exhausted ladder
+                # lazy: only go_to's edges climb D's ladder (inside the tool); a click_text / fill_field miss hands
+                # off to F4 at once, until D's ladder grounds a procedure step that is not an edge
                 raise _HandOff(f"falló el paso {s['tool']} {args}: {e.detail}")
 
     def _write_through(self, q: Query, columns: list[str], row: dict | None) -> bool:
@@ -258,7 +275,7 @@ async def summarize(task: str, status: str, results: list[dict], llm, timeout: f
 
 async def run_task(task: str, session: Session, log: Log, budget_s: float, *, llm=None, memory: Path | str = "memory",
                    perceive: Perceive = ocr_elements, read_grid: ReadGrid = ocr_grid,
-                   fallback: Fallback = agent_loop) -> Summary:
+                   fallback: Fallback = agent_loop, decide=jev_decide, mutate: str | None = None) -> Summary:
     ex = Executor(session, log, llm=llm, memory=Path(memory), perceive=perceive, read_grid=read_grid)
     reserve = min(SUMMARY_S, budget_s / 3)
     results: list[dict] = []
@@ -266,7 +283,7 @@ async def run_task(task: str, session: Session, log: Log, budget_s: float, *, ll
     guard = asyncio.timeout_at(deadline)
     try:
         async with guard:
-            await ex.open(task)
+            await ex.open(task, decide, mutate)
             plan = await parse_task(task, ex.entities(), [(p["op"], p["entity"]) for p in ex.m.procedures if "op" in p], llm)
             log.event("plan", args={"queries": [q.__dict__ for q in plan.queries], "confidence": plan.confidence})
             try:
