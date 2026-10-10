@@ -1,0 +1,974 @@
+<!DOCTYPE html><html class="theme-newspaper" lang="en" data-astro-cid-62dzsm7q><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="generator" content="Astro"><meta name="theme-color" content="#ffffff"><link href="/favicon.ico" rel="shortcut icon"><!-- Primary Meta Tags --><title>A deep dive into Jev, TypeSafe&#39;s System One model</title><meta name="title" content="A deep dive into Jev, TypeSafe's System One model"><meta name="description" content="Learn how Jev turns text into typed choices, scores, and probabilities, with JavaScript examples, practical patterns, limits, and real use cases."><link rel="canonical" href="https://flaviocopes.com/jev/"><!-- Open Graph / Facebook --><meta property="og:title" content="A deep dive into Jev, TypeSafe's System One model"><meta property="og:description" content="Learn how Jev turns text into typed choices, scores, and probabilities, with JavaScript examples, practical patterns, limits, and real use cases."><meta property="og:type" content="article"><meta property="og:url" content="https://flaviocopes.com/jev/"><meta property="article:author" content="Flavio Copes"><meta property="article:published_time" content="2026-09-17T21:00:00.000Z"><meta property="article:modified_time" content="2026-10-09T00:00:00.000Z"><meta property="og:image" content="https://flaviocopes.com/images/jev/og.jpg"><meta property="og:image:alt" content="Preview image for A deep dive into Jev, TypeSafe's System One model"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><!-- Twitter --><meta property="twitter:title" content="A deep dive into Jev, TypeSafe's System One model"><meta property="twitter:description" content="Learn how Jev turns text into typed choices, scores, and probabilities, with JavaScript examples, practical patterns, limits, and real use cases."><meta property="twitter:site" content="@flaviocopes"><meta property="twitter:creator" content="@flaviocopes"><meta property="twitter:card" content="summary_large_image"><meta property="twitter:image" content="https://flaviocopes.com/images/jev/og.jpg"><meta property="twitter:image:alt" content="Preview image for A deep dive into Jev, TypeSafe's System One model"><!-- {twitter.url && <meta property="twitter:url" content={twitter.url} />} --><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"A deep dive into Jev, TypeSafe's System One model","description":"Learn how Jev turns text into typed choices, scores, and probabilities, with JavaScript examples, practical patterns, limits, and real use cases.","image":{"@type":"ImageObject","url":"https://flaviocopes.com/images/jev/og.jpg","width":1200,"height":630},"author":{"@type":"Person","@id":"https://flaviocopes.com/#person","name":"Flavio Copes","url":"https://flaviocopes.com/about/"},"publisher":{"@id":"https://flaviocopes.com/#person"},"isPartOf":{"@id":"https://flaviocopes.com/#website"},"inLanguage":"en","articleSection":"AI","datePublished":"2026-09-17T21:00:00.000Z","dateModified":"2026-10-09T00:00:00.000Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://flaviocopes.com/jev/"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://flaviocopes.com/#website","name":"Flavio Copes","url":"https://flaviocopes.com/","description":"Learn to build software products, put them on the internet, find customers, and create an independent business that can make a great living.","publisher":{"@id":"https://flaviocopes.com/#person"},"inLanguage":"en","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://flaviocopes.com/search/?q={search_term_string}"},"query-input":"required name=search_term_string"}},{"@type":"Person","@id":"https://flaviocopes.com/#person","name":"Flavio Copes","url":"https://flaviocopes.com/","sameAs":["https://x.com/flaviocopes","https://github.com/flaviocopes"]}]}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://flaviocopes.com/"},{"@type":"ListItem","position":2,"name":"AI","item":"https://flaviocopes.com/tags/ai/"},{"@type":"ListItem","position":3,"name":"A deep dive into Jev, TypeSafe's System One model","item":"https://flaviocopes.com/jev/"}]}</script><script>
+  const setThemeFromSystem = () => {
+    if (typeof window === "undefined") return;
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const themeColor = document.head.children.namedItem("theme-color");
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+      if (themeColor) themeColor.content = "#262626";
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      if (themeColor) themeColor.content = "#ffffff";
+    }
+  };
+
+  // Set on load
+  setThemeFromSystem();
+  // Set on view transitions
+  document.addEventListener('astro:after-swap', setThemeFromSystem);
+  // React to OS theme changes in real time
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", setThemeFromSystem);
+</script><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script><link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="96x96" href="/img/favicon-96x96.png"><link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16x16.png"><link rel="alternate" type="application/rss+xml" title="Posts by Flavio Copes" href="/rss.xml"><link rel="alternate" type="text/markdown" title="Markdown version of this post" href="/jev.md"><link rel="stylesheet" href="/_astro/Sponsors.DEaPIAKh.css"><link rel="stylesheet" href="/_astro/_slug_.m9UXj9Yz.css"><style>.featured[data-astro-cid-a6sclapi]{border-left:2px solid rgb(var(--color-text-link));background:rgb(var(--color-bg-code));margin-bottom:.75rem;padding:.75rem}.featured[data-astro-cid-a6sclapi]:before{display:none}
+.mermaid-diagram{text-align:center;margin:2rem 0;overflow-x:auto}.mermaid-diagram svg{max-width:100%;height:auto;margin-inline:auto;display:block}.mermaid-diagram text,.mermaid-diagram .label,.mermaid-diagram .nodeLabel,.mermaid-diagram .edgeLabel{font-family:Geist Mono Variable,Geist Mono,monospace!important}.mermaid-diagram-error{border-color:#b91c1c}.indexed-content-layout[data-astro-cid-4tida6lz]{grid-template-columns:15rem minmax(0,46rem);justify-content:center;gap:2.5rem;margin-top:0;display:grid}.indexed-content-rail[data-astro-cid-4tida6lz]{border-right:1px solid}.indexed-content-rail-inner[data-astro-cid-4tida6lz]{--rail-top:max(.5rem, calc(var(--site-announcement-height,0px) - 1.5rem));top:var(--rail-top);max-height:calc(100vh - var(--rail-top) - 1.5rem);padding:2rem 1.5rem 2rem 0;position:sticky;overflow-y:auto}.indexed-content-type[data-astro-cid-4tida6lz]{color:rgb(var(--color-text-muted));text-transform:uppercase;margin-top:2rem;font-size:.68rem;font-weight:700}.indexed-content-name[data-astro-cid-4tida6lz]{text-transform:uppercase;margin-top:.4rem;font-size:1rem;font-weight:700;line-height:1.35}.indexed-content-index[data-astro-cid-4tida6lz]{margin-top:2rem;display:grid}.indexed-content-index[data-astro-cid-4tida6lz] p[data-astro-cid-4tida6lz]{color:rgb(var(--color-text-muted));text-transform:uppercase;margin-bottom:.5rem;font-size:.68rem;font-weight:700}.indexed-content-index[data-astro-cid-4tida6lz] a[data-astro-cid-4tida6lz]{padding:.25rem 0;font-size:.72rem;line-height:1.35}.indexed-content-index[data-astro-cid-4tida6lz] a[data-astro-cid-4tida6lz][aria-current=page]{font-weight:700;text-decoration:none}.indexed-content-index-group[data-astro-cid-4tida6lz]{color:rgb(var(--color-text-muted));margin-top:.75rem;font-size:.68rem;font-weight:700}.indexed-content-index-group[data-astro-cid-4tida6lz]:first-of-type{margin-top:0}.indexed-content-complete-mark[data-astro-cid-4tida6lz]{font-weight:700}.indexed-content-index-child[data-astro-cid-4tida6lz]{padding-left:.75rem!important}.indexed-content-layout-course[data-astro-cid-4tida6lz] .indexed-content-index[data-astro-cid-4tida6lz]{margin-top:1.75rem}.indexed-content-layout-course[data-astro-cid-4tida6lz] .indexed-content-index[data-astro-cid-4tida6lz] a[data-astro-cid-4tida6lz]{padding:.2rem 0;line-height:1.45}.indexed-content-layout-course[data-astro-cid-4tida6lz] .indexed-content-index-group[data-astro-cid-4tida6lz]{margin-top:.9rem;margin-bottom:.2rem}.indexed-content-layout-course[data-astro-cid-4tida6lz] .indexed-content-index-group[data-astro-cid-4tida6lz]:first-of-type{margin-top:0}.indexed-content-main[data-astro-cid-4tida6lz]{min-width:0;padding:2rem 0 3rem}@media (width<=767px){.indexed-content-layout[data-astro-cid-4tida6lz]{grid-template-columns:minmax(0,1fr);gap:0}.indexed-content-rail[data-astro-cid-4tida6lz]{border-bottom:1px solid;border-right:0}.indexed-content-rail-mobile-hidden[data-astro-cid-4tida6lz]{display:none}.indexed-content-rail-inner[data-astro-cid-4tida6lz]{max-height:none;padding:1.5rem 0;position:static;overflow:visible}.indexed-content-type[data-astro-cid-4tida6lz]{margin-top:1.5rem}.indexed-content-index[data-astro-cid-4tida6lz]{flex-wrap:wrap;gap:.35rem 1rem;margin-top:1.5rem;display:flex}.indexed-content-index[data-astro-cid-4tida6lz] p[data-astro-cid-4tida6lz]{width:100%}.indexed-content-index-child[data-astro-cid-4tida6lz]{padding-left:0!important}.indexed-content-main[data-astro-cid-4tida6lz]{padding-top:1.5rem}.indexed-content-layout-mobile-without-rail[data-astro-cid-4tida6lz] .indexed-content-main[data-astro-cid-4tida6lz]{padding-top:2rem}}
+.post-disclosure[data-astro-cid-62dzsm7q]{flex-wrap:wrap;align-items:baseline;gap:.5rem .75rem;margin-bottom:.75rem;font-size:.75rem;line-height:1.25rem;display:flex}.disclosure-label[data-astro-cid-62dzsm7q]{border:1px solid rgb(var(--color-text-heading));color:rgb(var(--color-text-heading));text-transform:uppercase;letter-spacing:.08em;padding:0 .5rem;font-weight:700;display:inline-block}.disclosure-by[data-astro-cid-62dzsm7q]{color:rgb(var(--color-text-muted))}@media (width>=1024px){body:has(>.sponsors--index)>footer{margin-right:11rem}}
+</style></head><body class="mx-auto min-h-screen px-6 sm:px-8 text-sm max-w-6xl" data-astro-cid-62dzsm7q><style>
+  /*
+  The bar sticks to the top of the viewport. Its height is exposed to the
+  sticky sponsor strip as --site-announcement-height so the two stack
+  instead of overlapping. The 1rem top padding lines the text up with the
+  top edge of the sponsor cards on the right. The tagline never wraps: it
+  is one line with an ellipsis on narrow desktops and hidden on phones.
+  */
+  .site-announcement {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    box-sizing: border-box;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: 0.1rem;
+    height: 4rem;
+    padding-top: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid currentColor;
+    background-color: rgb(var(--color-bg-body));
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .site-announcement-tagline {
+    max-width: 100%;
+    overflow: hidden;
+    color: rgb(var(--color-text-body));
+    font-weight: 400;
+    text-overflow: ellipsis;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 639px) {
+    .site-announcement {
+      align-content: center;
+      height: auto;
+      min-height: 4rem;
+      padding-block: 1rem;
+    }
+
+    .site-announcement-tagline {
+      display: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .site-announcement--sponsor-inset {
+      margin-right: 10rem;
+    }
+  }
+</style><style>
+      body {
+        --site-announcement-height: 4rem;
+      }
+    </style><aside class="site-announcement site-announcement--sponsor-inset" aria-label="Announcement"><a href="/courses/solo-lab/">Solo Lab: make a living from your own software →</a><span class="site-announcement-tagline">A three-week intensive cohort course starting October 28th. The waiting list is open.</span></aside><aside class="sponsors sponsors--index sponsors--sticky" aria-label="Sponsors" data-pagefind-ignore data-astro-cid-gu4pnwwm><div class="sponsors-strip" data-astro-cid-gu4pnwwm><span class="sponsors-label" data-astro-cid-gu4pnwwm>Sponsors</span><a href="https://www.creem.io/?utm_source=flaviocopes.com&amp;utm_medium=sponsor" class="sponsors-chip unset" target="_blank" rel="sponsored noopener" title="Sell Software Globally - with zero headaches" data-event="Sponsor click" data-event-prop-sponsor="creem" data-event-prop-placement="top" data-astro-cid-gu4pnwwm><svg width="121" height="121" viewBox="0 0 121 121" fill="none" class="sponsors-chip-logo" aria-hidden="true" data-astro-cid-gu4pnwwm="true">
+<path d="M22.1102 11C24.1187 11.0001 25.9669 12.0982 26.9281 13.8619L51.2059 58.4106C52.5699 60.9134 55.7048 61.8368 58.2077 60.473C60.7108 59.109 61.6342 55.9742 60.2701 53.4712L41.5466 19.113C39.554 15.4566 42.2004 11 46.3645 11H103.806C107.885 11 110.539 15.2933 108.715 18.9416L65.0579 106.254C63.0356 110.298 57.2654 110.298 55.2431 106.254L11.5863 18.9416C9.76212 15.2933 12.4156 11 16.4946 11H22.1102Z" fill="currentColor" />
+</svg>Creem</a><a href="https://livekit.com/?utm_source=flavio&amp;utm_medium=referral&amp;utm_campaign=partner_content" class="sponsors-chip unset" target="_blank" rel="sponsored noopener" title="Build voice, video, and physical AI agents" data-event="Sponsor click" data-event-prop-sponsor="livekit" data-event-prop-placement="top" data-astro-cid-gu4pnwwm><svg viewBox="0 0 24 24" fill="currentColor" class="sponsors-chip-logo" aria-hidden="true" data-astro-cid-gu4pnwwm="true">
+<path d="M0 0h4v24H0z" />
+<path d="M0 20h14v4H0z" />
+<path d="M20 0h4v4h-4z" />
+<path d="M15 5h4v4h-4z" />
+<path d="M10 10h4v4h-4z" />
+<path d="M15 15h4v4h-4z" />
+<path d="M20 20h4v4h-4z" />
+</svg>LiveKit</a><a href="/sponsor/" class="sponsors-chip sponsors-chip--cta unset" data-astro-cid-gu4pnwwm>+ Become a sponsor</a></div><div class="sponsors-side" data-astro-cid-gu4pnwwm><a href="https://www.creem.io/?utm_source=flaviocopes.com&amp;utm_medium=sponsor" class="sponsors-card unset" target="_blank" rel="sponsored noopener" data-event="Sponsor click" data-event-prop-sponsor="creem" data-event-prop-placement="side" data-astro-cid-gu4pnwwm><span class="sponsors-card-kicker" data-astro-cid-gu4pnwwm>Sponsored</span><svg width="121" height="121" viewBox="0 0 121 121" fill="none" class="sponsors-card-logo" aria-hidden="true" data-astro-cid-gu4pnwwm="true">
+<path d="M22.1102 11C24.1187 11.0001 25.9669 12.0982 26.9281 13.8619L51.2059 58.4106C52.5699 60.9134 55.7048 61.8368 58.2077 60.473C60.7108 59.109 61.6342 55.9742 60.2701 53.4712L41.5466 19.113C39.554 15.4566 42.2004 11 46.3645 11H103.806C107.885 11 110.539 15.2933 108.715 18.9416L65.0579 106.254C63.0356 110.298 57.2654 110.298 55.2431 106.254L11.5863 18.9416C9.76212 15.2933 12.4156 11 16.4946 11H22.1102Z" fill="currentColor" />
+</svg><span class="sponsors-card-name" data-astro-cid-gu4pnwwm>Creem</span><span class="sponsors-card-tagline" data-astro-cid-gu4pnwwm>Sell Software Globally - with zero headaches</span></a><a href="https://livekit.com/?utm_source=flavio&amp;utm_medium=referral&amp;utm_campaign=partner_content" class="sponsors-card unset" target="_blank" rel="sponsored noopener" data-event="Sponsor click" data-event-prop-sponsor="livekit" data-event-prop-placement="side" data-astro-cid-gu4pnwwm><span class="sponsors-card-kicker" data-astro-cid-gu4pnwwm>Sponsored</span><svg viewBox="0 0 24 24" fill="currentColor" class="sponsors-card-logo" aria-hidden="true" data-astro-cid-gu4pnwwm="true">
+<path d="M0 0h4v24H0z" />
+<path d="M0 20h14v4H0z" />
+<path d="M20 0h4v4h-4z" />
+<path d="M15 5h4v4h-4z" />
+<path d="M10 10h4v4h-4z" />
+<path d="M15 15h4v4h-4z" />
+<path d="M20 20h4v4h-4z" />
+</svg><span class="sponsors-card-name" data-astro-cid-gu4pnwwm>LiveKit</span><span class="sponsors-card-tagline" data-astro-cid-gu4pnwwm>Build voice, video, and physical AI agents</span></a><a href="/sponsor/" class="sponsors-card sponsors-card--cta unset" data-astro-cid-gu4pnwwm><span class="sponsors-card-plus" aria-hidden="true" data-astro-cid-gu4pnwwm>+</span><span class="sponsors-card-name" data-astro-cid-gu4pnwwm>Become a sponsor</span><span class="sponsors-card-tagline" data-astro-cid-gu4pnwwm>Get your product in front of developers.</span></a></div></aside><main id="main" class="mb-20" data-astro-cid-62dzsm7q><div class="indexed-content-layout indexed-content-layout-mobile-without-rail" data-astro-cid-4tida6lz><aside class="indexed-content-rail indexed-content-rail-mobile-hidden" data-astro-cid-4tida6lz><div class="indexed-content-rail-inner" data-astro-cid-4tida6lz><nav class="text-xs" aria-label="Breadcrumb" data-astro-cid-4tida6lz><a href="/blog/" data-astro-cid-4tida6lz>&larr; All posts</a></nav><p class="indexed-content-type" data-astro-cid-4tida6lz>Blog post</p><p class="indexed-content-name" data-astro-cid-4tida6lz>A deep dive into Jev, TypeSafe&#39;s System One model</p><nav class="indexed-content-index" aria-label="In this post" data-astro-cid-4tida6lz><p data-astro-cid-4tida6lz>In this post</p><a href="#what-jev-is-in-one-sentence" data-astro-cid-4tida6lz>What Jev is in one sentence</a><a href="#how-jev-differs-from-chatgpt-cursor-codex-and-claude-code" data-astro-cid-4tida6lz>How Jev differs from ChatGPT, Cursor, Codex and Claude Code</a><a href="#how-jev-differs-from-classifiers-and-structured-llm-outputs" data-astro-cid-4tida6lz>How Jev differs from classifiers and structured LLM outputs</a><a href="#where-the-name-comes-from" data-astro-cid-4tida6lz>Where the name comes from</a><a href="#how-jev-works-under-the-hood" data-astro-cid-4tida6lz>How Jev works under the hood</a><a href="#the-three-question-types" data-astro-cid-4tida6lz>The three question types</a><a href="#noul-a-yesno-question" class="indexed-content-index-child" data-astro-cid-4tida6lz>Noul: a yes/no question</a><a href="#choice-pick-one-option" class="indexed-content-index-child" data-astro-cid-4tida6lz>Choice: pick one option</a><a href="#score-a-position-on-a-scale-you-describe" class="indexed-content-index-child" data-astro-cid-4tida6lz>Score: a position on a scale you describe</a><a href="#state-what-you-give-jev-to-look-at" data-astro-cid-4tida6lz>State: what you give Jev to look at</a><a href="#confidence-when-to-act-and-when-to-ask" data-astro-cid-4tida6lz>Confidence: when to act and when to ask</a><a href="#is-jev-open-source-can-you-run-it-locally" data-astro-cid-4tida6lz>Is Jev open source? Can you run it locally?</a><a href="#getting-access" data-astro-cid-4tida6lz>Getting access</a><a href="#your-first-call-with-curl" data-astro-cid-4tida6lz>Your first call with curl</a><a href="#using-jev-from-nodejs" data-astro-cid-4tida6lz>Using Jev from Node.js</a><a href="#python-in-a-few-lines" data-astro-cid-4tida6lz>Python in a few lines</a><a href="#using-jev-through-the-vercel-ai-sdk" data-astro-cid-4tida6lz>Using Jev through the Vercel AI SDK</a><a href="#ask-everything-at-once" data-astro-cid-4tida6lz>Ask everything at once</a><a href="#compose-decisions-in-code" data-astro-cid-4tida6lz>Compose decisions in code</a><a href="#writing-questions-jev-answers-well" data-astro-cid-4tida6lz>Writing questions Jev answers well</a><a href="#where-jev-breaks" data-astro-cid-4tida6lz>Where Jev breaks</a><a href="#what-people-are-building-with-it" data-astro-cid-4tida6lz>What people are building with it</a><a href="#labeling-data" class="indexed-content-index-child" data-astro-cid-4tida6lz>Labeling data</a><a href="#routing-and-verification" class="indexed-content-index-child" data-astro-cid-4tida6lz>Routing and verification</a><a href="#search" class="indexed-content-index-child" data-astro-cid-4tida6lz>Search</a><a href="#inside-apps-that-already-exist" class="indexed-content-index-child" data-astro-cid-4tida6lz>Inside apps that already exist</a><a href="#real-time-interfaces" class="indexed-content-index-child" data-astro-cid-4tida6lz>Real-time interfaces</a><a href="#agents-and-tools" class="indexed-content-index-child" data-astro-cid-4tida6lz>Agents and tools</a><a href="#feature-engineering" class="indexed-content-index-child" data-astro-cid-4tida6lz>Feature engineering</a><a href="#the-skeptical-notes" class="indexed-content-index-child" data-astro-cid-4tida6lz>The skeptical notes</a><a href="#jev-and-coding-agents" data-astro-cid-4tida6lz>Jev and coding agents</a><a href="#how-i-will-use-jev-in-my-workflows" data-astro-cid-4tida6lz>How I will use Jev in my workflows</a><a href="#route-work-before-starting-a-coding-agent" class="indexed-content-index-child" data-astro-cid-4tida6lz>Route work before starting a coding agent</a><a href="#put-a-safety-check-in-front-of-shell-commands" class="indexed-content-index-child" data-astro-cid-4tida6lz>Put a safety check in front of shell commands</a><a href="#prefilter-the-blog-maintenance-work" class="indexed-content-index-child" data-astro-cid-4tida6lz>Prefilter the blog maintenance work</a><a href="#sort-sponsor-inquiries-and-newsletter-replies" class="indexed-content-index-child" data-astro-cid-4tida6lz>Sort sponsor inquiries and newsletter replies</a><a href="#add-semantic-priority-to-events-logger" class="indexed-content-index-child" data-astro-cid-4tida6lz>Add semantic priority to Events Logger</a><a href="#try-it-in-the-bootcamp-projects" class="indexed-content-index-child" data-astro-cid-4tida6lz>Try it in the Bootcamp projects</a><a href="#how-i-will-roll-this-out" class="indexed-content-index-child" data-astro-cid-4tida6lz>How I will roll this out</a><a href="#what-it-costs-and-how-fast-it-is" data-astro-cid-4tida6lz>What it costs, and how fast it is</a><a href="#could-jev-cut-an-ai-bill-by-50-or-60-percent" class="indexed-content-index-child" data-astro-cid-4tida6lz>Could Jev cut an AI bill by 50 or 60 percent?</a><a href="#where-to-start" data-astro-cid-4tida6lz>Where to start</a></nav></div></aside><div class="indexed-content-main" data-astro-cid-4tida6lz><article class="blog-post prose max-w-none prose-newspaper" data-pagefind-body="true" data-astro-cid-62dzsm7q><nav class="not-prose text-xs mb-2" aria-label="Breadcrumb" style="color: rgb(var(--color-text-muted))" data-astro-cid-62dzsm7q><a href="/" class="unset" style="color: rgb(var(--color-text-link))" data-astro-cid-62dzsm7q>Home</a><span data-astro-cid-62dzsm7q> / </span><a href="/tags/ai/" class="unset" style="color: rgb(var(--color-text-link))" data-astro-cid-62dzsm7q>AI</a></nav><header data-astro-cid-62dzsm7q><h1 class="font-bold text-xl uppercase" data-astro-cid-62dzsm7q>A deep dive into Jev, TypeSafe&#39;s System One model</h1><p class="not-prose text-sm mb-1" data-astro-cid-62dzsm7q><span style="color: rgb(var(--color-text-muted))" data-astro-cid-62dzsm7q>By </span><a href="/about/" rel="author" class="unset" style="color: rgb(var(--color-text-link))" data-astro-cid-62dzsm7q>Flavio Copes</a></p><time datetime="2026-10-09T00:00:00.000Z" class="block mb-6 text-sm" style="color: rgb(var(--color-text-muted))" data-astro-cid-62dzsm7q>Updated Oct 9, 2026</time><p class="mb-6 text-sm" style="color: rgb(var(--color-text-muted))" data-astro-cid-62dzsm7q>Learn how Jev turns text into typed choices, scores, and probabilities, with JavaScript examples, practical patterns, limits, and real use cases.</p></header><div class="separator" data-astro-cid-62dzsm7q>~~~</div><video controls playsinline preload="metadata" poster="/images/jev/intro-poster.jpg" width="1920" height="1080" style="width: 100%; height: auto;">
+  <source src="/images/jev/intro.mp4" type="video/mp4">
+</video>
+<p>Jev is not a chatbot like ChatGPT, and it is not a coding model. It does not write replies, explanations, or code.</p>
+<p>You send it data and a list of typed questions. It sends back one answer per question: a yes/no probability, one option from a list you defined, or a position on a scale you defined, each with probabilities. TypeSafe says most calls complete in about 100 milliseconds. Input tokens cost $0.042 per million, output tokens are free.</p>
+<p>The difference is where the AI sits. With ChatGPT or a coding agent, the AI is the interface or the worker. Jev is a small component inside a regular application, added where code needs one judgment.</p>
+<p>It comes from <a href="https://typesafe.ai">TypeSafe AI</a>, a San Francisco lab that came out of stealth on September 15, 2026 with $40M in seed funding and Jev as its first public model. TypeSafe calls it a <strong>System One model</strong>, built to make fast decisions inside software rather than chat with people.</p>
+<p>This post covers what Jev is, how you call it, how to write questions for it, where it fails, and where I would put it in my own projects.</p>
+<h2 id="what-jev-is-in-one-sentence">What Jev is in one sentence</h2>
+<p>The simplest way to describe Jev is as a smart <code>if</code> statement.</p>
+<p>Ordinary code branches on values it can compute, like <code>if (order.total > 100)</code>. It falls apart when the condition is a judgment. Is this support message angry? Is this email about billing? Which of these 12 buttons continues the checkout?</p>
+<p>Classifiers handle narrow judgments when you have training data and fixed labels. LLM apps ask a general model for structured output. Jev is a third option: define the possible answers up front, get a probability for each, branch on the result.</p>
+<p>Here is a request built from a hypothetical sponsor-form submission. The state holds the form fields, the questions are what I want to know about it.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "model"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"jev-latest"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "state"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "opportunity"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"link"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "name"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Managed Postgres"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "description"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"We make a managed PostgreSQL hosting product and would like to sponsor the newsletter in October."</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#79B8FF">  "questions"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "is_sponsor_inquiry"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"noul"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Does `description` ask to sponsor the site or newsletter?"</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#79B8FF">    "product_category"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"choice"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"What kind of product is described by `name` and `description`?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "criteria"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "dev_tool"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Developer tools, hosting, APIs, SaaS for developers"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "course"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Courses, books, or training"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "unrelated"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Anything not aimed at developers"</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#79B8FF">    "message_quality"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"score"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"How specific is the request?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "criteria"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#9ECBFF">        "Generic template, no reference to this site"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "Mentions the site but no concrete ask"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "Concrete ask with a timeframe or product named"</span></span>
+<span class="line"><span style="color:#E1E4E8">      ]</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>And here is the shape of what comes back:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "model"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"jev-1.13.0"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "answers"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "is_sponsor_inquiry"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"noul"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"noul"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.99</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#79B8FF">    "product_category"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"choice"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "choice"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"dev_tool"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "probabilities"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"dev_tool"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.97</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"course"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.01</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"unrelated"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.02</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#79B8FF">      "confidence"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.95</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#79B8FF">    "message_quality"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"score"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "score"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1.9</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "legend"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "0"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Generic template, no reference to this site"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "1"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Mentions the site but no concrete ask"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "2"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Concrete ask with a timeframe or product named"</span></span>
+<span class="line"><span style="color:#E1E4E8">      },</span></span>
+<span class="line"><span style="color:#79B8FF">      "probabilities"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"0"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"1"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.1</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"2"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.9</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#79B8FF">      "confidence"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.86</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#79B8FF">  "usage"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"input_tokens"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">210</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"output_tokens"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">31</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The numbers are illustrative, the shape is exact. Notice that:</p>
+<ul>
+<li>There is no generated prose to interpret.</li>
+<li>Every answer is constrained to the options I supplied. <code>product_category</code> can only be <code>dev_tool</code>, <code>course</code> or <code>unrelated</code>.</li>
+<li>All three questions were answered in one call. A fourth barely changes the response time.</li>
+</ul>
+<p>Your code then does the boring part:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> response</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> (answers.is_sponsor_inquiry.noul </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0.9</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#E1E4E8"> answers.product_category.choice </span><span style="color:#F97583">===</span><span style="color:#9ECBFF"> 'dev_tool'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">  sendRateCard</span><span style="color:#E1E4E8">(email)</span></span>
+<span class="line"><span style="color:#E1E4E8">} </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">  queueForManualReply</span><span style="color:#E1E4E8">(email)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The model supplies the judgment, and the code decides what happens next.</p>
+<h2 id="how-jev-differs-from-chatgpt-cursor-codex-and-claude-code">How Jev differs from ChatGPT, Cursor, Codex and Claude Code</h2>
+<p>Most AI tools put a generative model at the center. You give it a broad request, it produces something new.</p>
+<p>With ChatGPT, the interface is a conversation. You ask, and you get generated text, code, an image, or a tool call result. The model decides what the response contains.</p>
+<p>Cursor is not a model. It is an editor and agent product that uses different models. You give it a coding task and a repository, and its agents inspect files, write code, run commands and tests until they have a result.</p>
+<p><a href="/codex/">OpenAI Codex</a> and Claude Code are coding agents too. Codex ships as an app, a CLI, and cloud workflows. Claude Code runs in the terminal and other development environments. Both take a goal such as “add authentication”, inspect the project, edit files, run commands, and iterate.</p>
+<p>Other agentic CLI tools follow the same pattern: an agent owns the loop of reading the request, calling a tool, inspecting the result, and continuing.</p>
+<p>Jev does none of that. It takes no open-ended goal, invokes no tools, edits no files, runs no loop. Your code gives it one state and a set of questions. It returns typed answers and probabilities, then stops.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Tool</th><th>What you give it</th><th>What comes back</th><th>Its role</th></tr></thead><tbody><tr><td>ChatGPT</td><td>A prompt or conversation</td><td>A generated response</td><td>General assistant</td></tr><tr><td>Cursor</td><td>A coding task, repository, and tools</td><td>File edits, commands, test results</td><td>Editor and coding agent</td></tr><tr><td>OpenAI Codex</td><td>A coding goal, project, and tools</td><td>Code changes and completed tasks</td><td>Coding agent</td></tr><tr><td>Claude Code and other CLI agents</td><td>An instruction and local tools</td><td>Tool calls, edits, and terminal results</td><td>Terminal coding agent</td></tr><tr><td>Jev</td><td>State plus questions with defined answer shapes</td><td>Choices, scores, and probabilities</td><td>Decision primitive inside software</td></tr></tbody></table>
+<p>Jev can sit inside these tools rather than replacing them.</p>
+<p>A coding agent could ask Jev whether a shell command is read-only, reversible, or destructive before running it. A router could use it to pick which model gets a task, and a SaaS app to decide whether a support message needs a database lookup, a generative model, or a person.</p>
+<p>The coding agent still writes the code and ChatGPT still writes the answer. Jev handles the small decision about which path to take.</p>
+<p>This changes how you add AI to a product, because the product doesn’t need to become a chatbot or an agent. You keep the application you have and add one model call where a normal <code>if</code> can’t understand the input.</p>
+<p>It could also change where most AI calls happen. Chatbots and coding agents are visible because the model is the product. A decision model disappears inside a support queue, an event pipeline, a spam filter, or a permission check, with no AI interface in sight.</p>
+<p>Whether decision models become a larger market than generative LLMs is too early to tell, but they could produce more calls. A person opens ChatGPT a few times a day. Software could make thousands of tiny decisions in the background. The big providers followed within two weeks. OpenAI announced a Decisions API powered by GPT-6 Luna, in limited preview, on September 29, 2026, and on October 1 Cloudflare released <a href="/clef/">Clef</a>, an open-weight decision model that accepts Jev’s request format.</p>
+<p>Composing AI into software is not new. Developers do it with small LLMs, embeddings, classifiers, and structured outputs. What Jev adds is a model and API designed only for that role: low latency, low cost, typed answers, probabilities as the normal output.</p>
+<h2 id="how-jev-differs-from-classifiers-and-structured-llm-outputs">How Jev differs from classifiers and structured LLM outputs</h2>
+<p>Before Jev, we had three common ways to make this kind of decision in software:</p>
+<ul>
+<li>Write an <code>if</code>, a regular expression, or a decision tree.</li>
+<li>Train a classifier for a specific set of labels.</li>
+<li>Ask a general-purpose LLM to return structured output.</li>
+</ul>
+<p>Rules are fast, cheap, and predictable, but brittle when meaning matters. A classifier is fast too, but needs labeled examples, a training step, and a separate model per task.</p>
+<p>A general-purpose LLM understands unstructured text with no per-task training, but it is still a generative model, even when you constrain its answer to JSON.</p>
+<p>Jev aims for the middle. Like an LLM, it accepts unstructured text and questions you define at runtime. Like a classifier, it returns a constrained probability distribution instead of an open-ended answer.</p>
+<p>Structured outputs already exist and work. Most providers offer them directly or through tool calling, and the <a href="/vercel-ai-sdk/">Vercel AI SDK</a> standardizes them with <code>generateText()</code> and <code>Output.object()</code>, validated against your schema.</p>
+<p>The difference is in how the answer is produced and what it costs.</p>
+<p>An LLM generates its answer one token at a time. To return <code>{"category": "billing", "urgent": true}</code> it generates every token in sequence. A schema constrains the result, but generation can still fail or stop early, and the AI SDK reports those as structured-output errors. If you ask an LLM for a probability, that number is not guaranteed to be calibrated.</p>
+<p>Jev doesn’t generate a string. TypeSafe says it samples all the answers in parallel: each question is evaluated independently against the same state, and the output is a probability distribution over the options you defined. You still get JSON, but no decision has to be recovered from generated prose.</p>
+<p>This is what makes it fast and cheap. TypeSafe quotes 70 to 500 milliseconds end to end, against 3 to 329 seconds for frontier LLMs on the same kind of question. $0.042 per million input tokens is 5 to 240 times lower than LLM input prices, which run from $0.20 to $10 per million, and output is free because there is almost none to meter. The headline “193.6x faster, 444.6x cheaper” comes from TypeSafe’s own workflow evaluations, which it says sit at the high end of real-world results, so treat it as a ceiling.</p>
+<p>The other difference is training. Chat models use RLHF or similar methods that reward answers humans prefer. TypeSafe trained Jev with <strong>Reinforcement Learning for Calibrated Decisions</strong> (RLCD), which optimizes for probabilities that match outcomes: across many predictions, answers given 90% probability should be right about 90% of the time. Any single answer can still be wrong. And since a response cannot contain a value outside your schema, schema errors and wrong decisions become separate problems.</p>
+<p>Jev also gives something up on purpose. It cannot write a reply, produce code, summarize a document or explain its reasoning. If you need text, you need an LLM. The interesting architecture uses the two together, with Jev deciding and the LLM writing.</p>
+<h2 id="where-the-name-comes-from">Where the name comes from</h2>
+<p><strong>System One</strong> comes from <em>Thinking, Fast and Slow</em> by Daniel Kahneman. System 1 is fast, intuitive judgment. System 2 is slow, deliberate reasoning. In TypeSafe’s framing, Jev handles the first, reasoning models the second.</p>
+<p><strong>Jev</strong> is named after William Stanley Jevons, the economist behind the Jevons paradox. More efficient steam engines drove coal consumption up, not down, because cheaper power found new uses. TypeSafe’s bet is the same for intelligence. Make a decision cost far less than a cent and you’ll put decisions where you’d never have called an LLM.</p>
+<h2 id="how-jev-works-under-the-hood">How Jev works under the hood</h2>
+<p>The company hasn’t published the architecture in detail. These are the parts that matter for you as a user.</p>
+<p>Every <strong>question</strong> in a request uses the same <strong>state</strong>. TypeSafe evaluates them independently and in parallel, so one answer never becomes context for another. Its tests found no batching effect beyond normal sampling noise.</p>
+<p>Because the output is a distribution over your options, a successful answer cannot contain a malformed value. TypeSafe plots this as a 0% type-error rate and calls it structural rather than empirical. It covers the shape of an answer, not whether it’s correct.</p>
+<p>The state and all the questions share about 64,000 tokens, and the state plus the longest single question must fit in about 32,000 tokens, roughly 150,000 characters of English. A Choice can have up to 255 options, a Score between 2 and 10 levels.</p>
+<p>Jev reads text only: a string, a JSON object or a JSON array of text. No images, audio or video yet. If you need image input, Cloudflare’s Clef and OpenAI’s Decisions API both accept images.</p>
+<p>The current model is <code>jev-1.13.0</code>. <code>jev-latest</code> (the SDK default) points at the stable release, <code>jev-preview</code> moves ahead when a preview build exists. The response reports the versioned ID that answered, so log it, and pin that ID once you’ve tuned thresholds against it.</p>
+<h2 id="the-three-question-types">The three question types</h2>
+<p>Every question you ask Jev is one of three types: Noul, Choice and Score. Each returns a differently shaped answer.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Type</th><th>The question</th><th>What comes back</th></tr></thead><tbody><tr><td>Noul</td><td>Is this true?</td><td><code>noul</code>, a probability from 0 to 1</td></tr><tr><td>Choice</td><td>Which of these options?</td><td><code>choice</code>, <code>probabilities</code>, <code>confidence</code></td></tr><tr><td>Score</td><td>Where on this scale?</td><td><code>score</code>, <code>legend</code>, <code>probabilities</code>, <code>confidence</code></td></tr></tbody></table>
+<p>Every question has an ID you choose, a <code>type</code>, and <code>instructions</code>. Choice and Score also need <code>criteria</code>. Noul accepts <code>criteria</code> as an optional clarification.</p>
+<p>The ID is for your code and is not sent to the model, so write the full question in <code>instructions</code>. <code>refund_requested</code> as a key tells the model nothing.</p>
+<h3 id="noul-a-yesno-question">Noul: a yes/no question</h3>
+<p>Use a Noul when the answer is yes or no: does this message ask for a refund, does this resume mention Kubernetes, is there an email address in this comment.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "refund_requested"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"noul"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Does the customer ask for money back?"</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The answer is a single number:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{ </span><span style="color:#79B8FF">"refund_requested"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"noul"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"noul"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.93</span><span style="color:#E1E4E8"> } }</span></span></code></pre>
+<p><code>noul</code> is the probability that the answer is yes. Near 1 is a strong yes, near 0 a strong no, near 0.5 means the model gives both similar probability.</p>
+<p>Phrase the question so a high value means yes. “Is the customer calm?” and “Is the customer angry?” both work, but a Noul where <code>true</code> means “no” confuses the model and whoever reads your code six months from now.</p>
+<p>When the boundary between yes and no is subtle, add criteria describing what each side means:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "is_urgent"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"noul"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Does the message convey urgency?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "criteria"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "true"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"The sender asks for action today or mentions losing money or customers"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "false"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"No deadline and no consequence is mentioned"</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>A Noul at 0.5 does not mean “medium”. Ask “Is this candidate strong in Python?” and get 0.5, and you learned the model can’t tell, not that the candidate is average. To measure a degree, use a Score. For a yes/no, make the condition checkable: “Does the resume state the candidate used Python at work?”</p>
+<p>Noul answers have no separate <code>confidence</code> field, because the probability itself is the uncertainty signal.</p>
+<h3 id="choice-pick-one-option">Choice: pick one option</h3>
+<p>Use a Choice when the answer is one of a fixed set of options with no order between them: which team handles this ticket, what language this file is written in, or which of these 40 links leads to the pricing page.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "department"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"choice"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Which team should handle this message?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "criteria"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "billing"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Charges, invoices, refunds, subscriptions"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "technical"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Bugs, outages, integration problems"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "sales"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Pricing questions, upgrades, new accounts"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "other"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"None of the above"</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The answer has the selected option plus the full distribution:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "department"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"choice"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "choice"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"billing"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "probabilities"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"billing"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.84</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"technical"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.15</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"sales"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"other"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.01</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#79B8FF">    "confidence"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.6</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p><code>choice</code> is the option with the highest probability, <code>probabilities</code> the full distribution, <code>confidence</code> its shape collapsed into one number: high when one option dominates, low when probability is spread out. Here billing wins but some probability remains on technical.</p>
+<p>Add an <code>other</code> or <code>none_of_the_above</code> option whenever your list might not cover every input, because the model has to pick something. Describe each option with what belongs to it, and how it differs from its neighbors when the boundary is subtle. Then test against labeled examples. I go through writing labels and measuring their accuracy in <a href="/jev-classify-text/">how to classify text with Jev</a>.</p>
+<h3 id="score-a-position-on-a-scale-you-describe">Score: a position on a scale you describe</h3>
+<p>Use a Score when the answer sits on a spectrum and you can describe each point: bug severity, customer frustration, a candidate’s experience with a technology.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "bug_severity"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"score"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"How severe is the reported issue?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "criteria"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#9ECBFF">      "Cosmetic; no impact on functionality"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">      "Broken or degraded feature, but a workaround exists"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">      "Blocking issue; no workaround exists"</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The <code>criteria</code> array goes from low to high, and each entry’s index, starting at 0, is its level number. The answer:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "bug_severity"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"score"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "score"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1.43</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "confidence"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.35</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "legend"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "0"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Cosmetic; no impact on functionality"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "1"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Broken or degraded feature, but a workaround exists"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "2"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Blocking issue; no workaround exists"</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#79B8FF">    "probabilities"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"0"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"1"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.57</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"2"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.43</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p><code>score</code> is the probability-weighted mean of the level numbers: <code>0 × 0.0 + 1 × 0.57 + 2 × 0.43 = 1.43</code>. It can land between levels. 1.43 here means “split between a broken feature with a workaround and a blocking issue, leaning to the workaround”, a fair reading of an export bug that only affects Safari: Chrome is a workaround, except for customers who only use Safari.</p>
+<p>Read <code>probabilities</code> alongside the score. A 1.0 can mean all the weight on level 1, or half on 0 and half on 2. <code>confidence</code> tells them apart.</p>
+<p>The most important rule for Scores is to <strong>describe situations, not degrees</strong>. “Broken feature, workaround exists” gives the model something to match. “Moderately severe” does not, and bare numbers leave it nothing at all, so it spreads probability across levels.</p>
+<p>Each level is judged independently. The model doesn’t see the level number or its neighbors, so “worse than the previous level” means nothing.</p>
+<p>Keep each Score to one dimension. If a level says “punctual and smart and experienced”, an input high on one and low on another can’t be placed, and confidence collapses. Split it into three Scores and combine them in code, as we’ll do below.</p>
+<h2 id="state-what-you-give-jev-to-look-at">State: what you give Jev to look at</h2>
+<p>The <strong>state</strong> is the content the questions are about. It can be a plain string:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#9ECBFF">"My card was charged twice for order A-104."</span></span></code></pre>
+<p>Or an object with named fields:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "message"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"My card was charged twice for order A-104."</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "order"</span><span style="color:#E1E4E8">: { </span><span style="color:#79B8FF">"id"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"A-104"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"charges"</span><span style="color:#E1E4E8">: [</span><span style="color:#79B8FF">49</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">49</span><span style="color:#E1E4E8">] },</span></span>
+<span class="line"><span style="color:#79B8FF">  "refund_policy"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Duplicate charges are refunded in full."</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>Or an array, for a conversation or a list of records.</p>
+<p>Use an object for most requests. It lets you point a question at a specific part of the state with a backticked path:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "policy_supports_refund"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"noul"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "instructions"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Does `refund_policy` cover the situation described in `message`, given `order.charges`?"</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The docs recommend backticks and dot-and-index notation for field names, so there’s no ambiguity about which part of the state a question refers to.</p>
+<p>The other rule is to send only what the questions need. Accuracy falls as the state fills with unrelated content, so filter in code first. Don’t send the customer’s whole history to score one ticket, or the whole document to classify one paragraph. TypeSafe says the model suffers from context rot like any other, and the fix is on your side.</p>
+<h2 id="confidence-when-to-act-and-when-to-ask">Confidence: when to act and when to ask</h2>
+<p>Confidence is one of Jev’s most useful outputs. A probability written by an LLM is not calibrated the same way.</p>
+<p>Every Choice and Score answer carries a <code>confidence</code> from 0 to 1, computed from the shape of <code>probabilities</code>: concentrated on one option means high, spread out means low. The full distribution is in the response, so you can compute your own statistic if your domain needs one.</p>
+<p>The pattern the docs suggest, and the one I would start with, splits confidence into three ranges:</p>
+<ul>
+<li><strong>High</strong>: act automatically.</li>
+<li><strong>Medium</strong>: ask the user to confirm, flag for review, or gather more data first.</li>
+<li><strong>Low</strong>: route to a person, ask for clarification, or fall back to a slower system.</li>
+</ul>
+<p>Where the boundaries sit depends on what a wrong answer costs. The docs use 0.5 as a review floor and 0.9 before a destructive action, as examples, not defaults. Here is the pattern with the JavaScript SDK:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.</span><span style="color:#B392F0">systemOne</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  state: userMessage,</span></span>
+<span class="line"><span style="color:#E1E4E8">  questions: {</span></span>
+<span class="line"><span style="color:#E1E4E8">    action: </span><span style="color:#B392F0">choice</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'What is the user trying to do?'</span><span style="color:#E1E4E8">, {</span></span>
+<span class="line"><span style="color:#E1E4E8">      check_balance: </span><span style="color:#9ECBFF">'View the account balance'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      approve_transfer: </span><span style="color:#9ECBFF">'Approve the pending withdrawal'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      support: </span><span style="color:#9ECBFF">'Get help with a problem'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    }),</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#E1E4E8">})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> action</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> answers.action</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> (action.confidence </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 0.5</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">  routeToHuman</span><span style="color:#E1E4E8">(userMessage)</span></span>
+<span class="line"><span style="color:#E1E4E8">} </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (action.choice </span><span style="color:#F97583">===</span><span style="color:#9ECBFF"> 'check_balance'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">  showBalance</span><span style="color:#E1E4E8">(accountId)</span></span>
+<span class="line"><span style="color:#E1E4E8">} </span><span style="color:#F97583">else</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> (action.choice </span><span style="color:#F97583">===</span><span style="color:#9ECBFF"> 'approve_transfer'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">  if</span><span style="color:#E1E4E8"> (action.confidence </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0.9</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#B392F0">    confirmThenExecute</span><span style="color:#E1E4E8">(accountId)</span></span>
+<span class="line"><span style="color:#E1E4E8">  } </span><span style="color:#F97583">else</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">    askUserToConfirm</span><span style="color:#E1E4E8">(accountId)</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<figure class="post-fig not-prose" data-figure="jev-confidence" data-n="1" data-step="0" data-pagefind-ignore=""><div class="post-fig-head"><span class="post-fig-n">Fig 1 · 1/4</span><span>Confidence</span></div><div class="post-fig-art" role="img" aria-label="The message &#x22;What&#x27;s in my account?&#x22; goes to Jev, which gives check_balance 94%, approve_transfer 3%, support 3%. Confidence is 0.94, so the answer, check_balance, lands in the act tray. The 0.5 and 0.9 boundaries are the docs&#x27; examples."><svg viewBox="-82.1 -108 647.4 465" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon class="fig-top fig-edge" points="0,-20 547.3,296 483.2,333 -64.1,17"></polygon><polygon class="fig-front fig-edge" points="-64.1,23 483.2,339 483.2,333 -64.1,17"></polygon><polygon class="fig-side fig-edge" points="547.3,302 483.2,339 483.2,333 547.3,296"></polygon><polygon class="fig-top fig-edge" points="0,-90 117.8,-22 88.3,-5 -29.4,-73"></polygon><polygon class="fig-front fig-edge" points="-29.4,17 88.3,85 88.3,-5 -29.4,-73"></polygon><polygon class="fig-side fig-edge" points="117.8,68 88.3,85 88.3,-5 117.8,-22"></polygon><g transform="matrix(0.866 0.5 0 1 -29.4 -73)"><text class="fig-text fig-small fig-dim" x="10" y="16">message</text><text class="fig-text" x="10" y="36">What's in my</text><text class="fig-text" x="10" y="52">account?</text></g><polygon class="fig-top fig-edge" points="142,-50 294.4,38 265,55 112.6,-33"></polygon><polygon class="fig-front fig-edge" points="112.6,99 265,187 265,55 112.6,-33"></polygon><polygon class="fig-side fig-edge" points="294.4,170 265,187 265,55 294.4,38"></polygon><g transform="matrix(0.866 0.5 0 1 112.6 -33)"><text class="fig-text fig-small fig-dim" x="10" y="16">Jev · choice</text><text class="fig-text fig-small" x="10" y="36">balance 94%</text><rect class="fig-plate fig-edge" x="10" y="40" width="150" height="10"></rect><rect class="fig-face-on" x="10" y="40" width="141" height="10"></rect><text class="fig-text fig-small fig-dim" x="10" y="65">transfer 3%</text><rect class="fig-plate fig-edge" x="10" y="69" width="150" height="10"></rect><rect class="fig-side" x="10" y="69" width="5" height="10"></rect><text class="fig-text fig-small fig-dim" x="10" y="94">support 3%</text><rect class="fig-plate fig-edge" x="10" y="98" width="150" height="10"></rect><rect class="fig-side" x="10" y="98" width="5" height="10"></rect><text class="fig-text" x="10" y="126">confidence 0.94</text></g><polygon class="fig-face-on fig-edge" points="320.4,155 377.6,188 348.1,205 291,172"></polygon><polygon class="fig-face-on fig-edge" points="291,202 348.1,235 348.1,205 291,172"></polygon><polygon class="fig-side fig-edge" points="377.6,218 348.1,235 348.1,205 377.6,188"></polygon><g transform="matrix(0.866 0.5 0 1 291 172)"><text class="fig-text is-on" x="9" y="19">act</text></g><polygon class="fig-top fig-edge" points="388,194 445.1,227 415.7,244 358.5,211"></polygon><polygon class="fig-front fig-edge" points="358.5,241 415.7,274 415.7,244 358.5,211"></polygon><polygon class="fig-side fig-edge" points="445.1,257 415.7,274 415.7,244 445.1,227"></polygon><g transform="matrix(0.866 0.5 0 1 358.5 211)"><text class="fig-text" x="9" y="19">ask</text></g><polygon class="fig-top fig-edge" points="455.5,233 512.7,266 483.2,283 426.1,250"></polygon><polygon class="fig-front fig-edge" points="426.1,280 483.2,313 483.2,283 426.1,250"></polygon><polygon class="fig-side fig-edge" points="512.7,296 483.2,313 483.2,283 512.7,266"></polygon><g transform="matrix(0.866 0.5 0 1 426.1 250)"><text class="fig-text" x="9" y="19">person</text></g></svg></div><figcaption class="post-fig-foot"><span>Click for the next message</span><span class="post-fig-status" aria-live="polite">confidence 0.94 · act on check_balance</span></figcaption></figure>
+<p>The 0.5 floor catches answers the model reports as unsure. Above it, the bar for acting without confirmation rises with the stakes. The risk tolerance lives in your code, in numbers you can read and change.</p>
+<p>Start conservative, run it on your own data, plot confidence against accuracy, and move the thresholds from there. For a step-by-step walkthrough of picking those thresholds, read <a href="/jev-confidence/">How to use Jev confidence scores</a>.</p>
+<h2 id="is-jev-open-source-can-you-run-it-locally">Is Jev open source? Can you run it locally?</h2>
+<p>No. TypeSafe hasn’t published Jev’s weights, so there’s no model to download and run on your own machine. Jev is only available as a hosted service: you call TypeSafe’s API, directly or through Vercel’s AI Gateway.</p>
+<p>The docs don’t mention a self-hosted or on-premises version either. On privacy, they say Jev is never trained on your requests, and enterprise customers can get zero data retention.</p>
+<p>The open source part is the code around the model. The JavaScript and Python SDKs are on <a href="https://github.com/typesafe-ai">TypeSafe’s GitHub</a> under the MIT license, and so is the agent skill. TypeSafe also publishes <a href="https://github.com/typesafe-ai/system-one-adapter-python">system-one-adapter</a>, a Python drop-in for the SDK client that sends the same questions to OpenAI, Anthropic, Gemini or any OpenAI-compatible endpoint instead of Jev, so you can compare them.</p>
+<p>The projects in this post that run locally run their own code on your machine and still call the Jev API. Oko finds files and does its keyword search locally, then sends your question and the selected snippets to TypeSafe for the ranking. Its <code>--no-jev</code> flag keeps everything local by skipping Jev.</p>
+<p>On Hugging Face you’ll find community models called Open-Jev or Jev-Style. They copy Jev’s request format on top of open models like Qwen, and some run in LM Studio, but they’re independent projects and none of them is Jev.</p>
+<p>The closest thing to a Jev you can run yourself is Cloudflare’s <a href="https://huggingface.co/Cloudflare/clef">Clef</a>, released on October 1, 2026 with open weights under the Apache 2.0 license. It’s a separate model built on Qwen, but it takes the same requests and returns the same answer shapes, so code written for Jev works with it once you change the URL, the key and the model name. Cloudflare hosts it on Workers AI. Running the weights yourself takes a datacenter GPU: Cloudflare tested them on a single NVIDIA H200.</p>
+<p>TypeSafe hasn’t published a paper either. The launch post mentions a new model architecture, a parallel sampler and the RLCD training method without details, calls Jev “neither small nor an LLM”, and says TypeSafe chose not to publish results on public benchmarks. The parts that matter when you use it are in <a href="#how-jev-works-under-the-hood">How Jev works under the hood</a>.</p>
+<aside class="post-banner post-banner-mid not-prose" aria-label="Solo Lab: make a living from your own software" data-pagefind-ignore=""><p class="post-banner-kicker">Starts 28 October · waiting list open</p><p class="post-banner-title">Solo Lab: make a living from your own software</p><p class="post-banner-text">A three-week intensive on finding customers, pricing and selling your work, and running a calm business on your own. It starts on 28 October. Join the waiting list and I'll email you when enrollment opens.</p><a href="/courses/solo-lab/" class="post-banner-cta unset" data-event="Solo Lab banner click" data-event-prop-placement="blog-post-mid">Join the Solo Lab waiting list →</a></aside><h2 id="getting-access">Getting access</h2>
+<p>Jev launched with a waitlist, and people reported getting in within a day or two. On September 20, 2026 TypeSafe <a href="https://x.com/typesafeai/status/2101786156572823624">opened it to everyone</a>, then on September 22 it <a href="https://x.com/typesafeai/status/2102281508950307159">paused new signups</a> because of demand. Existing accounts keep working. Check <a href="https://typesafe.ai">typesafe.ai</a> for the current state, or use the Vercel AI Gateway route described below.</p>
+<p><img src="/images/jev/typesafe-homepage.png" alt="The TypeSafe AI homepage announcing Jev as the first public System One model" decoding="async" width="2000" height="1276"></p>
+<p>The console at <a href="https://console.typesafe.ai">console.typesafe.ai</a> opens with a short page on what Jev is and, to its credit, what it is not good at: System 2 tasks, specialized domains, and anything generative.</p>
+<p><img src="/images/jev/meet-jev.png" alt="The Meet Jev welcome page in the TypeSafe console, listing the model&#x27;s properties, limitations and benefits" decoding="async" loading="lazy" width="2000" height="1276"></p>
+<p>The console home links the cookbooks, the demos, and a one-paragraph prompt you can paste into your coding agent to install the TypeSafe skill.</p>
+<p><img src="/images/jev/console-home.png" alt="The TypeSafe console home with the Learn to TypeSafe header, cookbooks, demos and the agent setup prompt" decoding="async" loading="lazy" width="2000" height="1276"></p>
+<p>The Playground is where I’d spend the first hour. Paste a state on the left, add questions, run them against <code>jev-latest</code>. The right side has a walkthrough lesson per primitive and three realistic use cases: resume screening, auditing a support agent’s chat, and routing a helpdesk ticket.</p>
+<p><img src="/images/jev/playground.png" alt="The TypeSafe Playground with the state editor, the question type picker and the walkthrough lessons" decoding="async" loading="lazy" width="2000" height="1276"></p>
+<p>API keys live in the console too, under API Keys. Usage shows your token consumption. The full signup and key walkthrough is in <a href="/jev-api-key/">How to get access to Jev and an API key</a>.</p>
+<p>If you don’t have a TypeSafe account, Jev is also on <a href="/vercel-ai-gateway/">Vercel’s AI Gateway</a> as <code>typesafe-ai/jev</code>, at the same $0.042 per million input tokens. That path uses the AI SDK instead of TypeSafe’s own, and I’ll cover it below.</p>
+<h2 id="your-first-call-with-curl">Your first call with curl</h2>
+<p>Evaluations go through one endpoint:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="http"><code><span class="line"><span style="color:#F97583">POST</span><span style="color:#E1E4E8"> https://api.typesafe.ai/v1/systemone</span></span>
+<span class="line"><span style="color:#85E89D">Authorization</span><span style="color:#F97583">:</span><span style="color:#9ECBFF"> Bearer &#x3C;API_KEY></span></span>
+<span class="line"><span style="color:#85E89D">Content-Type</span><span style="color:#F97583">:</span><span style="color:#9ECBFF"> application/json</span></span></code></pre>
+<p>Set your key in the environment and send the sponsor-form example from the top of this post:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#F97583">export</span><span style="color:#E1E4E8"> TYPESAFE_API_KEY</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">your_key_here</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">curl</span><span style="color:#79B8FF"> -s</span><span style="color:#9ECBFF"> https://api.typesafe.ai/v1/systemone</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  -H</span><span style="color:#9ECBFF"> "Authorization: Bearer </span><span style="color:#E1E4E8">$TYPESAFE_API_KEY</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  -H</span><span style="color:#9ECBFF"> "Content-Type: application/json"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  -d</span><span style="color:#9ECBFF"> '{</span></span>
+<span class="line"><span style="color:#9ECBFF">    "model": "jev-latest",</span></span>
+<span class="line"><span style="color:#9ECBFF">    "state": {</span></span>
+<span class="line"><span style="color:#9ECBFF">      "opportunity": "link",</span></span>
+<span class="line"><span style="color:#9ECBFF">      "name": "Managed Postgres",</span></span>
+<span class="line"><span style="color:#9ECBFF">      "description": "We make a managed PostgreSQL hosting product and would like to sponsor the newsletter in October."</span></span>
+<span class="line"><span style="color:#9ECBFF">    },</span></span>
+<span class="line"><span style="color:#9ECBFF">    "questions": {</span></span>
+<span class="line"><span style="color:#9ECBFF">      "is_sponsor_inquiry": {</span></span>
+<span class="line"><span style="color:#9ECBFF">        "type": "noul",</span></span>
+<span class="line"><span style="color:#9ECBFF">        "instructions": "Does `description` ask to sponsor the site or newsletter?"</span></span>
+<span class="line"><span style="color:#9ECBFF">      }</span></span>
+<span class="line"><span style="color:#9ECBFF">    }</span></span>
+<span class="line"><span style="color:#9ECBFF">  }'</span></span></code></pre>
+<p>You get back the <code>answers</code> object, the versioned <code>model</code> that answered, and <code>usage</code> with input and output token counts.</p>
+<p>The API returns <code>401</code> for a missing or wrong key, <code>422</code> when the body fails validation (the response says which field), <code>429</code> for rate limits and <code>529</code> when the service is overloaded. Retry the last two with exponential backoff, which the SDKs do for you.</p>
+<p>Rate limits as of October 2026 are 80 requests per second and 100,000 tokens per second, adjusting dynamically as TypeSafe lets more people in and adds GPU capacity.</p>
+<p><code>GET /v1/models</code> lists the aliases your account can send in the <code>model</code> field. Versioned IDs such as <code>jev-1.13.0</code> work even when not in that list.</p>
+<h2 id="using-jev-from-nodejs">Using Jev from Node.js</h2>
+<p>The JavaScript SDK is <code>@typesafe-ai/sdk</code>. It needs Node.js 20 or newer and ships ESM, CommonJS and TypeScript types. This is the short version. The full walkthrough, with install, Noul, Choice and Score, errors, retries and a complete script, is in <a href="/jev-nodejs/">how to use Jev in Node.js</a>.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">npm</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> @typesafe-ai/sdk</span></span></code></pre>
+<p>The client reads <code>TYPESAFE_API_KEY</code> from the environment. Three helper functions, <code>noul</code>, <code>choice</code> and <code>score</code>, build the questions, and the answer types are inferred from them:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> { choice, noul, score, TypeSafeClient } </span><span style="color:#F97583">from</span><span style="color:#9ECBFF"> '@typesafe-ai/sdk'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> client</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> TypeSafeClient</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> ticket</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'The export button crashes the settings page in Safari. Works in Chrome, but some of our customers only use Safari.'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">model</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">usage</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.</span><span style="color:#B392F0">systemOne</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  state: { ticket },</span></span>
+<span class="line"><span style="color:#E1E4E8">  questions: {</span></span>
+<span class="line"><span style="color:#E1E4E8">    category: </span><span style="color:#B392F0">choice</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'What kind of ticket is `ticket`?'</span><span style="color:#E1E4E8">, {</span></span>
+<span class="line"><span style="color:#E1E4E8">      bug_report: </span><span style="color:#9ECBFF">'Something is broken or behaving wrong'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      feature_request: </span><span style="color:#9ECBFF">'Asks for something that does not exist yet'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      billing: </span><span style="color:#9ECBFF">'Charges, invoices, refunds'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      other: </span><span style="color:#79B8FF">null</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    }),</span></span>
+<span class="line"><span style="color:#E1E4E8">    severity: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'How severe is the issue in `ticket`?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">      'Cosmetic; no impact on functionality'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">      'Broken or degraded feature, but a workaround exists'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">      'Blocking issue; no workaround exists'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">    has_repro_steps: </span><span style="color:#B392F0">noul</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'Does `ticket` say how to reproduce the problem?'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#E1E4E8">})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(answers.category.choice)</span></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(answers.severity.score)</span></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(answers.has_repro_steps.noul)</span></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(model)</span></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(usage.input_tokens)</span></span></code></pre>
+<p>A <code>null</code> description on a Choice option means “no extra detail”, which is fine for an <code>other</code> bucket.</p>
+<p>In TypeScript, <code>answers.category.choice</code> is typed as <code>'bug_report' | 'feature_request' | 'billing' | 'other'</code>, so you get autocomplete, unknown labels fail type checking, and a <code>never</code> assertion gives you an exhaustive <code>switch</code>.</p>
+<p>You can pass <code>model: 'jev-1.13.0'</code> in the request to pin a version, and per-call <code>timeout</code>, <code>retry</code> and <code>signal</code> options as a second argument to <code>systemOne()</code>.</p>
+<h2 id="python-in-a-few-lines">Python in a few lines</h2>
+<p>The Python SDK is <code>typesafe-sdk</code> and needs Python 3.10 or newer. The full walkthrough is in <a href="/jev-python/">how to use Jev with Python</a>. Install it with:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">pip</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> typesafe-sdk</span></span></code></pre>
+<p>Same shape, with <code>Choice</code>, <code>Noul</code> and <code>Score</code> classes:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> typesafe_sdk </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Choice, Noul, Score, TypeSafeClient</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> TypeSafeClient()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.system_one(</span></span>
+<span class="line"><span style="color:#FFAB70">    state</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"I was charged twice for order A-104. Please refund the duplicate."</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    questions</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#9ECBFF">        "department"</span><span style="color:#E1E4E8">: Choice(</span></span>
+<span class="line"><span style="color:#FFAB70">            instructions</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Which team should handle this?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            criteria</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#9ECBFF">                "billing"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Charges, invoices, refunds"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "technical"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Bugs and integration problems"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "other"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">            },</span></span>
+<span class="line"><span style="color:#E1E4E8">        ),</span></span>
+<span class="line"><span style="color:#9ECBFF">        "refund_requested"</span><span style="color:#E1E4E8">: Noul(</span></span>
+<span class="line"><span style="color:#FFAB70">            instructions</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Does the customer ask for money back?"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">        ),</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(response.answers[</span><span style="color:#9ECBFF">"department"</span><span style="color:#E1E4E8">].choice)</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(response.answers[</span><span style="color:#9ECBFF">"refund_requested"</span><span style="color:#E1E4E8">].noul)</span></span></code></pre>
+<p>There’s an <code>AsyncTypeSafeClient</code> too, and a configurable retry policy.</p>
+<h2 id="using-jev-through-the-vercel-ai-sdk">Using Jev through the Vercel AI SDK</h2>
+<p>If your app already uses the <a href="/vercel-ai-sdk/">Vercel AI SDK</a>, you don’t need a second client. AI SDK 7 (from 7.0.105) has an <code>experimental_evaluate</code> function built for this kind of model, with TypeSafe as its native provider. I cover the whole setup in <a href="/jev-vercel-ai-sdk/">how to use Jev with the Vercel AI SDK</a>.</p>
+<p>Both packages need Node.js 22 or newer. Install them and set <code>TYPESAFE_AI_API_KEY</code>:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">npm</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> ai</span><span style="color:#9ECBFF"> @ai-sdk/typesafe-ai</span></span>
+<span class="line"><span style="color:#F97583">export</span><span style="color:#E1E4E8"> TYPESAFE_AI_API_KEY</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">your_key_here</span></span></code></pre>
+<p>The vocabulary differs slightly: the yes/no type is <code>boolean</code> and its answer field <code>probability</code>. Choice and Score keep their names.</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> { experimental_evaluate </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> evaluate } </span><span style="color:#F97583">from</span><span style="color:#9ECBFF"> 'ai'</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> { typeSafeAi } </span><span style="color:#F97583">from</span><span style="color:#9ECBFF"> '@ai-sdk/typesafe-ai'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> result</span><span style="color:#F97583"> =</span><span style="color:#F97583"> await</span><span style="color:#B392F0"> evaluate</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  model: typeSafeAi.</span><span style="color:#B392F0">evaluationModel</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'jev-latest'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">  state: { message: </span><span style="color:#9ECBFF">'I was charged twice. Please refund the extra charge.'</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#E1E4E8">  questions: {</span></span>
+<span class="line"><span style="color:#E1E4E8">    department: {</span></span>
+<span class="line"><span style="color:#E1E4E8">      type: </span><span style="color:#9ECBFF">'choice'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      instructions: </span><span style="color:#9ECBFF">'Which team should handle `message`?'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      criteria: {</span></span>
+<span class="line"><span style="color:#E1E4E8">        billing: </span><span style="color:#9ECBFF">'Payments and refunds'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">        support: </span><span style="color:#9ECBFF">'Everything else'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      },</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#E1E4E8">    requests_refund: {</span></span>
+<span class="line"><span style="color:#E1E4E8">      type: </span><span style="color:#9ECBFF">'boolean'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      instructions: </span><span style="color:#9ECBFF">'Is the customer asking for money back?'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#E1E4E8">})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(result.answers.department.choice)</span></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(result.answers.requests_refund.probability)</span></span></code></pre>
+<p>Through the <a href="/vercel-ai-gateway/">AI Gateway</a> you skip the provider package and pass a string model ID, which resolves through the Gateway once <code>AI_GATEWAY_API_KEY</code> is set:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> result</span><span style="color:#F97583"> =</span><span style="color:#F97583"> await</span><span style="color:#B392F0"> evaluate</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  model: </span><span style="color:#9ECBFF">'typesafe-ai/jev'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  state: </span><span style="color:#9ECBFF">'The support agent issued a full refund to the customer.'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  questions: {</span></span>
+<span class="line"><span style="color:#E1E4E8">    refunded: {</span></span>
+<span class="line"><span style="color:#E1E4E8">      type: </span><span style="color:#9ECBFF">'boolean'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      instructions: </span><span style="color:#9ECBFF">'Was a refund issued?'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#E1E4E8">  providerOptions: {</span></span>
+<span class="line"><span style="color:#E1E4E8">    gateway: { zeroDataRetention: </span><span style="color:#79B8FF">true</span><span style="color:#E1E4E8"> },</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#E1E4E8">})</span></span></code></pre>
+<p><code>zeroDataRetention</code> is a Gateway option on Vercel Pro and Enterprise plans. It stops Vercel and the provider from retaining prompt and output after processing, and disallows training on them. The request still travels to both. TypeSafe’s direct service only advertises ZDR for enterprise customers, so don’t assume the same option in its own SDK.</p>
+<p>TypeSafe’s <code>confidence</code> is not in <code>result.answers</code>. It lives at <code>result.providerMetadata.typesafe.confidence</code>, keyed by question ID. And <code>experimental_evaluate</code> also works with OpenAI, Anthropic and Google models through an adapter that prompts them for structured output, handy for comparing Jev against an LLM on your own labeled data. Those adapters return no probability distributions and their boolean probabilities aren’t promised to be calibrated, so compare on accuracy, cost and latency, not confidence.</p>
+<p>Run both on the server. The TypeSafe SDK blocks browser use by default, because an API key in client-side JavaScript is exposed.</p>
+<h2 id="ask-everything-at-once">Ask everything at once</h2>
+<p>This is the habit that changes how you design with Jev, and the one coding agents get wrong most often.</p>
+<p>LLM calls are slow and expensive, so workflows ask one question, then decide what to ask next. With Jev every question runs in parallel against the same state, and each extra one costs only its own tokens. Ask <strong>every independent question you might need</strong> in one call, even those that only matter for some inputs, and let your code decide which answers to use.</p>
+<p>TypeSafe calls this <strong>speculative fan-out</strong>. In one cookbook, 13 questions in one call were 12.2x cheaper and 10x faster than 13 sequential calls. The test used <code>jev-1.12</code> and a 53,777-character document, so most of the saving came from sending that state once. Concurrent separate calls would close the latency gap, not the cost gap. Batching had no effect on the answers beyond sampling noise.</p>
+<p>Here is a support triage in one request. Bug severity only matters for bugs, the refund question only for billing. I ask all of them anyway:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> { choice, noul, score, TypeSafeClient } </span><span style="color:#F97583">from</span><span style="color:#9ECBFF"> '@typesafe-ai/sdk'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> client</span><span style="color:#F97583"> =</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> TypeSafeClient</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> TRIAGE</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  category: </span><span style="color:#B392F0">choice</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'What kind of ticket is `ticket`?'</span><span style="color:#E1E4E8">, {</span></span>
+<span class="line"><span style="color:#E1E4E8">    bug_report: </span><span style="color:#9ECBFF">'Something is broken or behaving wrong'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    billing: </span><span style="color:#9ECBFF">'Charges, invoices, refunds, subscriptions'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    feature_request: </span><span style="color:#9ECBFF">'Asks for something that does not exist yet'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    other: </span><span style="color:#79B8FF">null</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  }),</span></span>
+<span class="line"><span style="color:#E1E4E8">  bug_severity: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'If `ticket` reports a bug, how severe is it?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Cosmetic; no impact on functionality'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Broken or degraded feature, but a workaround exists'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Blocking issue; no workaround exists'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">  has_repro_steps: </span><span style="color:#B392F0">noul</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'Does `ticket` include steps to reproduce a problem?'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">  refund_requested: </span><span style="color:#B392F0">noul</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'Does `ticket` ask for money back?'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">  frustration: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'How frustrated is the author of `ticket`?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Calm, just stating facts'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Frustrated but civil'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Very angry, strong language, or threatening to leave'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">export</span><span style="color:#F97583"> async</span><span style="color:#F97583"> function</span><span style="color:#B392F0"> triage</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ticket</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.</span><span style="color:#B392F0">systemOne</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">    state: { ticket },</span></span>
+<span class="line"><span style="color:#E1E4E8">    questions: </span><span style="color:#79B8FF">TRIAGE</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  })</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">category</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">bug_severity</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">has_repro_steps</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">refund_requested</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">frustration</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> answers</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  if</span><span style="color:#E1E4E8"> (category.confidence </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 0.6</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> { route: </span><span style="color:#9ECBFF">'human'</span><span style="color:#E1E4E8">, reason: </span><span style="color:#9ECBFF">'unclear category'</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  if</span><span style="color:#E1E4E8"> (category.choice </span><span style="color:#F97583">===</span><span style="color:#9ECBFF"> 'bug_report'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> (bug_severity.score </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1.5</span><span style="color:#F97583"> &#x26;&#x26;</span><span style="color:#E1E4E8"> has_repro_steps.noul </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0.6</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">      return</span><span style="color:#E1E4E8"> { route: </span><span style="color:#9ECBFF">'engineering'</span><span style="color:#E1E4E8">, priority: </span><span style="color:#9ECBFF">'high'</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> { route: </span><span style="color:#9ECBFF">'bug_backlog'</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  if</span><span style="color:#E1E4E8"> (category.choice </span><span style="color:#F97583">===</span><span style="color:#9ECBFF"> 'billing'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> { route: </span><span style="color:#9ECBFF">'billing'</span><span style="color:#E1E4E8">, refundLikely: refund_requested.noul </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0.7</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  if</span><span style="color:#E1E4E8"> (category.choice </span><span style="color:#F97583">===</span><span style="color:#9ECBFF"> 'feature_request'</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> { route: </span><span style="color:#9ECBFF">'product'</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> { route: </span><span style="color:#9ECBFF">'human'</span><span style="color:#E1E4E8">, flag: frustration.score </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1.5</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>One call feeds the whole decision tree. For a feature request, <code>bug_severity</code> is ignored. It cost its own tokens, but the shared state was sent once.</p>
+<p>Notice the questions live in one constant, with the thresholds in the same file. That’s what a reviewer needs to read.</p>
+<p>You only need a second request when your code can’t build it until it has the first answer, because it must fetch more data or the first answer decides the next question’s options. TypeSafe’s skill-suggestion cookbook does this: one request ranks 182 skills, a second looks at the full text of the top three and can reject them all. If the second request could have run against the original state, fold it into the first.</p>
+<h2 id="compose-decisions-in-code">Compose decisions in code</h2>
+<p>The second habit is for judgments that depend on several things. Ask one question per thing and combine the answers with weights you own.</p>
+<p>Ticket priority depends on how bad the bug is, how upset the customer is, and how much the report gives an engineer to work with. Three Scores, one request:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> PRIORITY_QUESTIONS</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  severity: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'How severe is the issue in `ticket`?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Cosmetic; no impact on functionality'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Broken or degraded feature, but a workaround exists'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Blocking issue; no workaround exists'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">  frustration: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'How frustrated is the author of `ticket`?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Calm, just stating facts'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Frustrated but civil'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Very angry or threatening to leave'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">  report_quality: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'How much does `ticket` give an engineer to work with?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">    'No detail; just says something is broken'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Names the feature but no steps or environment'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Steps to reproduce or environment, but not both'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    'Steps to reproduce and environment'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">function</span><span style="color:#B392F0"> normalized</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">answers</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">id</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#79B8FF"> topLevel</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> PRIORITY_QUESTIONS</span><span style="color:#E1E4E8">[id].criteria.</span><span style="color:#79B8FF">length</span><span style="color:#F97583"> -</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> answers[id].score </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> topLevel</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">export</span><span style="color:#F97583"> async</span><span style="color:#F97583"> function</span><span style="color:#B392F0"> priority</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">ticket</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">  const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.</span><span style="color:#B392F0">systemOne</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">    state: { ticket },</span></span>
+<span class="line"><span style="color:#E1E4E8">    questions: </span><span style="color:#79B8FF">PRIORITY_QUESTIONS</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">  })</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#79B8FF">    0.6</span><span style="color:#F97583"> *</span><span style="color:#B392F0"> normalized</span><span style="color:#E1E4E8">(answers, </span><span style="color:#9ECBFF">'severity'</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">+</span></span>
+<span class="line"><span style="color:#79B8FF">    0.3</span><span style="color:#F97583"> *</span><span style="color:#B392F0"> normalized</span><span style="color:#E1E4E8">(answers, </span><span style="color:#9ECBFF">'frustration'</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">+</span></span>
+<span class="line"><span style="color:#79B8FF">    0.1</span><span style="color:#F97583"> *</span><span style="color:#B392F0"> normalized</span><span style="color:#E1E4E8">(answers, </span><span style="color:#9ECBFF">'report_quality'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">  )</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The scales have different lengths (three levels return 0 to 2, four return 0 to 3), so each score is divided by its top level before weighting. Then 0.6 on severity means severity counts twice as much as frustration.</p>
+<p>When the ranking doesn’t match what your team would decide, change a coefficient and rerun. There’s no prompt to rewrite. TypeSafe calls this <strong>composite scoring</strong>.</p>
+<p>The third pattern is <strong>intent routing</strong>, where most early experiments land. Some requests need a database lookup, some an LLM with the right context, a few a person. Jev sits in front and decides which:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.</span><span style="color:#B392F0">systemOne</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">  state: { message },</span></span>
+<span class="line"><span style="color:#E1E4E8">  questions: {</span></span>
+<span class="line"><span style="color:#E1E4E8">    intent: </span><span style="color:#B392F0">choice</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'What does the author of `message` want?'</span><span style="color:#E1E4E8">, {</span></span>
+<span class="line"><span style="color:#E1E4E8">      order_status: </span><span style="color:#9ECBFF">'Where is my order, has it shipped, tracking'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      product_question: </span><span style="color:#9ECBFF">'How a product works, compatibility, specs'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      return_exchange: </span><span style="color:#9ECBFF">'Return, exchange, or replace an item'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">      complaint: </span><span style="color:#9ECBFF">'Unhappy with service or product, wants a resolution'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    }),</span></span>
+<span class="line"><span style="color:#E1E4E8">    needs_reasoning: </span><span style="color:#B392F0">score</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'How much thought does a good answer to `message` need?'</span><span style="color:#E1E4E8">, [</span></span>
+<span class="line"><span style="color:#9ECBFF">      'A lookup or a one-line fact'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">      'A short explanation using product knowledge'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">      'A judgment call with trade-offs or an unhappy customer'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]),</span></span>
+<span class="line"><span style="color:#E1E4E8">  },</span></span>
+<span class="line"><span style="color:#E1E4E8">})</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> (answers.intent.confidence </span><span style="color:#F97583">&#x3C;</span><span style="color:#79B8FF"> 0.5</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">  return</span><span style="color:#B392F0"> routeToHuman</span><span style="color:#E1E4E8">(message)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">switch</span><span style="color:#E1E4E8"> (answers.intent.choice) {</span></span>
+<span class="line"><span style="color:#F97583">  case</span><span style="color:#9ECBFF"> 'order_status'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> lookupOrder</span><span style="color:#E1E4E8">(message) </span><span style="color:#6A737D">// no LLM involved</span></span>
+<span class="line"><span style="color:#F97583">  case</span><span style="color:#9ECBFF"> 'product_question'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> answerWithLLM</span><span style="color:#E1E4E8">(message, </span><span style="color:#79B8FF">PRODUCT_CONTEXT</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">  case</span><span style="color:#9ECBFF"> 'return_exchange'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#B392F0"> answerWithLLM</span><span style="color:#E1E4E8">(message, </span><span style="color:#79B8FF">RETURNS_CONTEXT</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">  case</span><span style="color:#9ECBFF"> 'complaint'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> answers.needs_reasoning.score </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> ?</span><span style="color:#B392F0"> routeToHuman</span><span style="color:#E1E4E8">(message) </span><span style="color:#F97583">:</span><span style="color:#B392F0"> answerWithLLM</span><span style="color:#E1E4E8">(message, </span><span style="color:#79B8FF">COMPLAINT_CONTEXT</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The order lookup never touches an LLM, two intents get an LLM with different context, and complaints use the second score to pick LLM or human, so the expensive resources only run when a message needs them.</p>
+<p>The same shape works as a <strong>model router</strong> inside an agent: ask how much reasoning a message needs and which profile it fits, then pick the cheap or the expensive model. One proposed migration reduced a routing prompt to those two questions.</p>
+<h2 id="writing-questions-jev-answers-well">Writing questions Jev answers well</h2>
+<p>Most of the skill is in the questions. Everything below comes from the docs, the console lessons, and the mistakes people reported in the first days.</p>
+<p>One judgment per question. “Does this message convey urgency?” is good. “Analyze this message and decide the best course of action” hides several judgments behind one answer. If a question weighs several factors, split it.</p>
+<p>Write the exact condition. Jev answers the question you wrote, not the one you meant; scoping words, negations and implied conditions are read literally. When a wrong answer makes you explain what you really meant, that explanation is the missing half of the instruction.</p>
+<p>In criteria, describe situations rather than degrees: what belongs to a Choice option and what belongs to its neighbor, a concrete state of the world for a Score level. When the model keeps landing between two levels on inputs you consider clear, give each level an object with a description and a few examples, same field names on every level:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "what"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Broken or degraded feature, but a workaround exists"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "examples"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"export fails in one browser but works in another"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>The docs measured this on a Safari export bug: plain string levels gave 1.43 at 0.35 confidence, the same levels with one relevant example gave 1.03 at 0.96. An unrelated example left it at 1.43 and 0.35. Examples help when they look like your real inputs.</p>
+<p>Give the model an exit: an <code>other</code> option on every Choice that might not cover every input, and “not stated” when extracting something that may be missing. Keep instructions and criteria saying the same thing in plain language, because when they disagree the answer degrades.</p>
+<p>Numbers, dates and counting stay in code. The next section explains why.</p>
+<p>For the surrounding code, put every question and threshold in one file, because that’s the part a human needs to review. Then test against labeled examples before trusting a threshold: run inputs you know the answer for and look at where confidence and accuracy diverge. One early test got 11 invoice cases out of 11 right after its rubric was written down. That order, rubric first, matches the docs.</p>
+<h2 id="where-jev-breaks">Where Jev breaks</h2>
+<p>TypeSafe publishes a “jaggedness” page per model version, listing what <code>jev-1.13</code> does badly. Here it is, with the fix for each.</p>
+<p>The first is literal reading, covered above. The model reads your words, not your intent. Be explicit, or split the interpretation into two literal questions.</p>
+<p>Then there’s math. Jev is not a calculator and does not count reliably, whether characters, occurrences, or items in a list. It can’t tell whether two hex colors are close: named colors work, <code>#FF4B0A</code> doesn’t. Do the arithmetic in code and pass in the result or a named bucket.</p>
+<p>If you need to count items that match a semantic condition, ask one Noul per item and sum in code:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="js"><code><span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> items</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">'typesafe'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'apple'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'california'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'banana'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'orange'</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> questions</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> Object.</span><span style="color:#B392F0">fromEntries</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">  items.</span><span style="color:#B392F0">map</span><span style="color:#E1E4E8">((</span><span style="color:#FFAB70">_</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">i</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">`item_${</span><span style="color:#E1E4E8">i</span><span style="color:#9ECBFF">}`</span><span style="color:#E1E4E8">, </span><span style="color:#B392F0">noul</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">`Is </span><span style="color:#79B8FF">\`</span><span style="color:#9ECBFF">items[${</span><span style="color:#E1E4E8">i</span><span style="color:#9ECBFF">}]</span><span style="color:#79B8FF">\`</span><span style="color:#9ECBFF"> the name of a fruit?`</span><span style="color:#E1E4E8">)])</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#E1E4E8"> { </span><span style="color:#79B8FF">answers</span><span style="color:#E1E4E8"> } </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.</span><span style="color:#B392F0">systemOne</span><span style="color:#E1E4E8">({ state: { items }, questions })</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">const</span><span style="color:#79B8FF"> fruits</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> items.</span><span style="color:#B392F0">filter</span><span style="color:#E1E4E8">((</span><span style="color:#FFAB70">_</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">i</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">=></span><span style="color:#E1E4E8"> answers[</span><span style="color:#9ECBFF">`item_${</span><span style="color:#E1E4E8">i</span><span style="color:#9ECBFF">}`</span><span style="color:#E1E4E8">].noul </span><span style="color:#F97583">></span><span style="color:#79B8FF"> 0.5</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">console.</span><span style="color:#B392F0">log</span><span style="color:#E1E4E8">(fruits.</span><span style="color:#79B8FF">length</span><span style="color:#E1E4E8">) </span><span style="color:#6A737D">// 3</span></span></code></pre>
+<p>A Score is not a measurement either. A 1.4 does not mean “40% of the way from frustrated to angry”, because the levels are weakly calibrated against each other. Use it to pass a threshold or to rank, not to interpolate a magnitude.</p>
+<p>Dates have the same problem. Jev reads a date as text, so which comes first, how far apart, whether one falls in a window, all of it is unreliable, worse with mixed formats or relative references. Extract with a Choice over months, days and years plus a “not stated” option, then build a real date in code and compare there.</p>
+<p>Indirection costs accuracy: double negatives, a property of a property, anything with multiple hops. Point directly at the relevant part of the state.</p>
+<p>A large state full of irrelevant detail costs accuracy too. Filter first. When you can’t do it deterministically, ask a Noul per chunk, “is this relevant to the question?”, and drop the rest.</p>
+<p>Typed output does not guarantee correct routing. A Choice always returns an allowed destination and can still be the wrong one. Version the model, questions, criteria, and thresholds together, and replay a set of known inputs whenever any of them change.</p>
+<p>State is treated as data, but text written to steer the model can still move the answer. TypeSafe says it expects to improve on adversarial content. For now, write precise criteria and test with hostile inputs before going public.</p>
+<p>Contradictions between instructions and criteria, like a Noul where <code>true</code> means “no”, make the answers worse.</p>
+<p>And it can’t write. You can force text out by chaining Choices over characters, and the docs are blunt that this works badly and slowly. To extract a value, find the candidates with a regex or an LLM and let Jev pick.</p>
+<p>A useful rule is that with Jev you <strong>pick a card from the deck</strong> instead of asking it to name one. When your instinct says “extract X”, rephrase as “here are the candidates for X, which one is it?”</p>
+<h2 id="what-people-are-building-with-it">What people are building with it</h2>
+<p>Jev has been out for about a week as I write this, so most of these are early experiments, not production case studies.</p>
+<p>The easiest way to follow them is <a href="https://www.shipwithjev.com/">shipwithjev.com</a>, an independent catalog of Jev builds, not affiliated with TypeSafe. It listed 551 builds on September 23, 2026, grouped by category, and many entries carry the cost and latency their authors reported. Those are the authors’ numbers, not independent measurements.</p>
+<p>The first production report comes from Metaview, a recruiting platform. It says it shipped Jev into every agent on its platform over a weekend, and candidate searches in its sourcing product went from minutes to seconds, about 10x faster, at the same accuracy and a lower cost per search.</p>
+<h3 id="labeling-data">Labeling data</h3>
+<p>Labeling is the obvious use. One demo classified 1,018 summarized AI research papers across 24 topics for $0.08, median latency 256 milliseconds per paper (the LLM summaries cost another $3.99). Another ran 98,000 listing classifications in ten minutes. A third reported half a million input tokens for about two cents, matching the published price. Anything shaped like “label every row” fits.</p>
+<p>Resume screening is the same shape with a rubric: fit for this job posting, as a Score. A hiring site reported about one tenth the cost of small LLMs for that job. The console ships it as a built-in example.</p>
+<p>So is inbox triage: priority, spam or not, needs a reply or not, one call per email, fast enough to watch it work through a mailbox.</p>
+<p>Resume screening also works in reverse. One developer ran his resume against all 6,245 Y Combinator companies in 25 seconds, for $0.37, and got a list of 156 founders worth contacting.</p>
+<p>Marketing data fits too. A teardown of 724 live ads from 37 brands took about 40 seconds and nine cents. For each ad, Jev picked the hook, the format, the offer, the call to action and the awareness stage, and flagged any mismatch with the landing page. A survey research product rebuilt on Jev (200 samples, 12 questions per survey) reported running twice as fast as Gemini 3.5 Flash-Lite at 85% lower cost.</p>
+<h3 id="routing-and-verification">Routing and verification</h3>
+<p>Intent and model routing were among the most suggested uses: one call in front of a support flow or an agent, deciding which handler or which model gets the message.</p>
+<p>Routing also works for business processes. A deal-review demo reads a sales deal and says what comes next: approval, more documents, or review by sales, finance and legal. One deal can need several of those teams at once. Jev maps that out, and people still make the call.</p>
+<p>Verification is the other side. One proposed workflow takes a podcast site that generates episode summaries with an LLM and checks each claim against the transcript with a Noul, flagging low-probability answers. The LLM writes the summary, Jev checks it, and code decides which claims need review.</p>
+<p>Another developer added Jev to a coding agent loop with a single job: answer “is the task done?”. It’s a small question, and a coding agent asks it many times per task.</p>
+<p>Podcasts show up again in <a href="https://github.com/ttlequals0/MinusPodJev">MinusPodJev</a>, which plugs Jev into MinusPod, a self-hosted server that removes ads from podcasts. It asks one Noul per transcript segment, joins the flagged segments into ad spans, and returns them in the format MinusPod expects from an OpenAI-compatible model. Chapter titles still need a chat model, because Jev can’t write them.</p>
+<p>Code review fits the same mold: per modified file in a PR, Scores and Nouls on security risk, complexity, bad practices and commit message quality, combined into a risk matrix in code.</p>
+<p>TypeSafe’s cookbooks push into retrieval: re-ranking BM25 shortlists with a Noul per query-passage pair, scoring passages for relevance and hidden prompt injections before they reach the answering model, and checking whether a citation supports its claim.</p>
+<h3 id="search">Search</h3>
+<p>Several open source builds use Jev for search, and they follow the same pattern: a cheap keyword pass finds candidates, then Jev ranks them by what the person meant.</p>
+<p><a href="https://github.com/kylemclaren/jevsearch">jevsearch</a> is a drop-in site search for React and shadcn/ui. Keyword hits appear on the first keystroke, then Jev re-ranks the top candidates by intent, with no embeddings and no vector database. If TypeSafe is slow or down, the keyword order stays. Its author reports a 278 ms median and $0.26 per 1,000 uncached searches. Most site search, including the Pagefind search on this site, stops at the keyword pass.</p>
+<p><a href="https://github.com/kylemclaren/jevql">JevQL</a> brings the same idea to plain PostgreSQL. You write normal SQL with a <code>jev()</code> filter:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> title, organizer</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> meetings</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> jev(meetings, </span><span style="color:#9ECBFF">'could have been an email'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">  AND</span><span style="color:#E1E4E8"> starts_at </span><span style="color:#F97583">></span><span style="color:#F97583"> now</span><span style="color:#E1E4E8">();</span></span></code></pre>
+<p>The JevQL CLI evaluates the <code>jev()</code> calls and sends ordinary SQL to the database, so there’s no extension to install and no superuser needed. It also has SDKs and an MCP server. Every row that reaches a <code>jev()</code> filter is a judgment you pay for, so keep the normal conditions next to it, and use <code>--explain</code> to see a cost estimate before any API call.</p>
+<p><a href="https://github.com/bartlomein/oko">Oko</a> does it for code. It runs locally, finds candidate snippets, lets Jev rank them, and serves the best ones to Codex, Claude Code or OpenCode over MCP, so the agent reads less irrelevant code. On a public benchmark of 345 code-retrieval tasks in six languages, it puts a right file first more often than other published methods (MRR 0.39 against 0.24), and in its authors’ own benchmark the agents finished tasks 12 to 38% faster.</p>
+<p>The same shape works for smaller lookups. A settings finder lets you describe what you want to change and returns the matching control. A CLI wrapper gives “Did you mean?” suggestions by meaning: type <code>git record</code> and it suggests <code>git commit</code>, which no typo-distance algorithm would find.</p>
+<h3 id="inside-apps-that-already-exist">Inside apps that already exist</h3>
+<p>Some builds add Jev to software people already use, as one more decision inside an existing workflow.</p>
+<p><a href="https://github.com/antonio-ivanovski/spliit-cloud">Spliit Cloud</a>, an open source expense splitter, suggests a category for each new expense with a Jev Choice. It checks its local dictionary and the group’s history first, and users review the suggestions Jev is unsure about. That’s the same boundary as the Shared Expense Tracker exercise I describe below.</p>
+<p>A Magento 2 module asks a fixed set of Nouls and Choices about orders, customers, products, reviews and abandoned carts. Every question for an entity goes in one API call when the entity is saved, and the answer, confidence and full probability breakdown are stored on it and shown in the admin.</p>
+<p>A house-style formatter for Word documents splits the work between two models. An LLM reads your house style once and describes each style in it. Then, for every paragraph of a contract, Jev picks which of those styles applies.</p>
+<h3 id="real-time-interfaces">Real-time interfaces</h3>
+<p>A few hundred milliseconds per call means Jev can run on every keystroke pause. One editor demo scored tone, conviction, urgency and “reads as AI-written” while the user typed, with criteria the developer defined rather than a fixed detector.</p>
+<p>A browser extension asks, per post in a social feed, whether it’s rage bait, crypto promotion or political argument, and hides the ones that score high. The user defines the categories, not the platform.</p>
+<p>Games showed up early too. A Tetris demo chose between rotate, move and drop. A driving simulator passed structured observations and asked whether to accelerate, brake or turn. TypeSafe’s launch demos include a Doom bot on structured game state at about ten queries a second, costed at roughly $7 an hour, and a Wikiracing bot choosing among hundreds of links per step without ever picking one that doesn’t exist.</p>
+<p>A Pac-Man demo shows the loop: on every tile the app sends the nearby game state, Jev returns a direction, a strategy, a danger score, and flags such as trapped or committed, code moves the character and sends the next state.</p>
+<p>Robotics is a smaller corner with the same split. A dual-arm robot project gives Jev the middle of three control layers: it makes the decisions, while inverse kinematics and physics stay in code, at about 500 ms and half a yen per attempt. A simulated traffic light ran on near-real-time traffic feeds for under a cent in total, and its author’s favorite moment was watching it decide to do nothing.</p>
+<p>Other demos: a Rubik’s Cube, an experimental programming language, natural-language database search, browser and operating-system control, speech-to-text cleanup, fraud detection, classifying scraped content. They show how many kinds of problems fit, not that any of it is production-ready.</p>
+<h3 id="agents-and-tools">Agents and tools</h3>
+<p>A chatbot demo used no generative LLM. It asked Jev “which tool answers the user’s last message?” as a Choice, with the arguments in the same call: which city, which time frame, which unit, each a Choice over candidates found in the conversation. Code called the tool. It turned a smart-home light off from a plain sentence in about 300 milliseconds end to end, and answered “how tall is Mount Rainier?” by fetching Wikipedia and having Jev point at the sentence with the answer.</p>
+<p>Browser automation splits the same way: a planner LLM sets the goal, Jev picks which element to click next as a Choice over the interactive elements. One demo booked a flight in about seven seconds. If you’ve watched a Playwright agent think for ten seconds between clicks, you know why that matters.</p>
+<p>Hunch, an open source browser agent, is built entirely around that split. Jev maps an accessibility snapshot of the page to the next operation, code checks the result, and uncertain or irreversible steps go to an LLM. Its author reports a 153 ms median per decision, 24 correct decisions out of 24, and a four-step form filled in 3.4 seconds.</p>
+<p>Jive applies it to a terminal coding agent: frontier LLMs plan and handle exceptions, Jev makes the repetitive decisions in between.</p>
+<p>A <strong>semantic linter</strong> for a large codebase: split changed code into chunks, ask whether each needs attention, what kind of problem it has, how risky it is. Rank, then send only the top chunks to a coding model that can explain and fix them.</p>
+<p>If a chunk lacks context, offer options such as <code>open_file</code>, <code>previous_chunk</code>, or <code>next_chunk</code>. Jev picks one, code fetches the context, a second evaluation continues from there. Jev finds where to look; the coding model edits.</p>
+<p>Logs are a smaller first project. Instead of an LLM explaining every line, ask Jev which entries are expected noise, a forgotten scheduled job, a user-facing failure, or something needing attention. Code groups and ranks before involving a person or another model.</p>
+<p>Natural-language PostgreSQL search needs the same split. Don’t ask Jev to generate SQL. Code provides allowed query templates, tables, columns, and filters; Jev selects the intent and options; code builds a parameterized query. The model handles meaning without permission to invent a database operation.</p>
+<p>Guardrails for coding agents are the first use case I’d test: classify a shell command as read-only, reversible or irreversible before it runs. In one early shadow test, an ambiguous <code>rm -rf</code> came back “irreversible” at 0.56 with confidence 0.33. That 0.33 tells the code to ask a human instead of trusting the label.</p>
+<p>And one for fun: a startup idea judge. Ten questions evaluate problem, demand, monetization, distribution and differentiation in about half a second, and code combines them into kill, fix or ship. The result is only as good as the rubrics.</p>
+<h3 id="feature-engineering">Feature engineering</h3>
+<p>Turn free text into numeric features for a classical model. TypeSafe’s feature-discovery cookbook starts with 18 questions and ends with 38 after five rounds. Those answers become 67 numeric columns for a CatBoost regressor.</p>
+<h3 id="the-skeptical-notes">The skeptical notes</h3>
+<p>The useful metric is cost per solved task, not per token. If the cheap path adds retries or human review, the savings shrink. Most of these use-case lists will turn into two or three integrations with real traffic. And where deterministic code already decides correctly, code stays.</p>
+<p>The demos prove many problems map to typed decisions. They don’t show which ones make money, survive real traffic, or stay accurate after the model changes. That needs production measurements. Every cost and latency in this section, Metaview’s included, is what builders reported about their own work.</p>
+<h2 id="jev-and-coding-agents">Jev and coding agents</h2>
+<p>TypeSafe published an agent skill. Install it before asking an agent to integrate Jev, because agents trained on LLM APIs ask one question per call and invent request fields.</p>
+<p>For Claude Code:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">claude</span><span style="color:#9ECBFF"> plugin</span><span style="color:#9ECBFF"> marketplace</span><span style="color:#9ECBFF"> add</span><span style="color:#9ECBFF"> typesafe-ai/skills</span></span>
+<span class="line"><span style="color:#B392F0">claude</span><span style="color:#9ECBFF"> plugin</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> typesafe@typesafe-ai</span></span></code></pre>
+<p>For Cursor, Codex and everything else:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">npx</span><span style="color:#9ECBFF"> skills</span><span style="color:#9ECBFF"> add</span><span style="color:#9ECBFF"> typesafe-ai/skills</span><span style="color:#79B8FF"> --skill</span><span style="color:#9ECBFF"> typesafe-ai</span></span></code></pre>
+<p>The skill points the agent at the live docs (Mintlify serves any page as Markdown by appending <code>.md</code> to the URL), lists the primitives, and explains fan-out and confidence gating.</p>
+<p>The prompt TypeSafe suggests as a first step is the one I’d use too:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Using the TypeSafe skill, explore the project and find opportunities for using</span></span>
+<span class="line"><span>intelligent judgement to stand in for complex parsing or other fragile code.</span></span></code></pre>
+<p>Review what it proposes before it writes anything, and make it put every question and threshold in one file. Agents aren’t great at writing questions, so you’ll be editing them together.</p>
+<h2 id="how-i-will-use-jev-in-my-workflows">How I will use Jev in my workflows</h2>
+<p>I have console access but haven’t put Jev into production yet. My plan is to start with decisions I already make every day, run Jev in shadow mode beside the current workflow, and compare its answers before letting it control anything.</p>
+<h3 id="route-work-before-starting-a-coding-agent">Route work before starting a coding agent</h3>
+<p>I use coding agents for small fixes, long research, browser work, and jobs across several repositories. They don’t all need the same model or environment.</p>
+<p>I can give Jev the task, the repository name, and a description of the available agents. A Choice picks a route: <code>deterministic_script</code>, <code>fast_agent</code>, <code>reasoning_agent</code>, <code>browser_agent</code>, or <code>human</code>. A Score measures how ambiguous the request is, a Noul whether it needs logged-in applications on my computer.</p>
+<p>Jev would not start the agent. My code reads the answers, applies confidence thresholds, and sends the task to the workflow I already use.</p>
+<h3 id="put-a-safety-check-in-front-of-shell-commands">Put a safety check in front of shell commands</h3>
+<p>Before a coding agent runs a command, I can send Jev the command, current directory, and a small amount of repository state.</p>
+<p>A Choice classifies it as <code>read_only</code>, <code>reversible</code>, or <code>irreversible</code>. Nouls check whether it deletes files, changes Git history, deploys to production, or touches anything outside the repository.</p>
+<p>At first I would only log the answers. With enough real examples, high-confidence read-only commands could run, while uncertain or destructive ones still ask me.</p>
+<h3 id="prefilter-the-blog-maintenance-work">Prefilter the blog maintenance work</h3>
+<p>This blog has more than 2,000 posts. Many contain software versions, prices, service limits, and links that become stale.</p>
+<p>The tempting question is “is this version number outdated?”, but comparing <code>18.17.1</code> with <code>24.15.0</code> belongs in code.</p>
+<p>I would use Jev one step earlier, on each paragraph:</p>
+<ul>
+<li>Does this paragraph contain a version claim?</li>
+<li>Does it state a price or usage limit?</li>
+<li>Does it describe a product interface that may have changed?</li>
+<li>Would checking this claim require current external documentation?</li>
+</ul>
+<p>Code collects the paragraphs that cross the threshold, and a coding agent or a script checks only those against current sources. Jev filters the work; it does not rewrite the posts.</p>
+<h3 id="sort-sponsor-inquiries-and-newsletter-replies">Sort sponsor inquiries and newsletter replies</h3>
+<p>My <a href="/sponsor/">sponsor form</a> already sends structured submissions through a Cloudflare Pages Function. I can add a Noul for whether it’s a real sponsorship inquiry, a Choice for the product category, and a Score for how specific the request is.</p>
+<p>I would start by adding those answers to the email I already receive, and keep making the decision myself. If the labels hold up, code can prepare the right reply or rate card without sending anything automatically.</p>
+<p>Newsletter replies get a smaller version of the same questions: a Choice between thank-you, broken link, question, sponsorship lead, and <code>other</code>, so I open the ones that need a response first.</p>
+<h3 id="add-semantic-priority-to-events-logger">Add semantic priority to Events Logger</h3>
+<p><a href="/software/events-logger/">Events Logger</a> collects events from my applications into one dashboard. Each event has a project, category and title, plus an optional description and tags.</p>
+<p>I can add a Score for severity and Nouls for whether the event is a user-facing failure, lost money, or something that needs action. The feed stays chronological, with a second view ordered by semantic priority.</p>
+<p>It’s a good first production test, because a wrong answer only reorders a dashboard and never touches data or infrastructure.</p>
+<h3 id="try-it-in-the-bootcamp-projects">Try it in the Bootcamp projects</h3>
+<p>The <a href="/courses/bootcamp/">Bootcamp</a> projects are a good way to teach where a decision model belongs. Jev would be an optional extension after the core project works, not a day-one dependency.</p>
+<p>Each project has at least one place where normal code handles the facts and Jev can handle a fuzzy judgment:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Bootcamp project</th><th>What I would ask Jev</th><th>What stays in code</th></tr></thead><tbody><tr><td>Personal Dashboard</td><td>Which existing category best fits a new link?</td><td>URL validation, storage, editing, and ordering</td></tr><tr><td>Events Dashboard</td><td>Is this event expected noise, a user-facing failure, or something urgent?</td><td>API authentication, event ingestion, search, and charts</td></tr><tr><td>Shared Expense Tracker</td><td>Which expense category fits this description?</td><td>Amounts, balances, splits, and who owes whom</td></tr><tr><td>Live Chat Room</td><td>Is this message spam, abusive, or likely to need moderation?</td><td>Authentication, rooms, message delivery, and mentions</td></tr><tr><td>Recipe Finder</td><td>Does a generated recipe respect the requested diet and ingredients?</td><td>Recipe generation, caching, bookmarks, and image loading</td></tr><tr><td>Port Pilot</td><td>Does this process look safe to stop, uncertain, or likely to be a system service?</td><td>Reading ports and processes, parsing exact values, and sending signals</td></tr><tr><td>Recipe Finder Pro</td><td>Which model should handle this recipe request based on its complexity?</td><td>Payments, subscriptions, entitlements, and access control</td></tr><tr><td>Your Own Product</td><td>Which fuzzy decision inside this product would benefit from a typed probability?</td><td>The product’s main workflow and every deterministic rule</td></tr></tbody></table>
+<p>The Shared Expense Tracker shows the boundary. Jev can read “pizza with Luca and Sara” and suggest <code>food</code>, but it never calculates who owes what, because that arithmetic has to be exact.</p>
+<p>Port Pilot is stricter. Jev can add a risk label beside a process, but never kill anything. The operating-system query, PID checks, and confirmation stay in code.</p>
+<p>In the Recipe Finder the language model still creates the recipes. Jev checks whether a result matches the diet, uses the supplied ingredients, or needs another attempt, which shows students how generative and decision models work together.</p>
+<p>I would turn this into the same small exercise for every project:</p>
+<ol>
+<li>Finish the deterministic version first.</li>
+<li>Find one decision that requires understanding meaning.</li>
+<li>Write the possible answers before calling Jev.</li>
+<li>Collect at least 20 realistic inputs with expected answers.</li>
+<li>Run Jev without changing the application’s behavior.</li>
+<li>Review the mistakes and adjust the questions.</li>
+<li>Automate only a low-risk result.</li>
+</ol>
+<p>Each Bootcamp week keeps its subject: databases, APIs, authentication, real-time data, AI generation, CLI tools, product development. Jev is one more tool to add when the project needs judgment.</p>
+<h3 id="how-i-will-roll-this-out">How I will roll this out</h3>
+<p>I would use the same process for each workflow:</p>
+<ol>
+<li>Keep the existing behavior.</li>
+<li>Run Jev beside it and log the full answers.</li>
+<li>Label the cases where its decision was right or wrong.</li>
+<li>Adjust the questions and thresholds using that data.</li>
+<li>Automate the low-risk path first.</li>
+<li>Keep a human or a stronger model for uncertain cases.</li>
+</ol>
+<p>I would not use Jev for writing, summarizing, precise arithmetic, or image input. And I’d leave deterministic code alone when it already decides correctly: an <code>if</code> that costs nothing beats a model call that can be wrong.</p>
+<h2 id="what-it-costs-and-how-fast-it-is">What it costs, and how fast it is</h2>
+<p>$0.042 per million input tokens, output free. TypeSafe’s homepage says $42 per billion tokens, the same number in a form that makes the point.</p>
+<p>A support ticket with its questions runs around 300 tokens in TypeSafe’s examples: about $0.0000126 per call, or $1.26 for 100,000 tickets of the same size. To compare against an LLM on your own workload, the <a href="/tools/token-cost/">token cost calculator</a> and the <a href="/tools/inference-cost/">inference cost tool</a> on this site take the same per-million inputs. <a href="/jev-pricing/">How much does Jev cost?</a> covers billing, workload estimates, rate limits, Vercel pricing and how it compares with LLMs.</p>
+<p>Vercel’s AI Gateway lists the same rate, billed like any other Gateway model.</p>
+<p>On speed, TypeSafe quotes 70 to 500 milliseconds end to end, most around 100, measured from the US West Coast where the service runs. From Italy I’d expect network latency on top, so measure before promising anything to a user interface. Whether the claimed 40x to 200x speedup holds depends on which LLM and which task; the company itself calls its headline multiples the high end.</p>
+<p>Rate limits, as of October 2026: 80 requests per second and 100,000 tokens per second, adjusting dynamically during early access.</p>
+<h3 id="could-jev-cut-an-ai-bill-by-50-or-60-percent">Could Jev cut an AI bill by 50 or 60 percent?</h3>
+<p>It could, but it depends on the workload. Jev only reduces the part of the bill spent on decisions it can replace.</p>
+<p>The rough calculation is:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>total savings = classification share × savings on those calls</span></span></code></pre>
+<p>A company spends $10,000 a month on AI. If $6,000 goes to classification, routing, scoring, and verification, and the new path costs 5% of the old one, the saving is $5,700, or 57% of the bill.</p>
+<p>If classification is only 10% of the workload, even making those calls free saves at most 10%.</p>
+<p>The big savings come at scale. A company running a general model over hundreds of millions of records for one small judgment each can route that to Jev and keep the frontier model for reasoning and generated output.</p>
+<p>Measure the whole pipeline: preprocessing, retries, failed requests, human review, and any generative step before or after Jev. The research-paper example cost $0.08 in Jev classification and $3.99 in summaries.</p>
+<p>Jev accepts text only, so classifying images, audio or video needs text metadata or another model that turns the asset into text first. That step belongs in the cost calculation too.</p>
+<h2 id="where-to-start">Where to start</h2>
+<p>Sign in at typesafe.ai if you have an account, or use the Gateway path with a Vercel account while TypeSafe’s signups are paused. <a href="/jev-api-key/">How to get access to Jev and an API key</a> walks through both routes.</p>
+<p>Spend the first hour in the Playground with your own data, not the examples: a real support message, a real log line, a real form submission.</p>
+<p>Then pick one boring decision your code hardcodes or handles with a regex that keeps breaking: route, approve, skip. Replace it with one Noul or one Choice, log the confidence for a week beside the current behavior, and only then let it act.</p><div class="not-prose mt-8 text-sm" data-astro-cid-62dzsm7q><span style="color: rgb(var(--color-text-muted))" data-astro-cid-62dzsm7q>Tagged: </span><a href="/tags/ai/" class="unset" style="color: rgb(var(--color-text-link))" data-astro-cid-62dzsm7q>AI</a><span style="color: rgb(var(--color-text-muted))" data-astro-cid-62dzsm7q> · </span><a href="/blog/#topics" class="unset" style="color: rgb(var(--color-text-link))" data-astro-cid-62dzsm7q>All topics</a></div><div class="not-prose mt-8" data-astro-cid-62dzsm7q><a href="https://twitter.com/flaviocopes" class="twitter-follow-button" data-show-count="false" data-astro-cid-62dzsm7q>Follow @flaviocopes</a></div><p class="not-prose mt-8 text-sm" data-pagefind-ignore data-astro-cid-62dzsm7q>Want me to talk about your product? You can <a href="/sponsor/" class="unset font-bold" style="color: rgb(var(--color-text-link))" data-astro-cid-62dzsm7q>sponsor this site</a>.</p><aside class="not-prose my-10 p-5 text-sm" style="background-color: rgb(var(--color-bg-code)); border: 1px solid rgb(var(--color-border-code));"><p class="font-bold uppercase tracking-wide mb-2 text-xs" style="color: rgb(var(--color-text-muted))">Free ebooks</p><p class="mb-4 leading-relaxed">Want to go deeper? Subscribe to my newsletter and open my free download library for books, courses, and software.</p><a href="/access" class="unset inline-block border border-current px-4 py-2 font-bold hover:opacity-70" style="color: rgb(var(--color-text-link))">Open the download library &rarr;</a></aside><div data-pagefind-ignore><div class="separator">~~~</div><p class="text-sm font-bold uppercase mb-3">Related posts about ai:</p><div><ul><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/jev-coding-agents/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>How to use Jev with Claude Code, Codex and Cursor</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/livekit/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>The complete guide to LiveKit Agents</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/jev-vercel-ai-sdk/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>How to use Jev with the Vercel AI SDK</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/mac-test-vm/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>How to let coding agents test Mac apps in a VM</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/jev-confidence/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>How to use Jev confidence scores</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/jev-classify-text/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>How to classify text with Jev</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/poteto-mode/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>What is poteto-mode in pstack?</a></div></li><li class="mb-1" data-astro-cid-a6sclapi><div class="flex flex-wrap items-baseline gap-x-2 text-sm" data-astro-cid-a6sclapi><a href="/chatgpt-plugins/" class="unset underline hover:opacity-70" style="color: rgb(var(--color-text-link))" data-astro-cid-a6sclapi>How to create and publish a ChatGPT plugin</a></div></li></ul></div></div></article></div></div></main><footer class="text-sm mt-16 pb-10"><div class="separator">~~~</div><nav class="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-6 mb-8" aria-label="Footer"><div><p class="text-xs font-bold uppercase mb-2" style="color: rgb(var(--color-text-muted))">Explore</p><ul class="space-y-1"><li><a href="/blog">Blog</a></li><li><a href="/search">Search</a></li><li><a href="/news">News</a></li><li><a href="/ai-news">AI news</a></li><li><a href="/changelog">Changelog</a></li><li><a href="/blog/#topics">Topics</a></li><li><a href="/access">Books</a></li><li><a href="/products">Products</a></li><li><a href="/download">Downloads</a></li><li><a href="/about">About</a></li><li><a href="/newsletter">Newsletter</a></li><li><a href="/rss.xml">RSS feed</a></li></ul></div><div><p class="text-xs font-bold uppercase mb-2" style="color: rgb(var(--color-text-muted))">Programs</p><ul class="space-y-1"><li><a href="/cohorts">Cohorts</a></li><li><a href="/courses/bootcamp">Bootcamp</a></li><li><a href="/courses/solo-lab">Solo Lab</a></li><li><a href="/courses/ai-workshop">AI Workshop</a></li><li><a href="/courses/ship-factory">Ship Factory</a></li><li><a href="/courses">Free courses</a></li></ul></div><div><p class="text-xs font-bold uppercase mb-2" style="color: rgb(var(--color-text-muted))">Topics</p><ul class="space-y-1"><li><a href="/ai/">AI</a></li><li><a href="/astro/">Astro</a></li><li><a href="/cli/">CLI</a></li><li><a href="/cloudflare/">Cloudflare</a></li><li><a href="/css/">CSS</a></li><li><a href="/database/">Database</a></li><li><a href="/web-platform/">Web Platform</a></li><li><a href="/git/">Git</a></li><li><a href="/html/">HTML</a></li><li><a href="/javascript/">JavaScript</a></li><li><a href="/nextjs/">Next.js</a></li><li><a href="/nodejs/">Node.js</a></li><li><a href="/react/">React</a></li></ul></div><div><p class="text-xs font-bold uppercase mb-2" style="color: rgb(var(--color-text-muted))">Connect</p><ul class="space-y-1"><li><a href="https://x.com/flaviocopes">X / Twitter</a></li><li><a href="https://github.com/flaviocopes">GitHub</a></li><li><a href="/contact">Contact</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/cdn-cgi/l/email-protection#b2d4ded3c4dbddf2d4ded3c4dbddd1ddc2d7c19cd1dddf">Email</a></li></ul></div></nav><div class="text-xs" style="color: rgb(var(--color-text-muted))">&copy; 2026 flaviocopes.com</div></footer><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="module" src="/_astro/MermaidDiagrams.astro_astro_type_script_index_0_lang.CjySwiEM.js"></script><script type="module" src="/_astro/PostFigures.astro_astro_type_script_index_0_lang.EfgP1nla.js"></script><script src="https://cloud.livekit.io/embed-popup.js?v=flaviocopes-guide" data-lk-agent="CA_ShYFqtJhARjJ" data-lk-color="#002CF2"></script><script type="module">var e=window;e.plausible=e.plausible||function(...t){let n=e.plausible;(n.q=n.q||[]).push(t)};var t=t=>{let n=t.getAttribute(`data-event`);if(!n)return;let r=Object.fromEntries(Array.from(t.attributes).filter(e=>e.name.startsWith(`data-event-prop-`)).map(e=>[e.name.replace(`data-event-prop-`,``),e.value])),i=e.plausible;i(n,{props:r})};document.addEventListener(`click`,e=>{let n=e.target;if(!(n instanceof Element))return;let r=n.closest(`[data-event]`);r&&!r.matches(`form`)&&t(r)}),document.addEventListener(`submit`,e=>{let n=e.target;n instanceof HTMLFormElement&&n.matches(`[data-event]`)&&t(n)});</script><!-- Privacy-friendly analytics by Plausible --><script async src="https://b.flaviocopes.com/js/pa-t-Y2_teFHacUlqaVa-545.js"></script><script>
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()
+    </script><!-- Cloudflare Pages Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "62faa2381d2247d1b545bff712d9f20e"}'></script><!-- Cloudflare Pages Analytics --><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a48701bf48d350ca',t:'MTc5MTY0OTc5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body></html>

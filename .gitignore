@@ -1,0 +1,6 @@
+.env
+poc/out/
+__pycache__/
+.venv/
+.claude/settings.local.json
+.claude/lazy-mode

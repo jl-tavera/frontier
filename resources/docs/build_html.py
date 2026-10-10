@@ -1,0 +1,153 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["markdown>=3.7"]
+# ///
+"""Render resources/docs/solution.md + every source doc (as appendixes) into solution.html.
+
+  uv run resources/docs/build_html.py
+"""
+import html
+import re
+from pathlib import Path
+
+import markdown
+
+DOCS = Path(__file__).resolve().parent
+POC = DOCS.parent.parent / "poc" / "rfb_poc.py"
+
+# letter -> (source file, short title used in the appendix heading)
+APPENDIXES = {
+    "a": ("challenge.md", "Challenge brief"),
+    "b": ("page-technical-analysis.md", "Technical diagnosis of the target"),
+    "c": ("research-1-transport.md", "Track 1 research: transport"),
+    "d": ("platform-mapping-papers.md", "Track 2 research: platform mapping papers"),
+    "e": ("platform-mapping-methodology.md", "Track 2 methodology: initial map + remap"),
+    "f": ("research-3-agent-loop.md", "Track 3 research: agent loop"),
+    "g": ("data-sync-design.md", "Track 4 design: data sync"),
+    "h": ("research-7-perception.md", "Track 7 research: perception"),
+}
+FILE_TO_ANCHOR = {src: f"#appendix-{k}" for k, (src, _) in APPENDIXES.items()}
+FILE_TO_ANCHOR["solution-design.md"] = "#frontier-challenge-1-solution"  # absorbed into the body
+FILE_TO_ANCHOR["poc/rfb_poc.py"] = "#appendix-i"
+FILE_TO_ANCHOR["../../poc/rfb_poc.py"] = "#appendix-i"
+
+LINK_RE = re.compile(r"`((?:poc/)?[\w\-]+\.(?:md|py))(:[\d\-]+)?`")
+
+
+def appendix_md(letter: str, src: str, title: str) -> str:
+    """Source doc verbatim, except: title line -> appendix heading, headings one level down, file links -> anchors."""
+    out = [f"## Appendix {letter.upper()} — {title} {{: #appendix-{letter} }}", "",
+           f"_Source: `resources/docs/{src}`, unchanged on disk. Shown here with headings one level down and file links turned into anchors._", ""]
+    fence = False
+    for line in (DOCS / src).read_text(encoding="utf-8").splitlines():
+        if line.startswith("```"):
+            fence = not fence
+        if not fence:
+            if line.startswith("# "):
+                out.append(f"**{line[2:].strip()}**")
+                continue
+            if line.startswith("#"):
+                line = "#" + line
+            line = LINK_RE.sub(lambda m: f"[`{m.group(1)}{m.group(2) or ''}`]({FILE_TO_ANCHOR[m.group(1)]})"
+                               if m.group(1) in FILE_TO_ANCHOR else m.group(0), line)
+        out.append(line)
+    return "\n".join(out)
+
+
+def poc_md() -> str:
+    code = POC.read_text(encoding="utf-8")
+    doc = code.split('"""')[1].strip()
+    return "\n".join([
+        "## Appendix I — POC reference: `poc/rfb_poc.py` {: #appendix-i }", "",
+        "_What the proof of concept already implements: the RFB handshake and VNC auth over WSS, Raw + CopyRect framebuffer, "
+        "`shared=1`, quiet-time `settle`, `click` / `type` / `key`, `changed_bbox`, `ServerCutText` receive, and a stdio MCP stub. "
+        "Reads `URL` and `PASSWORD` from `.env` (track 1.1 moves them to the request)._", "",
+        "```", doc, "```", "", "```python", code, "```",
+    ])
+
+
+SVG = """<figure class="arch"><svg viewBox="0 0 1180 760" role="img" aria-label="Architecture: evaluator calls the Railway service; inside it the entrypoint, task runner, agent loop, tools, perception, app memory, RFB session and JSONL log; the agent loop calls the Anthropic API and the RFB session talks to the target desktop">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+<g class="rail"><rect x="230" y="20" width="640" height="720" rx="14"/><text x="250" y="46" class="t">Railway service · <tspan class="m">frontier-agent</tspan> · one container, one process</text></g>
+<g class="ext"><rect x="20" y="70" width="170" height="90" rx="8"/><text x="32" y="92" class="t">Evaluator</text><text x="32" y="112" class="l">hidden eval set</text><text x="32" y="128" class="l">task + {url, password}</text><text x="32" y="144" class="l">5 min per task</text></g>
+<g class="box"><rect x="260" y="70" width="270" height="80" rx="8"/><text x="272" y="92" class="t">[A] Entrypoint API</text><text x="272" y="110" class="l">FastAPI + uvicorn · Bearer auth</text><text x="272" y="125" class="l">POST /tasks → task_id &lt; 2 s</text><text x="272" y="140" class="l">GET /tasks/{id} · GET /health</text></g>
+<g class="box"><rect x="560" y="70" width="280" height="80" rx="8"/><text x="572" y="92" class="t">[B] Task Runner</text><text x="572" y="110" class="l">asyncio task per job</text><text x="572" y="125" class="l">270 s budget guard · in-process state</text><text x="572" y="140" class="l">always writes a summary</text></g>
+<g class="box hi"><rect x="260" y="190" width="580" height="90" rx="8"/><text x="272" y="212" class="t">[C] Agent Loop — plan → act → verify → replan → summarize</text><text x="272" y="232" class="l">Anthropic Python SDK · claude-opus-5-5 (plan, replan, recover) · claude-sonnet-5-5 optional routine tier</text><text x="272" y="248" class="l">batched tool use → plan-then-execute · prompt caching · optional Jev System 1 gate</text><text x="272" y="264" class="l">picks element ids (Set-of-Mark), never x,y</text></g>
+<g class="box"><rect x="260" y="320" width="270" height="100" rx="8"/><text x="272" y="342" class="t">[D] Tool Layer</text><text x="272" y="360" class="l">plain Python functions, no MCP</text><text x="272" y="375" class="l">low: click · type · key · screenshot</text><text x="272" y="390" class="l">mid: click_text · fill_field · wait_for</text><text x="272" y="405" class="l">high: navigate_to, read_grid, export</text></g>
+<g class="box"><rect x="560" y="320" width="280" height="100" rx="8"/><text x="572" y="342" class="t">[E] Perception</text><text x="572" y="360" class="l">RapidOCR (ONNX, Latin PP-OCRv5)</text><text x="572" y="375" class="l">OpenCV boxes + grid lines · numpy</text><text x="572" y="390" class="l">UI tree · fingerprint · changed_bbox</text><text x="572" y="405" class="l">Tesseract fallback · line-pixel cache</text></g>
+<g class="box"><rect x="260" y="460" width="270" height="100" rx="8"/><text x="272" y="482" class="t">[F] App Memory</text><text x="272" y="500" class="l">nav graph: one JSON per app</text><text x="272" y="515" class="l">nodes · edges · procedures · frontier</text><text x="272" y="530" class="l">data cache: sqlite3 (WAL), JSON rows</text><text x="272" y="545" class="l">ephemeral on container disk</text></g>
+<g class="box"><rect x="560" y="460" width="280" height="100" rx="8"/><text x="572" y="482" class="t">[G] RFB Session</text><text x="572" y="500" class="l">websockets ≥13 · pycryptodome (DES)</text><text x="572" y="515" class="l">Raw + CopyRect (lossless) · shared=1</text><text x="572" y="530" class="l">settle (quiet-time) · clipboard</text><text x="572" y="545" class="l">numpy framebuffer 1280×800</text></g>
+<g class="box log"><rect x="260" y="600" width="580" height="60" rx="8"/><text x="272" y="620" class="t">[H] JSONL structured log</text><text x="272" y="637" class="l">every step: tool · args · screen_id · diff · outcome · signal · rung · cost_ms</text><text x="272" y="652" class="l">→ Challenge 2 spec · debrief · eval harness · mutation suite</text></g>
+<text x="250" y="692" class="l">Deploy: one Railway service · Docker python:3.12-slim + uv · uvicorn, 1 worker on $PORT</text>
+<text x="250" y="708" class="l">GET /health check · env TEAM_TOKEN, ANTHROPIC_API_KEY · no volume · CPU-only</text>
+<g class="ext"><rect x="910" y="190" width="250" height="90" rx="8"/><text x="922" y="212" class="t">Anthropic API</text><text x="922" y="232" class="l">Messages API · tool use</text><text x="922" y="248" class="l">prompt caching</text><text x="922" y="264" class="l">claude-opus-5-5 / sonnet-5-5</text></g>
+<g class="ext"><rect x="910" y="430" width="250" height="170" rx="8"/><text x="922" y="452" class="t">Target desktop (Railway)</text><text x="922" y="472" class="l">noVNC page · /health</text><text x="922" y="488" class="l">websockify → VNC server</text><text x="922" y="504" class="l">(Docker 86a79607eef2:0)</text><text x="922" y="520" class="l">SIGECOM v3.9 · unseen app</text><text x="922" y="536" class="l">pixels only · no DOM, no API</text><text x="922" y="552" class="l">shared: operador / operador2</text></g>
+<g class="edge">
+<line x1="190" y1="100" x2="260" y2="100"/><text x="225" y="92" class="e" text-anchor="middle">HTTPS + Bearer</text>
+<line x1="260" y1="125" x2="190" y2="125"/><text x="225" y="142" class="e" text-anchor="middle">task_id · status</text>
+<line x1="530" y1="110" x2="560" y2="110"/>
+<line x1="700" y1="150" x2="700" y2="190"/><text x="708" y="175" class="e">asyncio task</text>
+<line x1="395" y1="280" x2="395" y2="320"/><text x="403" y="305" class="e">tool calls</text>
+<line x1="700" y1="320" x2="700" y2="280"/><text x="708" y="305" class="e">elements · effects</text>
+<polyline points="530,370 545,370 545,510 560,510" fill="none"/><text x="537" y="448" class="e" text-anchor="middle">act</text>
+<line x1="700" y1="460" x2="700" y2="420"/><text x="708" y="445" class="e">framebuffer</text>
+<polyline points="260,510 245,510 245,235 260,235" fill="none"/><text x="240" y="380" class="e" text-anchor="middle" transform="rotate(-90 240 380)">map · cache</text>
+<line x1="840" y1="225" x2="910" y2="225"/><text x="875" y="215" class="e" text-anchor="middle">Messages API</text>
+<line x1="910" y1="250" x2="840" y2="250"/><text x="875" y="266" class="e" text-anchor="middle">tool_use</text>
+<line x1="840" y1="500" x2="910" y2="500"/><text x="875" y="490" class="e" text-anchor="middle">WSS /websockify</text>
+<line x1="910" y1="525" x2="840" y2="525"/><text x="875" y="541" class="e" text-anchor="middle">RFB 3.8 frames</text>
+</g>
+</svg><figcaption>Architecture and deployment. Letters match §3.1 and the tech stack in §3.2.</figcaption></figure>"""
+
+TEMPLATE = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frontier Challenge 1 — Solution</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav ul{list-style:none;margin:0;padding-left:0}nav ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav li{margin:2px 0}nav a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media print{nav{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav><div class="brand">Frontier Challenge 1</div>%(toc)s</nav>
+<main>%(body)s</main>
+</div></body></html>"""
+
+
+def main():
+    md_src = (DOCS / "solution.md").read_text(encoding="utf-8")
+    parts = [md_src] + [appendix_md(k, src, title) for k, (src, title) in APPENDIXES.items()] + [poc_md()]
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "toc", "attr_list", "md_in_html", "sane_lists"],
+                           extension_configs={"toc": {"toc_depth": "2-3", "permalink": "¶"}})
+    body = md.convert("\n\n".join(parts))
+    body = body.replace('<div id="arch"></div>', SVG)
+    body = body.replace("<table>", '<div class="tw"><table>').replace("</table>", "</table></div>")
+    for src, anchor in FILE_TO_ANCHOR.items():  # the appendix table in solution.md links to files
+        body = body.replace(f'href="{src}"', f'href="{anchor}"')
+    out = DOCS / "solution.html"
+    out.write_text(TEMPLATE % {"toc": md.toc, "body": body}, encoding="utf-8")
+    print(f"wrote {out} ({out.stat().st_size // 1024} KB)")
+
+
+if __name__ == "__main__":
+    main()

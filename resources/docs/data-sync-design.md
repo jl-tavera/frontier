@@ -1,0 +1,217 @@
+# Data Sync Design (track 4)
+
+**Scope:** an expansion of `solution-design.md` §4 (4.1–4.4).
+**Decision:** a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.
+
+---
+
+## 0. What "sync" means here
+
+There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (`page-technical-analysis.md`). In this project, "sync" means:
+
+```
+ Remote app (source of truth)  ──pixels / clipboard / export──►  Agent cache (SQLite)  ──►  task answer
+          ▲                                                              │
+          └───────────── writes happen ONLY through the UI ◄─────────────┘ (cache is never pushed back)
+```
+
+- **Direction:** one way. Data only flows from the app into the cache.
+- **Who wins:** the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.
+- **Why it exists:** read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.
+- **What it is not:** it is not the nav map. Screens, paths and procedures stay in the per-app JSON from `platform-mapping-papers.md:67`. This page covers **business data** only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).
+
+---
+
+## 1. Happy path
+
+### 1.1 Read task, full entity
+
+```
+ Agent Loop            Cache (SQLite)            Sync Engine                 Remote app (RFB)
+     │  need(Facturas)      │                         │                              │
+     │─────────────────────►│ sync_state = complete?  │                              │
+     │                      │── yes ─────────────────►│ probe()                      │
+     │                      │                         │── navigate + read footer ───►│
+     │                      │                         │◄─ count=812, page1 hash ─────│
+     │                      │                         │ matches sync_state? ── yes   │
+     │◄──── SQL result ─────│◄────── fresh ───────────│                              │
+     │                      │                         │                              │
+     │        (miss / stale / probe mismatch)          │                              │
+     │                      │── no ──────────────────►│ acquire() via ladder:        │
+     │                      │                         │  1. Exportar (4.1) ─────────►│
+     │                      │                         │  2. clipboard (4.4) ────────►│
+     │                      │                         │  3. OCR paging (4.2) ───────►│
+     │                      │                         │ normalise → staging table    │
+     │                      │                         │ re-probe: count unchanged?   │
+     │                      │◄── atomic swap ─────────│ BEGIN; DELETE; INSERT; COMMIT│
+     │◄──── SQL result ─────│                         │                              │
+```
+
+The steps:
+1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
+2. **Cache hit + probe matches:** answer from SQL. Cost: one navigation plus one footer/first-page read, a few seconds.
+3. **Miss or mismatch:** acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
+   - **Export (4.1):** the whole table in one action. Lossless if the file or screen it produces can be read.
+   - **Clipboard (4.4):** select-all + copy → `ServerCutText`. Lossless text, usually tab-separated.
+   - **OCR paging (4.2):** read a page, press `Siguiente`, repeat. Always available, but it is the slowest and least accurate.
+4. **Normalise:** match columns by **header text**, never by position. Parse types (dates, money, ints). Compute the natural key and `row_hash`.
+5. Write everything to a **staging** table. Only a complete read is swapped in, in one transaction. Readers never see half a table.
+6. Record `sync_state` (count, probe hash, header hash, method, time). Log every step to the JSONL log [H].
+
+### 1.2 Read task, one record (targeted path)
+When the task names a single record ("total of factura F-0042"), do **not** sync the whole table. Use the app's own search or filter field instead, read the one row, and upsert it into the cache with `source = targeted`. This takes seconds instead of minutes and usually beats a cold full sync.
+
+| Decision | Chosen | Discarded, and why |
+|---|---|---|
+| Unit of sync | Per entity, lazy (on first need) | Sync everything at task start: burns the 5-min budget on tables the task never touches |
+| Single-record reads | Targeted search → upsert one row | Full sync then SQL: cold cost is 30–120 s for one row |
+| Read methods | Ladder: export → clipboard → OCR | OCR only: slow and lossy. Export only: it may not exist in the unseen app |
+
+---
+
+## 2. Keeping it in sync
+
+Nothing pushes changes to us. Freshness has to be **detected** by looking at the screen. In order of use:
+
+1. **Our own writes → write-through read-back.** After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. If the read-back fails, fall back to marking the whole entity `stale`.
+2. **Probe before trusting the cache.** A probe is the cheapest signal that "something changed":
+   - the grid's **total count** (footer, "Mostrando 1-20 de 812", or the page count × page size), and
+   - a **hash of page 1**, sorted newest first if the grid can sort.
+   Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.
+3. **Expiry time as a backstop.** Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §3.1.
+4. **Optional pre-warm.** If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.
+
+| Strategy | Freshness | Cost per task | Verdict |
+|---|---|---|---|
+| Push / CDC / webhooks | Real time | — | **Impossible.** No API, only pixels |
+| Re-read the full table every task | Perfect | 30–120 s per entity | Discarded: defeats the purpose of a cache |
+| Always read live, no cache | Perfect | High; repeated OCR on multi-step tasks | Kept only as the fallback for write tasks (§3.3) |
+| **Probe + lazy + expiry + write-through** | Good, with one known gap (§3.1) | A few seconds on a hit | **Chosen** |
+
+---
+
+## 3. What if something changes before or during a sync?
+
+Who can change data behind our back:
+- **another operator** on the same desktop: `shared=1`, `operador` and `operador2` (1.5)
+- **the evaluator** setting up test data between tasks
+- **the 15:30 change**: this one changes the **UI or structure**, not just the data
+
+### 3.1 External edit after our snapshot
+| Change | Caught by | Result |
+|---|---|---|
+| Row inserted or deleted | Probe count | Re-acquire |
+| Recent row edited | Probe page-1 hash (newest first) | Re-acquire |
+| **Old row edited, count unchanged** | **Not caught by the probe** | Served stale until the expiry time or a targeted read |
+
+The last row is the **known staleness window**, and we accept it. Mitigations:
+- the expiry time puts an upper bound on it
+- any answer that depends on one specific record goes through the targeted path (§1.2), which always reads live
+- the task summary states when an answer came from the cache and how old that cache was
+
+### 3.2 Edit while we are paging
+Paging is not a snapshot. An insert shifts rows down, which makes a row appear twice. A delete shifts rows up, which makes one get skipped.
+
+- **Remove duplicates** by natural key while staging.
+- **Probe at the start and at the end.** If the count or page-1 hash changed during the read, discard the staging table and retry **once**.
+- If it changes a second time, the table is "hot". Don't swap it in. Mark the entity `stale` and answer through the targeted path or live reading.
+- Export and clipboard are near-atomic (one action), so this risk exists almost entirely on the OCR-paging step. That is another reason the ladder puts them first.
+
+### 3.3 Write tasks never trust the cache
+Before the agent edits or creates anything:
+1. **Read before write:** open the actual record on screen.
+2. **Check expectations:** if the task implies a current state ("change the status of the pending order X"), confirm that state on screen. This is optimistic concurrency done by hand. The screen is the version check.
+3. If it doesn't match, **don't overwrite**. Report the conflict in the summary ("expected pending, found shipped by another user") and end as `fallida` or partial. Never guess.
+4. Save → **read back** → verify the new values are on screen → write-through to the cache (§2.1).
+
+Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" (`solution-design.md:72`). A human `operador2` is not ruled out, and steps 2 and 4 are what protect us from them.
+
+### 3.4 Schema or UI drift (the 15:30 change)
+- Each entity stores a **header hash** (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, **drop that entity's rows and re-acquire them**. No attempt is made to migrate them.
+- Columns are mapped by header text, so a column that only **moves** doesn't break anything.
+- If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in `platform-mapping-papers.md:71-77`. The sync engine marks the entity `stale` and waits for navigation to recover.
+
+### 3.5 Conflict policy, in one line
+**The app always wins.** We do no merging and no last-write-wins on our side, and the cache never overwrites the app.
+
+---
+
+## 4. Error handling
+
+| Failure | How we detect it | Response |
+|---|---|---|
+| OCR misreads a cell | Type parse fails (date, money, int), a totals or count check fails, or OCR disagrees with the clipboard | Re-OCR that region with a tighter crop; if that still fails, store `null` + flag the row, and never invent values |
+| Export goes nowhere readable (download we can't reach, PDF) | Nothing appears on screen or clipboard within the settle time | Mark `export=unusable` for this app in memory and drop to the clipboard step |
+| Clipboard returns nothing or garbage | Empty `ServerCutText`, or no tab/newline structure | Drop to OCR paging and remember that clipboard doesn't work for this grid |
+| Paging gets stuck in a loop | The page fingerprint was already seen, or `Siguiente` has no effect (action verification, design 3.3) | Stop and treat what we have as the end; check it against the probe count |
+| Empty grid vs failed load | Zero rows **and** no "no results" text or footer | Retry the navigation once; if still unclear, mark `stale`, not `complete` with 0 rows |
+| WebSocket drop mid-sync | RFB exception (1.2) | Reconnect, navigate back, resume from page N (stored in staging); after 2 failures, give up and mark `partial` |
+| Partial read (time ran out or errors) | Staging count < probe count | **Never swapped in.** The old snapshot stays and the entity is marked `partial`, so answers say so |
+| Time budget | Sync running longer than about 60 s inside one task | Stop syncing and use the targeted path; the 4:30 guard (design 3.5) still writes a summary |
+| Destructive control near a grid (Eliminar, Anular, Integraciones) | Denylist | The sync engine never clicks it; read-only actions only |
+| Cache file lost (Railway redeploy, corruption) | Missing file or `PRAGMA integrity_check` fails | Delete it and start cold; correctness is unaffected |
+
+Every row above writes a JSONL event (`sync.probe`, `sync.acquire`, `sync.fallback`, `sync.conflict`, …) with the entity, method, counts and duration. These events feed the Challenge 2 spec and debrief.
+
+---
+
+## 5. Database
+
+| Decision | Chosen | Discarded, and why |
+|---|---|---|
+| Data cache store | **SQLite** (Python stdlib `sqlite3`, WAL mode, one file per deployment) | **JSON files:** no queries for filter tasks, and a crash can leave a half-written file. **DuckDB:** an extra dependency, and analytics is overkill for about 1k rows. **Postgres (Railway):** network hop + ops work for a single writer, and no benefit. **Redis:** no ad-hoc filtering or aggregates, and one more service |
+| Schema style | **Generic** rows with a JSON payload | Typed tables per entity (`facturas(numero, fecha, total…)`): impossible, because the grading app is unseen and its columns are unknown until runtime |
+| Nav map store | Stays as JSON per app (`platform-mapping-papers.md:67`) | Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON |
+| Durability | Ephemeral; losing it is accepted | A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy is worse than an empty one |
+
+### Schema
+
+```sql
+CREATE TABLE rows (
+  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
+  entity      TEXT NOT NULL,          -- e.g. 'Facturas', named from the screen
+  natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
+  data_json   TEXT NOT NULL,          -- {"Numero": "F-0042", "Total": 1520.00, ...}, keyed by header text
+  row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
+  acquired_at TEXT NOT NULL,
+  source      TEXT NOT NULL,          -- export | clipboard | ocr | targeted | writeback
+  PRIMARY KEY (app_id, entity, natural_key)
+);
+
+CREATE TABLE sync_state (
+  app_id      TEXT NOT NULL,
+  entity      TEXT NOT NULL,
+  header_hash TEXT NOT NULL,          -- §3.4 schema drift
+  row_count   INTEGER,                -- §2 probe
+  probe_hash  TEXT,                   -- §2 probe (page 1)
+  status      TEXT NOT NULL CHECK (status IN ('complete','partial','stale')),
+  method      TEXT,                   -- which rung of the ladder worked
+  acquired_at TEXT NOT NULL,
+  PRIMARY KEY (app_id, entity)
+);
+```
+
+Queries use `json_extract(data_json, '$.Total')`, which is built into SQLite, so filter and sum tasks become SQL instead of LLM arithmetic. The swap works like this: rows are written into `rows_staging`, then `BEGIN; DELETE FROM rows WHERE app_id=? AND entity=?; INSERT … SELECT FROM rows_staging; UPDATE sync_state …; COMMIT;`
+
+---
+
+## 6. Trade-offs summary
+
+| We chose | Over | We pay | We get |
+|---|---|---|---|
+| A cache + probe | Always reading live | A small staleness window (§3.1) | Lookups under 30 s; repeated reads cost almost nothing |
+| Lazy per-entity sync | Pre-loading everything | The first read of each entity is slow | No budget spent on tables the task doesn't touch |
+| Targeted reads for single records | One sync path for everything | Two code paths | A one-record answer in seconds, and it is always live |
+| A generic JSON-row schema | Typed tables | Weaker typing; `json_extract` in queries | Works on an app we have never seen |
+| App-always-wins, read-before-write | Merge or last-write-wins logic | Some write tasks fail with a reported conflict | Never corrupts data another user changed |
+| An ephemeral SQLite file | A managed database | A cold start after a redeploy | Zero ops, stdlib only, no stale data surviving a deploy |
+
+---
+
+## 7. Known unknowns
+- **4.1:** where `Exportar` output goes (a download, a new screen, a printer dialog), and whether we can read it over RFB.
+- **4.4:** whether select-all + copy works on grids or only on text fields, and what format it produces.
+- Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.
+- Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.
+- Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.
+- Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.
