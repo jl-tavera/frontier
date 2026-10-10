@@ -1,5 +1,7 @@
 # Research — Track 7: Screen perception (pixels → elements → UI tree)
 
+> Appendix H of [solution.md](../solution.md) · Status: adopted as component [E] (solution.md §3.2, §5 Track 7) · Links checked 2026-10-10.
+
 **Decision:** a hybrid, CPU-only pipeline.
 - **OCR** (RapidOCR with a Latin model) gives exact text and boxes.
 - **Classic CV** (OpenCV) gives widget boxes: fields, buttons, grid lines.
@@ -20,7 +22,7 @@ framebuffer (numpy, 1280×800, lossless)
    → used by:  grounding (3.2) · fingerprint (2.3) · app map (2.4) · drift detection (2.6) · read_grid (4.2)
 ```
 
-There's no DOM and no accessibility tree; the transport only gives us pixels (`research-1-transport.md`). Perception **rebuilds the accessibility tree a normal app would expose**. That's exactly the problem Apple's *Screen Recognition* paper solves for mobile apps.
+There's no DOM and no accessibility tree; the transport only gives us pixels ([Appendix C](C-research-1-transport.md)). Perception **rebuilds the accessibility tree a normal app would expose**. That's exactly the problem Apple's *Screen Recognition* paper solves for mobile apps.
 
 **What makes our case easier than the papers:**
 - Pixels are lossless (Raw encoding): no JPEG noise. Identical text renders to **identical pixels**, which makes caching exact.
@@ -193,8 +195,8 @@ Setup: RapidOCR (`rapidocr_onnxruntime`, default models) on `poc/out/before.png`
 - Ferret-UI (You et al., ECCV 2024) — https://arxiv.org/abs/2404.05719
 
 **Exploration graph above the tree**
-- GUI Ripping (Memon et al., WCRE 2003) — https://www.cs.umd.edu/~atif/pubs/MemonWCRE2003-abstract.html
+- GUI Ripping: *Reverse Engineering of Graphical User Interfaces for Testing* (Memon, Banerjee & Nagarajan, WCRE 2003) — https://doi.org/10.1109/WCRE.2003.1287256
 - DroidBot (Li et al., ICSE 2017) — https://github.com/honeynet/droidbot
 - AppAgent (Zhang et al., 2023) — https://arxiv.org/abs/2312.13771
 
-_Five entries (REMAUI, Screen Recognition, Xie 2022, ScreenSpot-Pro, RapidOCR) were checked from memory, not online. Re-check those links before submitting._
+_All links in this section were checked online on 2026-10-10 (the five that had been cited from memory included). The GUI Ripping entry now points at the DOI because the author's page was unreachable._

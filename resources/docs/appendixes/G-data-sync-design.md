@@ -1,13 +1,15 @@
 # Data Sync Design (track 4)
 
-**Scope:** an expansion of `solution-design.md` §4 (4.1–4.4).
+> Appendix G of [solution.md](../solution.md) · Status: adopted as components [S] and [DB] (solution.md §3.2, §4) · Links checked 2026-10-10.
+
+**Scope:** an expansion of [solution.md §5 Track 4](../solution.md) (4.1–4.4).
 **Decision:** a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.
 
 ---
 
 ## 0. What "sync" means here
 
-There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (`page-technical-analysis.md`). In this project, "sync" means:
+There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB ([Appendix B](B-page-technical-analysis.md)). In this project, "sync" means:
 
 ```
  Remote app (source of truth)  ──pixels / clipboard / export──►  Agent cache (SQLite)  ──►  task answer
@@ -18,7 +20,7 @@ There is no API, no change feed and no second database to reconcile with. The on
 - **Direction:** one way. Data only flows from the app into the cache.
 - **Who wins:** the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.
 - **Why it exists:** read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.
-- **What it is not:** it is not the nav map. Screens, paths and procedures stay in the per-app JSON from `platform-mapping-papers.md:67`. This page covers **business data** only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).
+- **What it is not:** it is not the nav map. Screens, paths and procedures stay in the per-app JSON from [Appendix E §4](E-platform-mapping-methodology.md). This page covers **business data** only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).
 
 ---
 
@@ -124,12 +126,12 @@ Before the agent edits or creates anything:
 3. If it doesn't match, **don't overwrite**. Report the conflict in the summary ("expected pending, found shipped by another user") and end as `fallida` or partial. Never guess.
 4. Save → **read back** → verify the new values are on screen → write-through to the cache (§2.1).
 
-Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" (`solution-design.md:72`). A human `operador2` is not ruled out, and steps 2 and 4 are what protect us from them.
+Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" ([solution.md §8](../solution.md)). A human `operador2` is not ruled out, and steps 2 and 4 are what protect us from them.
 
 ### 3.4 Schema or UI drift (the 15:30 change)
 - Each entity stores a **header hash** (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, **drop that entity's rows and re-acquire them**. No attempt is made to migrate them.
 - Columns are mapped by header text, so a column that only **moves** doesn't break anything.
-- If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in `platform-mapping-papers.md:71-77`. The sync engine marks the entity `stale` and waits for navigation to recover.
+- If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in [Appendix E §7](E-platform-mapping-methodology.md). The sync engine marks the entity `stale` and waits for navigation to recover.
 
 ### 3.5 Conflict policy, in one line
 **The app always wins.** We do no merging and no last-write-wins on our side, and the cache never overwrites the app.
@@ -161,7 +163,7 @@ Every row above writes a JSONL event (`sync.probe`, `sync.acquire`, `sync.fallba
 |---|---|---|
 | Data cache store | **SQLite** (Python stdlib `sqlite3`, WAL mode, one file per deployment) | **JSON files:** no queries for filter tasks, and a crash can leave a half-written file. **DuckDB:** an extra dependency, and analytics is overkill for about 1k rows. **Postgres (Railway):** network hop + ops work for a single writer, and no benefit. **Redis:** no ad-hoc filtering or aggregates, and one more service |
 | Schema style | **Generic** rows with a JSON payload | Typed tables per entity (`facturas(numero, fecha, total…)`): impossible, because the grading app is unseen and its columns are unknown until runtime |
-| Nav map store | Stays as JSON per app (`platform-mapping-papers.md:67`) | Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON |
+| Nav map store | Stays as JSON per app ([Appendix E §4](E-platform-mapping-methodology.md)) | Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON |
 | Durability | Ephemeral; losing it is accepted | A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy is worse than an empty one |
 
 ### Schema

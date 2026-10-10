@@ -1,5 +1,7 @@
 # Challenge 1 — The agent that operates what has no API
 
+> Appendix A of [solution.md](../solution.md) · Status: the brief as received, verbatim · Links checked 2026-10-10.
+
 An agent that learns to operate systems with no API, through the screen, and executes natural-language tasks in apps it has never seen.
 
 ## Brief

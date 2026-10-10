@@ -1,5 +1,7 @@
 # Solution Design — Frontier Challenge 1
 
+> Superseded on 2026-10-10 by [solution.md](../../solution.md), which absorbed every section of this document. Kept for history; not rendered in solution.html.
+
 ## Context
 What we have: `challenge.md` (the brief and rubric), `page-technical-analysis.md` (noVNC → websockify → RFB → SIGECOM shown only as pixels), and `poc/rfb_poc.py`, which already speaks raw RFB with no browser (VNC auth, Raw+CopyRect frames, click/type/key, quiet-time `settle`, 4 tool functions: screenshot/click/type/key).
 

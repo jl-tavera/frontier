@@ -1,10 +1,10 @@
 # Frontier Challenge 1 — Solution
 
-**The agent that operates what has no API.** This is the one document: sections 0–11 are the design, and the appendix table at the end points at the brief, the recon and every research doc (kept unchanged in `resources/docs/`). `solution.html` renders this document, the architecture diagram **and all appendixes in full**; `uv run resources/docs/build_html.py` regenerates it.
+**The agent that operates what has no API.** This is the one document: sections 0–11 are the design, and the appendix table at the end points at the brief, the recon and every research doc, kept in full in `resources/docs/appendixes/`. `solution.html` renders this document, the architecture diagram **and all appendixes in full**; `uv run resources/docs/build_html.py` regenerates it.
 
 ## 0. One-page summary
 
-**Problem.** A 15-year-old management system with no API, no docs and no vendor. The evaluator sends a natural-language task plus a VNC desktop (URL + password) and expects a result within 5 minutes. Grading runs on an app **we have never seen**, on a clean desktop, and the app **changes at 15:30**.
+**Problem.** A 15-year-old management system with no API, no docs and no vendor. The evaluator sends a natural-language task plus a VNC desktop (URL + password) and expects a result within 5 minutes. Evaluation runs on an app **we have never seen**, on a clean desktop, and the app **changes at 15:30**.
 
 **Approach.** Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop, turns pixels into a UI tree with CPU-only OCR + classic CV, and lets Claude pick **named elements**, never coordinates. Everything the agent learns about an app (screens, nav graph, procedures, data) is a per-app memory built **at run time**, so the unseen app is handled exactly like SIGECOM. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.
 
@@ -23,13 +23,13 @@
 
 ## 1. Problem and constraints
 
-**Inputs we have.** `challenge.md` (brief and rubric, Appendix A), `page-technical-analysis.md` (noVNC → websockify → RFB → SIGECOM shown only as pixels, Appendix B), and `poc/rfb_poc.py`, which already speaks raw RFB with no browser: VNC auth, Raw+CopyRect frames, click/type/key, quiet-time `settle`, and 4 tool functions (screenshot/click/type/key). See Appendix I.
+**Inputs we have.** The brief ([Appendix A](appendixes/A-challenge.md)), the recon of the target ([Appendix B](appendixes/B-page-technical-analysis.md): noVNC → websockify → RFB → SIGECOM shown only as pixels), and `poc/rfb_poc.py`, which already speaks raw RFB with no browser: VNC auth, Raw+CopyRect frames, click/type/key, quiet-time `settle`, and 4 tool functions (screenshot/click/type/key). See Appendix I.
 
 **The entrypoint contract** (Appendix A): `Authorization: Bearer <token>` on every call; `GET /health` → 200; `POST /tasks` receives the task and the desktop (URL + password) and must answer `{"task_id": …}` in **under 2 s**; `GET /tasks/{task_id}` returns `en_curso` / `terminada` / `fallida` plus a summary; **5 minutes per task**.
 
-**The constraint that shapes everything:** grading runs on an app we have never seen, on a clean desktop, with 5 minutes per task, and the app changes at 15:30. So "mapping" can't be a hand-built coordinate map of SIGECOM. It has to be something the agent learns while it runs. SIGECOM is only for development.
+**The constraint that shapes everything:** evaluation runs on an app we have never seen, on a clean desktop, with 5 minutes per task, and the app changes at 15:30. So "mapping" can't be a hand-built coordinate map of SIGECOM. It has to be something the agent learns while it runs. SIGECOM is only for development.
 
-**Rubric weights** (Appendix A): systems design 30 % (design doc + diagram, 12:00), execution 40 % (hidden eval set, incident response, repo, Challenge 2 spec, 20:00), demo 15 %, technical depth 15 %.
+**Deliverables and timeline** (Appendix A): design doc + diagram at 12:00, the change in the system at 15:30, deployed entrypoint, repo and 2-minute video at 20:00, individual debrief 20:00–21:00, demo 21:15–22:15.
 
 ## 2. What we operate against
 
@@ -134,7 +134,7 @@ curl -s -X POST https://<service>.up.railway.app/tasks \
 curl -s https://<service>.up.railway.app/tasks/<task_id> -H "Authorization: Bearer $TEAM_TOKEN"
 ```
 
-## 4. Key decisions (the rubric wants the discarded alternative stated)
+## 4. Key decisions and the alternatives we discarded
 
 | Decision | Chosen | Discarded, and why |
 |---|---|---|
@@ -149,7 +149,7 @@ curl -s https://<service>.up.railway.app/tasks/<task_id> -H "Authorization: Bear
 | Settle | Quiet-time + expected-change check | Fixed sleeps: slow and flaky |
 | Data reads | Native export / clipboard first, OCR paging as fallback; disposable SQLite cache with a probe (Appendix G) | OCR every page: slow and error-prone. Always-live reads: too slow for lookups |
 | Concurrency | One RFB session per task, `shared=1` | Exclusive session: would kick the evaluator/human viewer |
-| Change handling | Detect drift with fingerprint + action-effect checks → 4-rung localized repair, written back (§6) | Full re-learn: too slow inside 5 min. Offline-only repair: fails at the moment we are graded |
+| Change handling | Detect drift with fingerprint + action-effect checks → 4-rung localized repair, written back (§6) | Full re-learn: too slow inside 5 min. Offline-only repair: fails exactly when the change hits |
 | Tool exposure | Plain Python functions called by the loop | MCP: an extra process and hop; nothing outside the service needs the tools |
 | Agent loop | Plan-then-execute with Claude, batched actions, verify per step; Jev as an optional fast verifier/picker (Appendix F) | Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain |
 | Storage | One JSON per app for the map; one SQLite file for data | Neo4j + vector DB: two services for a 10–20 node graph. Postgres/Redis: ops work with no benefit today (§10 for later) |
@@ -158,7 +158,7 @@ Per-track decision tables with more alternatives: transport Appendix C §2–3, 
 
 ## 5. Work breakdown
 
-The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools + loop, 4. data sync. Each one is split into units that can be owned, built and tested on their own. Tracks 5–7 were added because the score needs them.
+The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools + loop, 4. data sync. Each one is split into units that can be owned, built and tested on their own. Tracks 5–7 were added because nothing works end to end without them.
 
 ### Track 1 — WebSocket / RFB transport (owner: 1 person, mostly done in the POC; Appendix C)
 
@@ -171,7 +171,7 @@ The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools +
 | 1.5 | Shared-session safety (`shared=1`, `operador`/`operador2` collisions) | 2 clients at once don't break each other's tasks | shared=1 is set |
 | 1.6 | Clipboard channel (`ClientCutText` for fast text in, `ServerCutText` for text out) | paste a 200-char string; read copied text back | receive works; send missing |
 
-### Track 2 — Platform mapping, done generically (owner: 1–2 people, the core of the score; Appendixes D and E)
+### Track 2 — Platform mapping, done generically (owner: 1–2 people, the core of the system; Appendixes D and E)
 
 | # | Sub-problem | Done when |
 |---|---|---|
@@ -203,13 +203,13 @@ The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools +
 | 4.3 | **Read cache**: snapshot of entities (Clientes, Facturas, Pedidos) so read-only tasks are answered without a slow UI walk, plus a freshness rule (invalidate after any write) | a lookup task in under 30s |
 | 4.4 | **Clipboard as a data path**: select-all + copy in a field or grid → `ServerCutText`, as a lossless alternative to OCR | proven to work, or ruled out |
 
-### Track 5 — Entrypoint service (needed for the score, not in the list of 4)
+### Track 5 — Entrypoint service (not in the list of 4)
 
-`GET /health`, `POST /tasks` (returns in under 2s, runs the work in the background), `GET /tasks/{id}` (`en_curso` / `terminada` / `fallida` + summary in the README's format), Bearer auth, deploy (Railway, §3.4). Small, but **nothing gets scored without it**. Build it first as a stub.
+`GET /health`, `POST /tasks` (returns in under 2s, runs the work in the background), `GET /tasks/{id}` (`en_curso` / `terminada` / `fallida` + summary in the README's format), Bearer auth, deploy (Railway, §3.4). Small, but **without it the evaluator cannot reach the agent**. Build it first as a stub.
 
 ### Track 6 — Deliverables
 
-Design doc + diagram due **12:00** (30% of the grade; this document and `solution.html`), README, a 2-minute video, and the Challenge 2 spec + log, where each behavior cites a log line, so **structured logging from the first hour**.
+Design doc + diagram due **12:00** (this document and `solution.html`), README, a 2-minute video, and the Challenge 2 spec + log, where each behavior cites a log line, so **structured logging from the first hour**.
 
 ### Track 7 — Screen perception (owner: 1 person; Appendix H)
 
@@ -307,16 +307,19 @@ From the agent loop (Appendix F §4): Jev access (early access key), out-of-dist
 
 ## Appendixes
 
-The source documents, unchanged, in `resources/docs/`. `solution.html` includes all of them in full after this section.
+The source documents live in `resources/docs/appendixes/`, letter-prefixed in this order. Each one opens with a status line saying how the final design uses it. `solution.html` includes all of them in full after this section.
 
 | Appendix | Document | Source file | Covers |
 |---|---|---|---|
-| A | Challenge brief | [challenge.md](challenge.md) | brief, timeline, deliverables, entrypoint contract, rubric |
-| B | Technical diagnosis of the target | [page-technical-analysis.md](page-technical-analysis.md) | hosting, noVNC, RFB transport, SIGECOM screens and menus |
-| C | Track 1 research: transport | [research-1-transport.md](research-1-transport.md) | where the RFB client runs, language and library, measurements |
-| D | Track 2 research: platform mapping papers | [platform-mapping-papers.md](platform-mapping-papers.md) | 12 GUI-agent papers compared, what to steal |
-| E | Track 2 methodology: initial map + remap | [platform-mapping-methodology.md](platform-mapping-methodology.md) | fingerprint, map schema, pre-warm, planning, repair ladder, budget, tests |
-| F | Track 3 research: agent loop | [research-3-agent-loop.md](research-3-agent-loop.md) | time budget, loop options L1–L7, Jev deep dive |
-| G | Track 4 design: data sync | [data-sync-design.md](data-sync-design.md) | cache, freshness probe, conflicts, errors, SQLite schema |
-| H | Track 7 research: perception | [research-7-perception.md](research-7-perception.md) | OCR/CV options, UI tree, pipeline, measured timings |
+| A | Challenge brief | [A-challenge.md](appendixes/A-challenge.md) | brief, timeline, deliverables, entrypoint contract, evaluation rules |
+| B | Technical diagnosis of the target | [B-page-technical-analysis.md](appendixes/B-page-technical-analysis.md) | hosting, noVNC, RFB transport, SIGECOM screens and menus |
+| C | Track 1 research: transport | [C-research-1-transport.md](appendixes/C-research-1-transport.md) | where the RFB client runs, language and library, measurements |
+| D | Track 2 research: platform mapping papers | [D-platform-mapping-papers.md](appendixes/D-platform-mapping-papers.md) | 12 GUI-agent papers compared, what to steal |
+| E | Track 2 methodology: initial map + remap | [E-platform-mapping-methodology.md](appendixes/E-platform-mapping-methodology.md) | fingerprint, map schema, pre-warm, planning, repair ladder, budget, tests |
+| F | Track 3 research: agent loop | [F-research-3-agent-loop.md](appendixes/F-research-3-agent-loop.md) | time budget, loop options L1–L7, Jev deep dive |
+| G | Track 4 design: data sync | [G-data-sync-design.md](appendixes/G-data-sync-design.md) | cache, freshness probe, conflicts, errors, SQLite schema |
+| H | Track 7 research: perception | [H-research-7-perception.md](appendixes/H-research-7-perception.md) | OCR/CV options, UI tree, pipeline, measured timings |
 | I | POC reference | [../../poc/rfb_poc.py](../../poc/rfb_poc.py) | raw RFB over WSS: VNC auth, Raw+CopyRect, settle, click/type/key, clipboard receive, MCP stub |
+| Archive | Original design breakdown | [archive/solution-design.md](appendixes/archive/solution-design.md) | superseded by §1–§9 of this document; kept for history, not rendered |
+
+Papers and saved articles the research cites are in `resources/docs/references/` (`papers/` for the 12 GUI-agent PDFs, `jev/` for the Jev sources).

@@ -1,8 +1,10 @@
 # Platform Mapping Methodology — initial map + remap, as a graph (Track 2)
 
-Distilled from the 12 papers in `platform-mapping-papers.md` (PDFs in `references/papers/`) and filtered through our constraints: an **unseen desktop app**, **pixels only** over VNC/RFB, **5 min per task**, and a **change at 15:30**. Covers sub-problems 2.2–2.6 of `solution-design.md`; it is the spec for boxes [E] fingerprint and [F] App Memory, and it feeds [C] the agent loop.
+> Appendix E of [solution.md](../solution.md) · Status: adopted as the track 2 spec (solution.md §5 Track 2, §6) · Links checked 2026-10-10.
 
-Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`, `click/type/key`; title-bar text for app identity (`page-technical-analysis.md` §5); perception `elements()` from track 7.
+Distilled from the 12 papers in [Appendix D](D-platform-mapping-papers.md) (PDFs in `../references/papers/`) and filtered through our constraints: an **unseen desktop app**, **pixels only** over VNC/RFB, **5 min per task**, and a **change at 15:30**. Covers sub-problems 2.2–2.6 of [solution.md §5 Track 2](../solution.md); it is the spec for boxes [E] fingerprint and [F] App Memory, and it feeds [C] the agent loop.
+
+Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`, `click/type/key`; title-bar text for app identity ([Appendix B](B-page-technical-analysis.md) §5); perception `elements()` from track 7.
 
 ---
 

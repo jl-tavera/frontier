@@ -1,5 +1,7 @@
 # Research — Track 3: A fast agent loop
 
+> Appendix F of [solution.md](../solution.md) · Status: adopted as component [C] (solution.md §3.2); Jev stays a gated 1 h spike · Links checked 2026-10-10.
+
 **Decision:** Claude runs the loop **in-process** with plain Python tool functions, with no MCP. We build it in three steps, and each one has to earn its place on the 3.6 harness:
 1. A tool-use loop with **batched actions** (L1+L2). This is the first end-to-end path.
 2. **Plan-then-execute** with replan when a check fails (L3). This cuts the number of LLM calls.
@@ -39,7 +41,7 @@ Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
 | **L3. Plan-then-execute** | Claude writes a step list once (`navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid`). A deterministic executor runs it with per-step checks, and Claude is called again only when a check fails | <ul><li>The fewest LLM calls.</li><li>The plan doubles as the summary skeleton.</li><li>Pairs with App Memory shortcuts.</li></ul> | <ul><li>On an unseen app the first plan is a guess.</li><li>It only works if replanning is cheap and checks are strict.</li></ul> | **Adopt** after L1+L2 work |
 | **L4. System 1 / System 2 with Jev** | Claude plans (as in L3). For each step, Jev answers typed questions over the text state: which element is the target, did it work, is the task done, is there drift. Below the confidence threshold, escalate to Claude | <ul><li>~100 ms per decision.</li><li>Calibrated probabilities give a principled escalation gate.</li><li>Cheap: $0.042/M input, output free.</li><li>Text-only fits our OCR-first perception.</li></ul> | <ul><li>Early access with a waitlist.</li><li>No image input.</li><li>Can't write values.</li><li>Unreliable at counting, arithmetic and dates.</li><li>32k context.</li><li>Unknown out-of-distribution behaviour on an unseen app.</li><li>Benchmarks are vendor-run.</li><li>A second vendor dependency.</li></ul> | **Spike** (1 h), gated by the harness |
 | **L5. Code-as-action** | Each turn Claude writes a short Python snippet calling the tool functions (loops, ifs) | <ul><li>Flexible batching.</li><li>Handles repetition (pagination) in one turn.</li></ul> | <ul><li>Needs a sandbox for model-written code.</li><li>Failures happen inside opaque code and are harder to verify and log.</li></ul> | Discarded: L2+L3 give most of the gain without running generated code |
-| **L6. Claude computer-use (raw x,y)** | A screenshot every step; the model outputs pixel coordinates | <ul><li>Works out of the box.</li></ul> | <ul><li>An image every step is slow.</li><li>Coordinate misses.</li><li>Breaks when layout shifts.</li></ul> | Discarded (Clicking row in `solution-design.md`) |
+| **L6. Claude computer-use (raw x,y)** | A screenshot every step; the model outputs pixel coordinates | <ul><li>Works out of the box.</li></ul> | <ul><li>An image every step is slow.</li><li>Coordinate misses.</li><li>Breaks when layout shifts.</li></ul> | Discarded (Clicking row in [solution.md §4](../solution.md)) |
 | **L7. Agent frameworks** (LangGraph, OpenAI/Claude Agent SDKs) | Orchestration layer over the same calls | <ul><li>Ready-made state and retries.</li></ul> | <ul><li>No latency gain.</li><li>More deps and abstraction to explain in the debrief.</li></ul> | Discarded: the loop is about 100 LOC |
 | **MCP** (as tool transport) | Tools served over stdio/HTTP to the loop | <ul><li>Claude Code could drive the tools.</li></ul> | <ul><li>Extra process and hop on every action.</li><li>Nothing outside the service needs it.</li></ul> | Discarded |
 
@@ -47,7 +49,7 @@ Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
 - **Text over images.** Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.
 - **Prompt caching** on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.
 - **Model tiering.** Sonnet-class for routine steps; Opus-class only for recovery and replan. Add this only if measurements show we need it.
-- **App Memory shortcuts.** `navigate_to(screen)` replaces about 5 menu clicks with one step (see `platform-mapping-papers.md`).
+- **App Memory shortcuts.** `navigate_to(screen)` replaces about 5 menu clicks with one step (see [Appendix D](D-platform-mapping-papers.md) and [Appendix E §6](E-platform-mapping-methodology.md)).
 - **Settle.** Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.
 
 ## 4. Jev deep dive
@@ -96,7 +98,7 @@ All from the JSONL log [H], for every option:
 Run the baseline before 15:30 and again after.
 
 ## Sources
-- TypeSafe AI, "Introducing System One Models & Jev": https://typesafe.ai/blog/introducing-system-one-models-and-jev (local: `references/jev/typesafe-blog-introducing-jev.html`)
-- InfoQ, "TypeSafe AI Releases Jev" (Oct 2026): https://www.infoq.com/news/2026/10/typesafe-ai-jev-released/ (local: `references/jev/infoq-typesafe-jev-released.html`)
-- Flavio Copes, "A deep dive into Jev": https://flaviocopes.com/jev/ (local: `references/jev/flaviocopes-jev.html`)
-- "Jev in the Wild" (arXiv 2609.30216): https://arxiv.org/pdf/2609.30216 (local: `references/jev/2609.30216-jev-in-the-wild.pdf`)
+- TypeSafe AI, "Introducing System One Models & Jev": https://typesafe.ai/blog/introducing-system-one-models-and-jev (local: [../references/jev/typesafe-blog-introducing-jev.html](../references/jev/typesafe-blog-introducing-jev.html))
+- InfoQ, "TypeSafe AI Releases Jev" (Oct 2026): https://www.infoq.com/news/2026/10/typesafe-ai-jev-released/ (local: [../references/jev/infoq-typesafe-jev-released.html](../references/jev/infoq-typesafe-jev-released.html))
+- Flavio Copes, "A deep dive into Jev": https://flaviocopes.com/jev/ (local: [../references/jev/flaviocopes-jev.html](../references/jev/flaviocopes-jev.html))
+- "Jev in the Wild" (arXiv 2609.30216): https://arxiv.org/pdf/2609.30216 (local: [../references/jev/2609.30216-jev-in-the-wild.pdf](../references/jev/2609.30216-jev-in-the-wild.pdf))

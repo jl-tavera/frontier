@@ -1,5 +1,7 @@
 # Research — Track 1: Screen-access transport (WebSocket / RFB)
 
+> Appendix C of [solution.md](../solution.md) · Status: adopted as component [G] (solution.md §3.2, §4) · Links checked 2026-10-10.
+
 **Decision:** our own Python process speaks **raw RFB (VNC) over WSS** to the target's `/websockify` endpoint, using the `websockets` library. No browser is involved. Implementation: `poc/rfb_poc.py`.
 
 > **Terminology.** *websockify* is the **server-side** proxy the target already runs: it accepts a WebSocket and forwards the bytes over TCP to the VNC server. We didn't choose it and can't change it. On our side the client library is **`websockets`** (Python). People mix the two up, so expect the question in the debrief.
@@ -7,7 +9,7 @@
 ---
 
 ## 1. What is actually on the wire
-Source: `page-technical-analysis.md`.
+Source: [Appendix B](B-page-technical-analysis.md).
 
 ```
 our process ──WSS /websockify──► websockify ──TCP──► VNC server (Docker 86a79607eef2:0) ──► SIGECOM
@@ -90,7 +92,7 @@ The decision therefore has two layers:
 ## Sources
 - websockify direction; vncdotool has no WebSocket support: https://groups.google.com/g/novnc/c/r4UrX1ryOro
 - asyncvnc: https://asyncvnc.readthedocs.io/ · asyncvnc2: https://asyncvnc2.readthedocs.io
-- websocat (TCP↔WS bridge): https://sourceforge.net/mirror/websocat/
+- websocat (TCP↔WS bridge): https://github.com/vi/websocat
 
 ### Reading the numbers
 - Connecting costs **about 4 s, up to 6 s** per task, which is 1–2% of the 5-minute budget. Open the connection once per task and reuse it; never reconnect per action.

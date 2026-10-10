@@ -1,6 +1,6 @@
 # frontier — Challenge 1: the agent that operates what has no API
 
-Hackathon project. Brief and rubric: `resources/docs/challenge.md`. Architecture: `resources/docs/solution-design.md`.
+Hackathon project. Brief and rubric: `resources/docs/challenge.md`. Design doc: `resources/docs/solution.md`, rendered to `resources/docs/solution.html` and published at https://jl-tavera.github.io/frontier/resources/docs/solution.html (that path must not change).
 
 ## Run
 
@@ -9,6 +9,7 @@ Hackathon project. Brief and rubric: `resources/docs/challenge.md`. Architecture
 ## Docs
 
 - "A doc" means a markdown file at `resources/docs/<name>.md`. Not a Claude Doc, not an artifact.
+- Appendixes (brief, recon, research) live in `resources/docs/appendixes/`, letter-prefixed in appendix order; `appendixes/archive/` keeps superseded docs. `uv run resources/docs/build_html.py` regenerates `solution.html` from `solution.md` plus the appendixes; commit the HTML.
 - The glossary and ADRs the skills write live at `docs/glossary.md` and `docs/adr/`.
 
 ## Agent skills

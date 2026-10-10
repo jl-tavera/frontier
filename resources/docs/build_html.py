@@ -15,21 +15,24 @@ import markdown
 DOCS = Path(__file__).resolve().parent
 POC = DOCS.parent.parent / "poc" / "rfb_poc.py"
 
-# letter -> (source file, short title used in the appendix heading)
+# letter -> (source file under resources/docs/, short title used in the appendix heading)
 APPENDIXES = {
-    "a": ("challenge.md", "Challenge brief"),
-    "b": ("page-technical-analysis.md", "Technical diagnosis of the target"),
-    "c": ("research-1-transport.md", "Track 1 research: transport"),
-    "d": ("platform-mapping-papers.md", "Track 2 research: platform mapping papers"),
-    "e": ("platform-mapping-methodology.md", "Track 2 methodology: initial map + remap"),
-    "f": ("research-3-agent-loop.md", "Track 3 research: agent loop"),
-    "g": ("data-sync-design.md", "Track 4 design: data sync"),
-    "h": ("research-7-perception.md", "Track 7 research: perception"),
+    "a": ("appendixes/A-challenge.md", "Challenge brief"),
+    "b": ("appendixes/B-page-technical-analysis.md", "Technical diagnosis of the target"),
+    "c": ("appendixes/C-research-1-transport.md", "Track 1 research: transport"),
+    "d": ("appendixes/D-platform-mapping-papers.md", "Track 2 research: platform mapping papers"),
+    "e": ("appendixes/E-platform-mapping-methodology.md", "Track 2 methodology: initial map + remap"),
+    "f": ("appendixes/F-research-3-agent-loop.md", "Track 3 research: agent loop"),
+    "g": ("appendixes/G-data-sync-design.md", "Track 4 design: data sync"),
+    "h": ("appendixes/H-research-7-perception.md", "Track 7 research: perception"),
 }
-FILE_TO_ANCHOR = {src: f"#appendix-{k}" for k, (src, _) in APPENDIXES.items()}
-FILE_TO_ANCHOR["solution-design.md"] = "#frontier-challenge-1-solution"  # absorbed into the body
-FILE_TO_ANCHOR["poc/rfb_poc.py"] = "#appendix-i"
-FILE_TO_ANCHOR["../../poc/rfb_poc.py"] = "#appendix-i"
+TOP = "#frontier-challenge-1-solution"
+# href targets as written in solution.md (appendixes/X.md) and inside the appendixes (X.md, ../solution.md) -> anchors
+FILE_TO_ANCHOR = {}
+for k, (src, _) in APPENDIXES.items():
+    FILE_TO_ANCHOR[src] = FILE_TO_ANCHOR[src.split("/")[1]] = f"#appendix-{k}"
+FILE_TO_ANCHOR.update({"../solution.md": TOP, "solution-design.md": TOP,
+                       "poc/rfb_poc.py": "#appendix-i", "../../poc/rfb_poc.py": "#appendix-i"})
 
 LINK_RE = re.compile(r"`((?:poc/)?[\w\-]+\.(?:md|py))(:[\d\-]+)?`")
 
@@ -117,6 +120,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-app
 nav{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
 nav .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav ul{list-style:none;margin:0;padding-left:0}nav ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
 nav li{margin:2px 0}nav a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav a:hover{background:var(--box);color:var(--accent)}
+nav details{margin-left:6px}nav summary{cursor:pointer;color:var(--muted);font-size:12px;padding:1px 6px}nav summary:hover{color:var(--accent)}
 main{padding:24px 32px 80px;max-width:1080px;min-width:0}
 h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
 h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
@@ -147,10 +151,14 @@ def main():
     body = md.convert("\n\n".join(parts))
     body = body.replace('<div id="arch"></div>', SVG)
     body = body.replace("<table>", '<div class="tw"><table>').replace("</table>", "</table></div>")
-    for src, anchor in FILE_TO_ANCHOR.items():  # the appendix table in solution.md links to files
+    for src, anchor in FILE_TO_ANCHOR.items():  # file links in solution.md and the appendixes -> in-page anchors
         body = body.replace(f'href="{src}"', f'href="{anchor}"')
+    body = body.replace('href="../references/', 'href="references/')  # the HTML lives one level above the appendixes
+    # sidebar: collapse each appendix's sub-sections (one nested level, depth is capped at 3)
+    toc = re.sub(r'(<a href="#appendix-[a-i]">.*?</a>)\s*<ul>(.*?)</ul>\s*</li>',
+                 r"\1<details><summary>sections</summary><ul>\2</ul></details></li>", md.toc, flags=re.S)
     out = DOCS / "solution.html"
-    out.write_text(TEMPLATE.replace("%(toc)s", md.toc).replace("%(body)s", body), encoding="utf-8")
+    out.write_text(TEMPLATE.replace("%(toc)s", toc).replace("%(body)s", body), encoding="utf-8")
     print(f"wrote {out} ({out.stat().st_size // 1024} KB)")
 
 

@@ -1,5 +1,7 @@
 # Technical Diagnosis — Frontier / SIGECOM Legacy System
 
+> Appendix B of [solution.md](../solution.md) · Status: read-only recon of the development target, facts only; digested in solution.md §2 · Links checked 2026-10-10.
+
 **Target:** `https://frontier-r1-tm77-production.up.railway.app`
 **Date of analysis:** 2026-10-10
 **Method:** read-only recon — HTTP requests (curl) + noVNC session inspection (agent-browser). No writes, no changes to the system.

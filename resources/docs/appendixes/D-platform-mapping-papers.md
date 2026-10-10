@@ -1,6 +1,8 @@
 # Platform Mapping as a Graph — Paper Comparison (Track 2)
 
-Research for track 2 of `solution-design.md` (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).
+> Appendix D of [solution.md](../solution.md) · Status: research input for track 2, refined by [Appendix E](E-platform-mapping-methodology.md); where they differ, E wins (4-rung repair ladder instead of 5, ≤45 s pre-warm instead of ≤60 s) · Links checked 2026-10-10.
+
+Research for track 2 of [solution.md §5](../solution.md) (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).
 Question: how do published GUI agents build an **initial map** of an app as a graph (screens = nodes, actions = edges), and how do they **remap** when the app changes?
 
 Our constraints, which every "steal" below is filtered through:
@@ -10,7 +12,7 @@ Our constraints, which every "steal" below is filtered through:
 - Each task has **5 min**.
 - The app changes at 15:30.
 
-PDFs are in `resources/docs/references/papers/`. Every fact here comes from reading the paper; "n/s" means the paper does not say.
+PDFs are in `../references/papers/`. Every fact here comes from reading the paper; "n/s" means the paper does not say.
 
 ---
 
