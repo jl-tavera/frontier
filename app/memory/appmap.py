@@ -1,17 +1,18 @@
 """One learned map per app epoch, `memory/<app_id>/<version>/map.json` (Appendix E §4.2), plus its PNGs and crops."""
 import copy
+import fnmatch
 import json
 import re
 import time
 import unicodedata
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal
 
 import numpy as np
 from PIL import Image
 
-from app.contracts import Element
+from app.contracts import Element, Target
 from app.memory.fingerprint import Fingerprint, fingerprint, jaccard, split_title
 
 DENYLIST = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Enviar", "Configuración"]
@@ -56,6 +57,8 @@ class AppMap:
         self.procedures: list[dict] = d.get("procedures", [])
         self.unexplored: dict[str, list] = d.get("unexplored", {})
         self.denylist: list[str] = d.get("denylist", list(DENYLIST))
+        # the last confirmed sight of each known node this task, refreshed at write-back
+        self.seen: dict[str, tuple[Fingerprint, list[Element], np.ndarray | None]] = {}
 
     @property
     def dir(self) -> Path:
@@ -181,3 +184,53 @@ class AppMap:
                 crop = {"bbox": [x0, y0, x1, y1], "file": f"{node_id}/{e.id}.png"}
                 Image.fromarray(rgb[y0:y1 + 1, x0:x1 + 1]).save(self.dir / crop["file"])
                 a["crops"].append(crop)
+
+    def denied(self, label: str) -> bool:
+        return any(fnmatch.fnmatchcase(_norm(label), pat) for pat in self.denylist)
+
+    def locate(self, elements: list[Element], w: int, h: int, fb: np.ndarray | None = None) -> str | None:
+        """The node a confirmed screen is: a known one (kept for write-back) or a new one created now.
+        None when it is not confirmed: ambiguous, an overlay or a blocker."""
+        fp = fingerprint(elements, w, h)
+        match = self.identify(fp)
+        if match.kind == "same":
+            self.seen[match.node_id] = (fp, elements, fb)
+            return match.node_id
+        return self.upsert_node(fp, elements, fb) if match.kind == "new" else None
+
+    def upsert_edge(self, src: str, kind: str, target: Target, xy, to: str | None, params: dict | None = None) -> str:
+        """Record this version's look of the action's target with the xy that worked. `to` None is a menu item seen
+        but never clicked; a landing counts ok, clears `inherited` and adds to `outcomes`."""
+        params = params or {}
+        eid = f"{src}|{kind}|" + " › ".join([*filter(None, [params.get("menu")]), target.label])
+        e = self.edges.setdefault(eid, {"from": src, "action": {"kind": kind, "target": {"appearances": []}, "params": params},
+                                        "to": None, "effect": None, "ok": 0, "fail": 0, "last_ok": None, "outcomes": {}})
+        a = {"version": self.version, "label": target.label, "role": target.role, "cell": list(target.cell), "xy": list(xy)}
+        looks = e["action"]["target"]["appearances"]
+        e["action"]["target"]["appearances"] = [a] + [x for x in looks if x["version"] != self.version]
+        if to is not None:
+            e.update(to=to, inherited=False, ok=e["ok"] + 1, last_ok=time.time())
+            e["outcomes"][to] = e["outcomes"].get(to, 0) + 1
+        return eid
+
+    def learn(self, src: str, kind: str, target: Target, xy, elements: list[Element], w: int, h: int,
+              fb: np.ndarray | None = None, params: dict | None = None) -> str | None:
+        """After an action: upsert its edge only once the landing fingerprints as confirmed. Returns the landing node."""
+        to = self.locate(elements, w, h, fb)
+        if to is not None:
+            self.upsert_edge(src, kind, target, xy, to, params)
+        return to
+
+    def write_back(self, describe: Callable[[list[dict]], dict[str, str]] | None = None, procedure: dict | None = None) -> None:
+        """At task end: refresh this version's appearance (snapshot, ref_png, crops) of every node confirmed this task,
+        describe the undescribed nodes in one batched call, keep the procedure (one per task text) and save."""
+        for node_id, (fp, elements, fb) in self.seen.items():
+            self.upsert_node(fp, elements, fb, node_id)
+        self.seen.clear()
+        if describe and (todo := [n for n in self.nodes.values() if not n["description"]]):
+            for node_id, text in describe(todo).items():
+                self.nodes[node_id]["description"] = text
+        if procedure:
+            # lazy: keyed by task_text; key by (op, entity) once F's parsed queries name them
+            self.procedures = [p for p in self.procedures if p["task_text"] != procedure["task_text"]] + [procedure]
+        self.save()
