@@ -1,0 +1,7 @@
+{"ts": 1760100000.0, "event": "task.start", "task_id": "t1", "args": {"task": "¿Cuántas facturas tiene ACME?"}}
+{"ts": 1760100000.4, "event": "sync.probe", "app_id": "sigecom", "scope": "changelog", "entity": "facturas", "outcome": "miss"}
+{"ts": 1760100001.2, "event": "step", "tool": "click", "args": ["Facturas"], "screen_id": "facturas", "diff": [10, 40, 300, 200], "outcome": "ok", "signal": null, "detail": "hit", "cost_ms": 120.0}
+{"ts": 1760100002.0, "event": "drift", "signal": "S1", "rung": 1, "via": "fuzzy", "confidence": 0.91, "before": "Facturas", "after": "Facturación", "cost_ms": 340.0}
+{"ts": 1760100002.1, "event": "step", "tool": "click", "args": ["Facturas"], "screen_id": "facturas", "diff": null, "outcome": "ok", "signal": "S1", "detail": "rung 1 via fuzzy", "cost_ms": 410.0}
+{"ts": 1760100003.0, "event": "step", "tool": "click", "args": ["Buscar"], "screen_id": "facturas", "diff": [20, 60, 120, 80], "outcome": "ok", "signal": null, "detail": "repaired", "cost_ms": 650.0}
+{"ts": 1760100004.0, "event": "task.end", "task_id": "t1", "outcome": "terminada", "args": {"summary": "respuesta: 12"}}
