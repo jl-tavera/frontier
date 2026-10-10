@@ -145,7 +145,7 @@ def main():
     for src, anchor in FILE_TO_ANCHOR.items():  # the appendix table in solution.md links to files
         body = body.replace(f'href="{src}"', f'href="{anchor}"')
     out = DOCS / "solution.html"
-    out.write_text(TEMPLATE % {"toc": md.toc, "body": body}, encoding="utf-8")
+    out.write_text(TEMPLATE.replace("%(toc)s", md.toc).replace("%(body)s", body), encoding="utf-8")
     print(f"wrote {out} ({out.stat().st_size // 1024} KB)")
 
 
