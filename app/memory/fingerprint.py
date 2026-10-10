@@ -35,6 +35,12 @@ def _centre(b: BBox, w: int, h: int) -> tuple[float, float]:
     return (b[0] + b[2]) / 2 / w, (b[1] + b[3]) / 2 / h
 
 
+def cell(b: BBox, w: int, h: int) -> tuple[int, int]:
+    """The 12×8 grid cell of a bbox's centre."""
+    cx, cy = _centre(b, w, h)
+    return min(int(cx * COLS), COLS - 1), min(int(cy * ROWS), ROWS - 1)
+
+
 def _blocker(elements: list[Element], w: int, h: int) -> list[str] | None:
     # lazy: "dialog" = 1–3 buttons in the middle box with no input there, so a screen whose only buttons sit
     # centred (an empty state) reads as a blocker; use a dialog box from C when it exists
@@ -52,8 +58,8 @@ def fingerprint(elements: list[Element], w: int, h: int) -> Fingerprint:
         static = e.kind in STATIC or (e.kind == "text" and e.paired_input is not None)  # field labels
         if not static or not text or any(c.isdigit() for c in text) or (titles and e is titles[0]):
             continue  # numbers, dates, codes, currency and the app title (it carries the version)
-        cx, cy = _centre(e.bbox, w, h)
-        atom = f"{min(int(cx * COLS), COLS - 1)},{min(int(cy * ROWS), ROWS - 1)}|{text}"
+        (col, row), cy = cell(e.bbox, w, h), _centre(e.bbox, w, h)[1]
+        atom = f"{col},{row}|{text}"
         atoms[atom] = (e.bbox[0] / w, e.bbox[1] / h, e.bbox[2] / w, e.bbox[3] / h)
         if e.kind == "menu":
             menu.add(atom)
