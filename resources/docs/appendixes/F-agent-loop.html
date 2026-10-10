@@ -215,10 +215,10 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
 <h3 id="41-recommendation-and-order">4.1 Recommendation and order<a class="headerlink" href="#41-recommendation-and-order" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Parse.</strong> One <code>MODEL_FAST</code> call turns the natural-language CRUD action into typed queries <code>(op, entity, where, fields, aggregate)</code>; confidence under 0.8 hands the task to step 4.</li>
+<li><strong>Parse.</strong> One <code>MODEL_FAST</code> call turns the natural-language CRUD action into typed queries <code>(op ∈ {read, create, update, delete, explore}, entity, where, fields, aggregate, key)</code>, given the cache entities with their columns and the stored <code>(op, entity)</code> procedures, so "facturas vencidas" maps to the Facturas node id with <code>where {Estado: Vencida}</code>; confidence under 0.8, or an <code>(op, entity)</code> with no stored procedure, hands the task to step 4.</li>
 <li><strong>L3.</strong> The executor: reads behind the change-log probe (<a href="G-data-sync.html">Appendix G §4.2</a>), writes by replaying the stored procedure, stored positions while the pixels match (<a href="E-mapping-methodology.html">Appendix E §4.4</a>), strict checks per step. No OCR and no further model call on a mapped app.</li>
 <li><strong>L4.</strong> On a replay miss, Jev answers <code>target</code>, <code>effect_ok</code> and <code>drift</code> in one call; below the gate the VLM with a Set-of-Mark image; then rungs 2–3 of the ladder (<a href="E-mapping-methodology.html">Appendix E §4.5</a>).</li>
-<li><strong>L1+L2.</strong> The tool-use loop with batched actions, on <code>MODEL_PLANNER</code>: the last rung, and the first task on an unseen app. It writes the steps that worked back as the procedure, so the next task runs through step 2.</li>
+<li><strong>L1+L2.</strong> The tool-use loop with batched actions (max 8 tool calls per batch, stopped at the first failed <code>Effect</code>), on <code>MODEL_PLANNER</code>: the last rung, and the first task on an unseen app. It writes the steps that worked back as the procedure, so the next task runs through step 2.</li>
 <li>Throughout, apply the accelerators from §4.2.</li>
 </ol>
 <h3 id="42-cross-cutting-accelerators-apply-to-every-option">4.2 Cross-cutting accelerators (apply to every option)<a class="headerlink" href="#42-cross-cutting-accelerators-apply-to-every-option" title="Permanent link">¶</a></h3>
@@ -250,7 +250,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td><code>effect_ok</code></td>
-<td>Choice</td>
+<td>Noul</td>
 <td>yes / no</td>
 <td>verify after act + settle</td>
 </tr>
@@ -258,7 +258,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <td><code>done</code></td>
 <td>Choice</td>
 <td>yes / no</td>
-<td>stop condition</td>
+<td>stop condition (deferred: only <code>target</code>, <code>effect_ok</code> and <code>drift</code> are asked in the build, on a replay miss; solution.md §10)</td>
 </tr>
 <tr>
 <td><code>drift</code></td>

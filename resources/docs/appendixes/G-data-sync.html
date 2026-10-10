@@ -169,8 +169,8 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td>Durability</td>
-<td>Ephemeral; losing it is accepted</td>
-<td>A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy is worse than an empty one</td>
+<td>No volume. On SIGECOM a dev-time seed (<code>memory/cache.sqlite</code>, §4.2 step 4) is committed and ships in the image, and the probe validates it on first use; on the unseen app the cache starts empty and losing it is accepted</td>
+<td>A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy unprobed is worse than an empty one</td>
 </tr>
 </tbody>
 </table></div>
@@ -222,7 +222,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
    - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
    - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
 <li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
-<li><strong>Optional pre-warm.</strong> If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.</li>
+<li><strong>Dev-time seed (SIGECOM only).</strong> After <code>map --visit</code> (<a href="E-mapping-methodology.html">Appendix E §4.3</a> step 6), <code>seed</code> finds every mapped node whose snapshot has a grid, registers it as an entity (keyed by the node id, header hash from its columns) and acquires it through the §4.4 ladder into <code>memory/cache.sqlite</code>; the node whose title matches <code>bitácora|cambios|log|historial|auditor</code> is registered with <code>role = 'changelog'</code> (a fast-model tie-break when several or none match). The file is committed, so a lookup right after deploy hits the cache; a stale seed costs one re-acquire, never a wrong answer, because the probe runs first. Never seed inside a task, and never on the unseen app: there, entities are acquired lazily the first time a query needs them, and the in-task pre-warm stays menus only.</li>
 </ol>
 <h3 id="43-what-if-something-changes-before-or-during-a-sync">4.3 What if something changes before or during a sync?<a class="headerlink" href="#43-what-if-something-changes-before-or-during-a-sync" title="Permanent link">¶</a></h3>
 <p>Who can change data behind our back:

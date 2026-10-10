@@ -58,10 +58,10 @@ The time budget. Each task gets 300 s. The guard stops at **270 s** and writes a
 
 ### 4.1 Recommendation and order
 
-1. **Parse.** One `MODEL_FAST` call turns the natural-language CRUD action into typed queries `(op, entity, where, fields, aggregate)`; confidence under 0.8 hands the task to step 4.
+1. **Parse.** One `MODEL_FAST` call turns the natural-language CRUD action into typed queries `(op ∈ {read, create, update, delete, explore}, entity, where, fields, aggregate, key)`, given the cache entities with their columns and the stored `(op, entity)` procedures, so "facturas vencidas" maps to the Facturas node id with `where {Estado: Vencida}`; confidence under 0.8, or an `(op, entity)` with no stored procedure, hands the task to step 4.
 2. **L3.** The executor: reads behind the change-log probe ([Appendix G §4.2](G-data-sync.md)), writes by replaying the stored procedure, stored positions while the pixels match ([Appendix E §4.4](E-mapping-methodology.md)), strict checks per step. No OCR and no further model call on a mapped app.
 3. **L4.** On a replay miss, Jev answers `target`, `effect_ok` and `drift` in one call; below the gate the VLM with a Set-of-Mark image; then rungs 2–3 of the ladder ([Appendix E §4.5](E-mapping-methodology.md)).
-4. **L1+L2.** The tool-use loop with batched actions, on `MODEL_PLANNER`: the last rung, and the first task on an unseen app. It writes the steps that worked back as the procedure, so the next task runs through step 2.
+4. **L1+L2.** The tool-use loop with batched actions (max 8 tool calls per batch, stopped at the first failed `Effect`), on `MODEL_PLANNER`: the last rung, and the first task on an unseen app. It writes the steps that worked back as the procedure, so the next task runs through step 2.
 5. Throughout, apply the accelerators from §4.2.
 
 ### 4.2 Cross-cutting accelerators (apply to every option)
@@ -81,8 +81,8 @@ The time budget. Each task gets 300 s. The guard stops at **270 s** and writes a
 | Question | Type | Options | Used for |
 |---|---|---|---|
 | `target` | Choice | ids of the visible elements (≤255) | ground the plan step ("click Buscar") to an element |
-| `effect_ok` | Choice | yes / no | verify after act + settle |
-| `done` | Choice | yes / no | stop condition |
+| `effect_ok` | Noul | yes / no | verify after act + settle |
+| `done` | Choice | yes / no | stop condition (deferred: only `target`, `effect_ok` and `drift` are asked in the build, on a replay miss; solution.md §10) |
 | `drift` | Score | 0–1 | screen unlike the map → mark stale (the 15:30 path) |
 
 ```python

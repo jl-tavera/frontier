@@ -176,7 +176,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <p>One directory per app epoch: <code>memory/&lt;app_id&gt;/&lt;version&gt;/</code> holds <code>map.json</code> and that version's reference PNGs and static crops, named by node id (<code>epoch-&lt;n&gt;</code> when the title bar carries no version). No database. The live epoch is the directory named after the title bar's version; once a newer one exists the old directory is never written again, which is what makes it a frozen version. §4.5 rung 0 says when a new one is opened.</p>
 <pre><code class="language-jsonc">node      = {id, title, description, transient, stale, seen, last_seen,
              appearances: [{version, atoms[], ref_png, elements_snapshot, last_seen}]}   // one per app version, newest first; crops as files
-edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell}]}, params},
+edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell, xy}]}, params},
              to, effect, data?, scroll?, inherited?, ok, fail, last_ok, outcomes: {node_id: count}}
 procedure = {task_text, steps: [edge_id | self_loop + params], ok, last_ok}
 unexplored[node_id] = [action signatures not yet tried]       // the frontier
@@ -185,6 +185,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <ul>
 <li><code>description</code> is written by the LLM <strong>lazily</strong>, in one batched call at write-back, never per node.</li>
 <li><code>appearances</code> is MAGNET's "function → many appearances" (§3.1 idea 9): the node id and its description are the stable function; each app version adds a look: its atoms, <code>ref_png</code>, <code>elements_snapshot</code> and the static crops the replay fast path compares, stored as files in that version's directory. Fingerprint matching and target grounding take the newest appearance first and fall back through the older ones. Rung 1 appends an appearance; it never overwrites one.</li>
+<li><code>xy</code> on a target appearance is the last click point that worked: a cache, never the identity. Replay (Spec W <code>replay_edge</code>) checks the crop around it byte-for-byte before clicking, clicks it or its template-matched position, verifies the landing against <code>to</code>, and on a miss perceives, grounds label + role + cell, clicks and <strong>overwrites <code>xy</code></strong> (logged <code>fastpath: repaired</code>).</li>
+<li><strong>Static crops</strong> are the title-band app-title element plus every menu, button, field-label and header bbox padded 2 px, cut from <code>ref_png</code>; grid bodies and values are excluded, so a filter, a page change or a selected row still replays. Byte equality of these crops is the gate for "same node, nothing moved".</li>
 <li><code>inherited: true</code> marks an edge copied from the previous epoch and not yet verified in this one. The planner sees it as a hint, ranked below any verified edge; the first confirmed landing clears the flag.</li>
 <li><code>data: true</code> when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the <strong>find procedure</strong> (search field → type → Enter → <code>Siguiente</code> ≤ N pages), never the repair ladder. We store the procedure, not the row click.</li>
 <li><code>scroll: true</code> when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.</li>
@@ -200,7 +202,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li><strong>Pre-warm, first task on an epoch only, ≤ 45 s.</strong> Open each top menu: click → <code>settle</code> → OCR → <code>Esc</code> ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. <strong>Open menus only, never click items.</strong> Record <code>menu → item</code> edges with <code>to = unknown</code>. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.</li>
 <li><strong>Task-driven mapping.</strong> Every action during a task: act → <code>settle</code> → <code>elements</code> → fingerprint → create/match node → upsert edge with the observed <code>to</code>. <strong>An edge is persisted only once its landing fingerprint is confirmed.</strong> Nothing is learned off the task path unless the planner is stuck.</li>
 <li><strong>Frontier mode (planner stuck).</strong> Take the unexplored actions on the current node, ranked by label similarity to the task text; one action per step; back out via <code>Esc</code> or the recorded return edge. ≤ 40 s per episode.</li>
-<li><strong>Write-back at task end.</strong> Nodes, edges, procedure persisted; new nodes described in one batched LLM call.</li>
+<li><strong>Write-back at task end.</strong> Nodes (with a refreshed <code>elements_snapshot</code> and static crops on the current version's appearance), edges and the procedure persisted; new nodes described in one batched LLM call. So the unseen app replays from its second task.</li>
+<li><strong>Dev-time full mapping (<code>map --visit</code>, SIGECOM only).</strong> The same pre-warm function with a <code>visit</code> flag also clicks every non-denylisted menu item, settles, perceives, saves the node's appearance with snapshot, <code>ref_png</code> and crops plus the confirmed edge with the <code>xy</code> it clicked, and returns via <code>Esc</code> or the recorded back edge (budget 10 min). It then seeds the read cache from every node with a grid (<a href="G-data-sync.html">Appendix G §4.2</a> step 4). The result is committed in <code>memory/</code> and shipped in the image; the unseen app never gets this run and learns through steps 1–5.</li>
 <li><code>lazy:</code> background frontier exploration between tasks, only if a spare session exists. Shared session risk: <code>operador</code>/<code>operador2</code> collisions.</li>
 </ol>
 <p><strong>Done when:</strong> the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.</p>
@@ -253,7 +256,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tbody>
 </table></div>
 <p><strong>Order of checks on every step: blocker dialog? → overlay? → data edge? → only then drift.</strong> Each of the first three is a cheap false-positive filter.</p>
-<p><strong>Ladder</strong> — four rungs, each bounded, next rung only on failure. Every rung logs <code>{signal, rung, before, after, cost_ms}</code> to the JSONL (this is the evidence the Challenge 2 spec cites).</p>
+<p><strong>Ladder</strong> — four rungs, each bounded, next rung only on failure. Every rung logs <code>{signal, rung, via, confidence, before, after, cost_ms}</code> to the JSONL (this is the evidence the Challenge 2 spec cites).</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -524,11 +527,13 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li>§4.4 planner prompt with the compact graph.</li>
 <li>§4.5 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §6.1 table.</li>
 <li>Epochs and appearances: a new epoch is a directory with a copied <code>map.json</code>, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.</li>
+<li>Replay fast path and dev-time mapping (Spec W): <code>observe</code> / <code>replay_edge</code> over the stored crops and <code>xy</code>, <code>map --visit</code>, cache seed.</li>
 <li>Baseline numbers before 15:30; re-run after.</li>
 </ol>
+<p>The tickets that build this order are Spec D (D1 = item 1, D2 = item 2, D3 = item 3, D4–D5 = items 4–5) and Spec W (item 6) in <code>resources/specs/</code>.</p>
 <h3 id="72-deferred-lazy-notes">7.2 Deferred (<code>lazy:</code> notes)<a class="headerlink" href="#72-deferred-lazy-notes" title="Permanent link">¶</a></h3>
 <ul>
-<li>Background frontier exploration between tasks, only if a spare session exists (§4.3, step 6).</li>
+<li>Background frontier exploration between tasks, only if a spare session exists (§4.3, step 7).</li>
 <li>Pruning, once the map grows past what fits in the prompt (§4.5).</li>
 <li>The techniques skipped on purpose for a one-day build (§3.1, "Deliberately skipped").</li>
 </ul>
