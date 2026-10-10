@@ -3,7 +3,12 @@
 A template's `params` is a list of steps run in order: a YAML list of choices, or SQL over the entity views bound
 with the params so far. A step that returns no rows drops the combination, so "unique", "at least two" and "not in
 the cache" are SQL. `respuesta` and `claves` are SQL; `diff` is a literal. `{name}` fills a param into any string,
-SQL included (identifiers from choices); SQL values bind as `:name`."""
+SQL included (identifiers from choices); SQL values bind as `:name`.
+
+`--paraphrase k` (S2) asks MODEL_FAST, through F1's OpenRouter client, for k rewrites of each instruccion. A rewrite is
+kept only when every value the instruccion interpolates still appears in it verbatim; it is written as
+`<template>-<nn>-v<i>` with the base task's expectation."""
+import asyncio
 import json
 import os
 import random
@@ -14,6 +19,8 @@ from pathlib import Path
 
 import yaml
 
+from app.agent.llm import chat_json
+
 TEMPLATES = Path(__file__).with_name("templates.yaml")
 PRUEBAS = Path(__file__).parents[1] / "resources" / "docs" / "references" / "pruebas"
 TODAY = "2026-10-14"  # the app's Hoy: date in every capture so far
@@ -21,6 +28,10 @@ KEYS = ["id", "nivel", "instruccion", "estado_esperado", "respuesta_esperada", "
         "lista_blanca"]
 REQUIRED = {"id", "nivel", "instruccion", "estado_esperado", "diff_esperado", "lista_blanca"}
 SECRET = re.compile(r"\bSGC-\w{4}-\w{4}\b|\b(?:contraseña|password|clave)\s*[:=]\s*\S", re.I)
+PARAPHRASE = """Reescribe en español la instrucción que recibes, {k} veces, como la escribiría otra persona: cambia el
+registro (formal, coloquial, telegráfico) y el orden de las palabras; cada versión puede tener como mucho un error de
+tipeo o una tilde de menos. Copia cada valor de "conservar" exactamente igual, carácter por carácter. No cambies lo que
+se pide. Responde solo con JSON: {"variantes": ["...", ...]}"""
 
 
 class CheckError(ValueError):
@@ -81,6 +92,26 @@ def _task(db, t: dict, b: dict, task_id: str) -> dict:
     return out | {"diff_esperado": _fill(t.get("diff", []), b), "lista_blanca": []}
 
 
+def _values(t: dict, b: dict) -> list[str]:
+    """The param values the instruccion shows; a variant must keep every one verbatim."""
+    return [_s(b[n]) for n in re.findall(r"\{(\w+)\}", t["instruccion"])]
+
+
+async def _paraphrase(jobs: list[tuple[str, list[str]]], k: int) -> list[list]:
+    """One MODEL_FAST call per instruccion, in order. A reply that isn't {"variantes": [...]} yields none."""
+    system = PARAPHRASE.replace("{k}", str(k))
+    out = []
+    for text, keep in jobs:
+        user = json.dumps({"instruccion": text, "conservar": keep}, ensure_ascii=False)
+        try:
+            vs = (await chat_json("fast", [{"role": "system", "content": system}, {"role": "user", "content": user}]))["variantes"]
+        except (ValueError, KeyError, TypeError) as e:
+            print(f"{text!r}: no variants ({e!r})", file=sys.stderr)
+            vs = []
+        out.append(vs if isinstance(vs, list) else [])
+    return out
+
+
 def candidates(db, t: dict, today: str) -> dict[str, dict]:
     """instruccion -> params, every combination the cache allows, sorted so sampling is stable.
     The official five's instrucciones are left out, so a suite that loads both never runs one twice."""
@@ -96,14 +127,19 @@ def _catalogue() -> dict:
     return yaml.safe_load(TEMPLATES.read_text(encoding="utf-8"))
 
 
-def gen(cache, out, per_template: int = 2, seed: int = 1, today: str = TODAY) -> list[Path]:
+def gen(cache, out, per_template: int = 2, seed: int = 1, today: str = TODAY, paraphrase: int = 0) -> list[Path]:
     cat = _catalogue()
     db = open_cache(cache, cat["entities"])
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    written = []
+    written, jobs = [], []
+
+    def write(task: dict) -> None:
+        written.append(out / f"{task['id']}.json")
+        written[-1].write_text(json.dumps(task, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+
     for t in cat["templates"]:
-        for old in out.glob(f"{t['id']}-[0-9][0-9].json"):  # this template's last run, never a hand-written task
+        for old in out.glob(f"{t['id']}-[0-9][0-9]*.json"):  # this template's last run, never a hand-written task
             old.unlink()
         cands = candidates(db, t, today)
         if len(cands) < per_template:
@@ -111,8 +147,16 @@ def gen(cache, out, per_template: int = 2, seed: int = 1, today: str = TODAY) ->
         picks = random.Random(f"{seed}:{t['id']}").sample(list(cands.values()), min(per_template, len(cands)))
         for i, b in enumerate(picks, 1):
             task = _task(db, t, b, f"{t['id']}-{i:02}")
-            written.append(out / f"{task['id']}.json")
-            written[-1].write_text(json.dumps(task, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+            write(task)
+            jobs.append((task, _values(t, b)))
+    if paraphrase > 0:
+        seen = {task["instruccion"] for task, _ in jobs}
+        replies = asyncio.run(_paraphrase([(task["instruccion"], keep) for task, keep in jobs], paraphrase))
+        for (task, keep), vs in zip(jobs, replies):
+            for i, v in enumerate(vs[:paraphrase], 1):
+                if isinstance(v, str) and v not in seen and all(x in v for x in keep):
+                    seen.add(v)
+                    write(task | {"id": f"{task['id']}-v{i}", "instruccion": v})
     return written
 
 
@@ -148,7 +192,8 @@ def check(root, cache, today: str = TODAY) -> dict[str, int]:
                 raise CheckError("repeats another task's instruccion")
             seen_ids.add(t["id"])
             seen_text.add(t["instruccion"])
-            tid = t["id"].rsplit("-", 1)[0]
+            m = re.fullmatch(r"(.+)-\d\d(-v\d+)?", t["id"])
+            tid = m[1] if m else t["id"]
             if t["id"].startswith("explored-"):
                 counts["explored"] += 1
             elif re.fullmatch(r"E\d+", t["id"]):
@@ -158,9 +203,17 @@ def check(root, cache, today: str = TODAY) -> dict[str, int]:
                 db = db or open_cache(cache, cat["entities"])
                 if tid not in cands:
                     cands[tid] = candidates(db, by_id[tid], today)
-                if (b := cands[tid].get(t["instruccion"])) is None:
-                    raise CheckError("names a record the cache lacks, or one not unique where the template says so")
-                want = _task(db, by_id[tid], b, t["id"])
+                # a variant (-v<i>) matches every candidate whose shown values it keeps verbatim; one must agree
+                want = None
+                for b in cands[tid].values() if m and m[2] else [cands[tid].get(t["instruccion"])]:
+                    if b is None or not all(x in t["instruccion"] for x in _values(by_id[tid], b)):
+                        continue
+                    want = _task(db, by_id[tid], b, t["id"]) | {"instruccion": t["instruccion"]}
+                    if all(want.get(k) == t.get(k) for k in KEYS):
+                        break
+                if want is None:
+                    raise CheckError("names a record the cache lacks, or one not unique where the template says so, "
+                                     "or a variant drops a value")
                 if bad := next((k for k in KEYS if want.get(k) != t.get(k)), None):
                     raise CheckError(f"{bad}: {t.get(bad)!r}, the cache says {want.get(bad)!r}")
             else:

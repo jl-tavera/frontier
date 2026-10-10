@@ -12,6 +12,7 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--out", default="synth/tasks/generated")
     g.add_argument("--per-template", type=int, default=2)
     g.add_argument("--seed", type=int, default=1)
+    g.add_argument("--paraphrase", type=int, default=0, metavar="K", help="K fast-model rewrites of each instruccion")
     c = sub.add_parser("check", help="validate every task JSON under a directory against the cache")
     c.add_argument("dir")
     for s in (g, c):
@@ -20,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
     a = p.parse_args(argv)
     try:
         if a.cmd == "gen":
-            print(f"wrote {len(gen(a.cache, a.out, a.per_template, a.seed, a.today))} tasks to {a.out}")
+            print(f"wrote {len(gen(a.cache, a.out, a.per_template, a.seed, a.today, a.paraphrase))} tasks to {a.out}")
         else:
             n = check(a.dir, a.cache, a.today)
             print(f"generated: {n['generated']}, explored: {n['explored']}"
