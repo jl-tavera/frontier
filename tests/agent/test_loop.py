@@ -145,7 +145,7 @@ def test_a_create_replays_the_procedure_and_writes_the_saved_row_through(monkeyp
 def test_an_entity_with_no_procedure_hands_off_to_the_fallback_once(monkeypatch, fixtures_dir, memory):
     calls = []
 
-    async def fallback(task, plan, tools, m):
+    async def fallback(task, plan, ex):
         calls.append([q.entity for q in plan.queries])
         return {"ok": True, "answer": "PD-2042"}
 
@@ -156,7 +156,7 @@ def test_an_entity_with_no_procedure_hands_off_to_the_fallback_once(monkeypatch,
 
 
 def test_a_task_that_never_finishes_is_cut_and_still_summarised(monkeypatch, fixtures_dir, memory):
-    async def never(task, plan, tools, m):
+    async def never(task, plan, ex):
         await asyncio.sleep(30)
 
     monkeypatch.setattr(runner, "BUDGET_S", 0.3)
