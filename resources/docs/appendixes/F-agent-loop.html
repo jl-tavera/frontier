@@ -51,15 +51,16 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </nav>
 <main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix F of I</span><a href="../solution.html#appendix-f">inline version</a><a href="E-mapping-methodology.html">← Appendix E</a><a href="G-data-sync.html">Appendix G →</a></div><h1 id="agent-loop-fast-plan-act-verify-track-3">Agent loop — fast plan → act → verify (track 3)<a class="headerlink" href="#agent-loop-fast-plan-act-verify-track-3" title="Permanent link">¶</a></h1>
 <blockquote>
-<p>Appendix F of <a href="../solution.html">solution.md</a> · Status: adopted as component [C] (solution.md §3.2); Jev stays a gated 1 h spike · Links checked 2026-10-10.</p>
+<p>Appendix F of <a href="../solution.html">solution.md</a> · Status: adopted as component [C] (solution.md §3.2): parse → executor first, Jev as System 1 on a changed screen, the tool-use loop as the fallback; every model through OpenRouter · Links checked 2026-10-10.</p>
 </blockquote>
 <h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
-<p><strong>Decision:</strong> Claude runs the loop <strong>in-process</strong> with plain Python tool functions, with no MCP. We build it in three steps, and each one has to earn its place on the 3.6 harness:
-1. A tool-use loop with <strong>batched actions</strong> (L1+L2). This is the first end-to-end path.
-2. <strong>Plan-then-execute</strong> with replan when a check fails (L3). This cuts the number of LLM calls.
-3. A one-hour spike of <strong>Jev</strong> as the System 1 for per-step decisions, with a confidence gate that escalates to Claude (L4). We keep it only if the numbers prove it.</p>
+<p><strong>Decision:</strong> the loop runs <strong>in-process</strong> with plain Python tool functions, with no MCP, and every model call goes through OpenRouter (<code>openai</code> SDK with <code>base_url</code>; the Anthropic SDK is not used). The order on every task, each layer earning its place on the 3.6 harness:
+1. <strong>Parse.</strong> One fast-model call turns the natural-language CRUD action into typed queries (op, entity, where, fields, aggregate).
+2. <strong>Execute</strong> (L3). A deterministic executor answers reads from the cache behind the change-log probe (<a href="G-data-sync.html">Appendix G §4.2</a>) and replays stored procedures for writes, clicking stored positions while the pixels match (<a href="E-mapping-methodology.html">Appendix E §4.4</a>). No further model call and no OCR on a mapped app.
+3. <strong>System 1 on a changed screen</strong> (L4). Jev answers the typed per-step questions (which element is the target now, did the action work, is this drift) with a calibrated probability; below the gate, the VLM; still unsure, rungs 2–3 of the ladder.
+4. <strong>Fallback</strong> (L1+L2). The tool-use loop with batched actions runs only when a query has no stored procedure (the first task on an unseen app), the parse is unsure, or the ladder is exhausted, and it writes the steps that worked back as the procedure.</p>
 <blockquote>
-<p><strong>Terminology.</strong> <em>System 2</em> is the slow, deliberate planner (Claude). <em>System 1</em> is a fast decision function that answers narrow, typed questions in about 100 ms (Jev). Jev is TypeSafe AI's "System One" model. It does <strong>not</strong> generate text: it returns typed choices or scores, each with a calibrated probability.</p>
+<p><strong>Terminology.</strong> <em>System 2</em> is the slow, deliberate planner (the planner model, through OpenRouter). <em>System 1</em> is a fast decision function that answers narrow, typed questions in about 100 ms (Jev). Jev is TypeSafe AI's "System One" model. It does <strong>not</strong> generate text: it returns typed choices or scores, each with a calibrated probability.</p>
 </blockquote>
 <hr />
 <h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
@@ -75,7 +76,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </thead>
 <tbody>
 <tr>
-<td>Claude call (text state, cached prefix)</td>
+<td>Planner call (text state, cached prefix)</td>
 <td>2–5 s</td>
 <td>grows with image tokens and output length</td>
 </tr>
@@ -107,13 +108,19 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </thead>
 <tbody>
 <tr>
-<td>L1: 1 Claude call per action</td>
+<td>L0: parse once, replay stored positions</td>
+<td>~1 (act + settle)</td>
+<td>200+</td>
+<td>the happy path on a mapped app: 2 LLM calls per task</td>
+</tr>
+<tr>
+<td>L1: 1 planner call per action</td>
 <td>3–6</td>
 <td>45–90</td>
 <td>10–30: fits, with little room for recovery</td>
 </tr>
 <tr>
-<td>L2: about 3 actions per Claude call</td>
+<td>L2: about 3 actions per planner call</td>
 <td>1.5–2.5</td>
 <td>110–180</td>
 <td>comfortable</td>
@@ -125,7 +132,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <td>comfortable if replans stay rare</td>
 </tr>
 <tr>
-<td>L4: Jev per step + Claude on escalation</td>
+<td>L4: Jev per step + VLM/planner on escalation</td>
 <td>~0.7–1.5</td>
 <td>180–380</td>
 <td>settle becomes the bottleneck</td>
@@ -148,35 +155,35 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <tbody>
 <tr>
 <td><strong>L1. Plain tool-use loop</strong></td>
-<td>Each Claude call returns one tool call → execute → result → next call</td>
-<td><ul><li>Simplest; the Anthropic SDK does it natively.</li><li>Easy to log and debug.</li></ul></td>
+<td>Each planner call returns one tool call → execute → result → next call</td>
+<td><ul><li>Simplest; an OpenAI-style tool-call loop is about 50 lines.</li><li>Easy to log and debug.</li></ul></td>
 <td><ul><li>Slowest: one round trip per click.</li><li>Little time left for recovery.</li></ul></td>
-<td><strong>Baseline.</strong> Build first</td>
+<td><strong>Fallback.</strong> The last rung of the ladder, and the first task on an unseen app</td>
 </tr>
 <tr>
 <td><strong>L2. Batched tool calls</strong></td>
-<td>Claude returns several <code>tool_use</code> blocks in one turn (fill 4 fields + click Guardar). We run them in order and stop at the first failed check</td>
+<td>The planner returns several tool calls in one turn (fill 4 fields + click Guardar). We run them in order and stop at the first failed check</td>
 <td><ul><li>2–4× fewer round trips.</li><li>Same code as L1.</li></ul></td>
 <td><ul><li>A mid-batch failure wastes the rest.</li><li>Needs a verify after each action.</li></ul></td>
-<td><strong>Adopt</strong> together with L1</td>
+<td><strong>Adopt</strong> inside the fallback</td>
 </tr>
 <tr>
-<td><strong>L3. Plan-then-execute</strong></td>
-<td>Claude writes a step list once (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>). A deterministic executor runs it with per-step checks, and Claude is called again only when a check fails</td>
+<td><strong>L3. Parse, then execute</strong></td>
+<td>One fast-model call turns the task into typed CRUD queries; a deterministic executor answers reads from the cache behind the probe and replays the stored procedure for writes (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>) with per-step checks, and a model is called again only when a check fails</td>
 <td><ul><li>The fewest LLM calls.</li><li>The plan doubles as the summary skeleton.</li><li>Pairs with App Memory shortcuts.</li></ul></td>
-<td><ul><li>On an unseen app the first plan is a guess.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
-<td><strong>Adopt</strong> after L1+L2 work</td>
+<td><ul><li>On an unseen app there is nothing to replay yet: the fallback runs once and stores the procedure.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
+<td><strong>Adopt</strong> as the happy path</td>
 </tr>
 <tr>
 <td><strong>L4. System 1 / System 2 with Jev</strong></td>
-<td>Claude plans (as in L3). For each step, Jev answers typed questions over the text state: which element is the target, did it work, is the task done, is there drift. Below the confidence threshold, escalate to Claude</td>
+<td>On a changed screen (a replay miss), Jev answers typed questions over the text state: which element is the target now, did it work, is the task done, is there drift. Below the confidence threshold, escalate to the VLM, then the planner</td>
 <td><ul><li>~100 ms per decision.</li><li>Calibrated probabilities give a principled escalation gate.</li><li>Cheap: $0.042/M input, output free.</li><li>Text-only fits our OCR-first perception.</li></ul></td>
-<td><ul><li>Early access with a waitlist.</li><li>No image input.</li><li>Can't write values.</li><li>Unreliable at counting, arithmetic and dates.</li><li>32k context.</li><li>Unknown out-of-distribution behaviour on an unseen app.</li><li>Benchmarks are vendor-run.</li><li>A second vendor dependency.</li></ul></td>
-<td><strong>Spike</strong> (1 h), gated by the harness</td>
+<td><ul><li>Early access (key in hand; keyless fallback to the fast model).</li><li>No image input.</li><li>Can't write values.</li><li>Unreliable at counting, arithmetic and dates.</li><li>32k context.</li><li>Unknown out-of-distribution behaviour on an unseen app.</li><li>Benchmarks are vendor-run.</li><li>A second vendor dependency.</li></ul></td>
+<td><strong>Adopt</strong> behind <code>decide</code>; measured on the harness (§5)</td>
 </tr>
 <tr>
 <td><strong>L5. Code-as-action</strong></td>
-<td>Each turn Claude writes a short Python snippet calling the tool functions (loops, ifs)</td>
+<td>Each turn the planner writes a short Python snippet calling the tool functions (loops, ifs)</td>
 <td><ul><li>Flexible batching.</li><li>Handles repetition (pagination) in one turn.</li></ul></td>
 <td><ul><li>Needs a sandbox for model-written code.</li><li>Failures happen inside opaque code and are harder to verify and log.</li></ul></td>
 <td>Discarded: L2+L3 give most of the gain without running generated code</td>
@@ -208,22 +215,23 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
 <h3 id="41-recommendation-and-order">4.1 Recommendation and order<a class="headerlink" href="#41-recommendation-and-order" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>L1+L2.</strong> A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.</li>
-<li><strong>L3.</strong> Add plan-then-execute with strict checks; replan on failure.</li>
-<li><strong>L4 spike (~1 h).</strong> Put Jev behind the <code>effect_ok</code> and <code>target</code> checks and run the harness. Keep it or drop it based on the criteria in §5.</li>
+<li><strong>Parse.</strong> One <code>MODEL_FAST</code> call turns the natural-language CRUD action into typed queries <code>(op, entity, where, fields, aggregate)</code>; confidence under 0.8 hands the task to step 4.</li>
+<li><strong>L3.</strong> The executor: reads behind the change-log probe (<a href="G-data-sync.html">Appendix G §4.2</a>), writes by replaying the stored procedure, stored positions while the pixels match (<a href="E-mapping-methodology.html">Appendix E §4.4</a>), strict checks per step. No OCR and no further model call on a mapped app.</li>
+<li><strong>L4.</strong> On a replay miss, Jev answers <code>target</code>, <code>effect_ok</code> and <code>drift</code> in one call; below the gate the VLM with a Set-of-Mark image; then rungs 2–3 of the ladder (<a href="E-mapping-methodology.html">Appendix E §4.5</a>).</li>
+<li><strong>L1+L2.</strong> The tool-use loop with batched actions, on <code>MODEL_PLANNER</code>: the last rung, and the first task on an unseen app. It writes the steps that worked back as the procedure, so the next task runs through step 2.</li>
 <li>Throughout, apply the accelerators from §4.2.</li>
 </ol>
 <h3 id="42-cross-cutting-accelerators-apply-to-every-option">4.2 Cross-cutting accelerators (apply to every option)<a class="headerlink" href="#42-cross-cutting-accelerators-apply-to-every-option" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Text over images.</strong> Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.</li>
 <li><strong>Prompt caching</strong> on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.</li>
-<li><strong>Model tiering.</strong> Sonnet-class for routine steps; Opus-class only for recovery and replan. Add this only if measurements show we need it.</li>
+<li><strong>Model tiering.</strong> Three OpenRouter tiers from env: <code>MODEL_FAST</code> (parse, summary, Jev's keyless fallback), <code>MODEL_VLM</code> (image questions), <code>MODEL_PLANNER</code> (fallback loop, replan). Tune the ids on the harness, never in code; the Anthropic SDK is not used anywhere.</li>
 <li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="D-mapping-papers.html">Appendix D</a> and <a href="E-mapping-methodology.html">Appendix E §4.4</a>).</li>
 <li><strong>Settle.</strong> Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.</li>
 </ul>
 <h3 id="43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)<a class="headerlink" href="#43-jev-as-system-1-l4" title="Permanent link">¶</a></h3>
-<p><strong>Fit.</strong> Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in Claude or in code.</p>
-<p><strong>Proposed call per step</strong> (state as text or JSON, a single parallel pass):</p>
+<p><strong>Fit.</strong> Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in the OpenRouter models or in code.</p>
+<p><strong>Call per step</strong> (state as text or JSON, every question in one pass; <code>typesafe-sdk</code>, model <code>jev-latest</code>):</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -260,14 +268,25 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 </tbody>
 </table></div>
-<p>Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to Claude. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.</p>
+<pre><code class="language-python">from typesafe_sdk import AsyncTypeSafeClient, Choice, Noul, Score   # pip: typesafe-sdk
+
+r = await AsyncTypeSafeClient().system_one(
+    state={&quot;elements&quot;: elements_text, &quot;old_action&quot;: &quot;click 'Facturas' (menu, cell 2,1) → Facturas&quot;},
+    questions={
+        &quot;target&quot;: Choice(instructions=&quot;Which element does what `old_action` did?&quot;, criteria={e.id: e.text for e in elements}),
+        &quot;effect_ok&quot;: Noul(instructions=&quot;Did the last action produce the expected screen?&quot;),
+        &quot;drift&quot;: Score(instructions=&quot;How unlike the stored map is this screen?&quot;, criteria=[&quot;same&quot;, &quot;moved&quot;, &quot;redesigned&quot;]),
+    })
+# r.answers[&quot;target&quot;].choice and .confidence; exact signatures per the SDK docs
+</code></pre>
+<p>Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to the VLM, then the planner. Ask everything at once: one call per step, never one per question. All of it sits behind one function, <code>decide(state, questions)</code>; with no <code>TYPESAFE_API_KEY</code> the same questions go to <code>MODEL_FAST</code> in JSON mode, whose confidences are not calibrated, so that path is compared on accuracy and latency only. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.</p>
 <hr />
 <h2 id="5-trade-offs">5. Trade-offs<a class="headerlink" href="#5-trade-offs" title="Permanent link">¶</a></h2>
-<p><strong>Adoption criteria</strong> for Jev. On the 3.6 harness, with Jev in place compared to Claude-only:
+<p><strong>What the harness must show</strong> for Jev, compared to the keyless <code>MODEL_FAST</code> fallback and to the VLM-only ladder:
 - success % no more than 5 points lower;
 - at least 5× faster per decision;
 - escalation rate under 30%.</p>
-<p>If it fails any of these, drop it. L3 stays intact because Jev only replaces the per-step checks.</p>
+<p>If it fails, <code>decide</code> points at <code>MODEL_FAST</code> and nothing else changes: Jev only answers the per-step questions; the executor and the fallback loop stay intact.</p>
 <hr />
 <h2 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h2>
 <p>All from the JSONL log [H], for every option:
@@ -276,15 +295,17 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 - steps per task;
 - success %;
 - recoveries;
-- escalation rate (Jev → Claude).</p>
+- escalation rate (Jev → VLM → planner);
+- fastpath breakdown per step (hit / moved / perceived / llm) and probe outcome.</p>
 <p>Run the baseline before 15:30 and again after.</p>
 <hr />
 <h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
-<p><strong>Risks</strong> of the Jev spike.
-1. <strong>Access.</strong> It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
+<p><strong>Risks</strong> of Jev as System 1.
+1. <strong>Access.</strong> Key in hand. If it stops working, <code>decide</code> falls back to <code>MODEL_FAST</code> and nothing else changes.
 2. <strong>Out-of-distribution behaviour.</strong> The evaluation app is unseen. The confidence gate is the mitigation.
 3. <strong>Unverified claims.</strong> The vendor states 40–200× speedups; users report a median of about 7×.
-4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.</p>
+4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.
+5. <strong>Model ids.</strong> The three OpenRouter tiers are placeholders in <code>.env.example</code> until filled by hand; the fakes keep the tests independent of them.</p>
 <hr />
 <h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
 <ul>

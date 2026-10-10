@@ -5,7 +5,7 @@
 ## 1. Summary
 
 **Scope:** an expansion of [solution.md §5 Track 4](../solution.md) (4.1–4.4).
-**Decision:** a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.
+**Decision:** a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, cheapest scope first: the app's own change log when it has one (SIGECOM: `Herramientas › Bitácora de cambios`, one screen for every entity), else the entity's grid. The app always wins, and write tasks never read from the cache.
 
 ---
 
@@ -67,6 +67,11 @@ What "sync" means here. There is no API, no change feed and no second database t
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
      │                      │── yes ─────────────────►│ probe()                      │
+     │                      │                         │ change log registered? once: │
+     │                      │                         │── navigate + read page 1 ───►│  (Bitácora)
+     │                      │                         │◄─ page-1 hash ───────────────│
+     │                      │                         │ == watermark? ── yes: all fresh
+     │                      │                         │ (no change log, or changed:) │
      │                      │                         │── navigate + read footer ───►│
      │                      │                         │◄─ count=812, page1 hash ─────│
      │                      │                         │ matches sync_state? ── yes   │
@@ -85,7 +90,7 @@ What "sync" means here. There is no API, no change feed and no second database t
 
 The steps:
 1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
-2. **Cache hit + probe matches:** answer from SQL. Cost: one navigation plus one footer/first-page read, a few seconds.
+2. **Cache hit + probe matches:** answer from SQL. Cost: one navigation to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
 3. **Miss or mismatch:** acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
    - **Export (4.1):** the whole table in one action. Lossless if the file or screen it produces can be read.
    - **Clipboard (4.4):** select-all + copy → `ServerCutText`. Lossless text, usually tab-separated.
@@ -102,11 +107,10 @@ When the task names a single record ("total of factura F-0042"), do **not** sync
 
 Nothing pushes changes to us. Freshness has to be **detected** by looking at the screen. In order of use:
 
-1. **Our own writes → write-through read-back.** After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. If the read-back fails, fall back to marking the whole entity `stale`.
-2. **Probe before trusting the cache.** A probe is the cheapest signal that "something changed":
-   - the grid's **total count** (footer, "Mostrando 1-20 de 812", or the page count × page size), and
-   - a **hash of page 1**, sorted newest first if the grid can sort.
-   Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.
+1. **Our own writes → write-through read-back.** After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. Then re-read change-log page 1 so the watermark includes our own entry; that entry is also the proof of the write for the summary. If the read-back fails, fall back to marking the whole entity `stale`.
+2. **Probe before trusting the cache.** A probe is the cheapest signal that "something changed", cheapest scope first:
+   - **The app's change log**, when it has one (SIGECOM: `Herramientas › Bitácora de cambios`). It is registered as an entity with `role = 'changelog'` and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked `stale`, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
+   - **The entity's own grid**: the **total count** (footer, "Mostrando 1-20 de 812", or the page count × page size) and a **hash of page 1**, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.
 3. **Expiry time as a backstop.** Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.
 4. **Optional pre-warm.** If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.
 
@@ -125,7 +129,7 @@ Who can change data behind our back:
 | Recent row edited | Probe page-1 hash (newest first) | Re-acquire |
 | **Old row edited, count unchanged** | **Not caught by the probe** | Served stale until the expiry time or a targeted read |
 
-The last row is the **known staleness window**, and we accept it. Mitigations:
+The last row is the **known staleness window**, and we accept it. When the app has a change log that records edits, the change-log probe closes it: an old-row edit is a new log entry. Mitigations when it has none:
 - the expiry time puts an upper bound on it
 - any answer that depends on one specific record goes through the targeted path (§4.1.2), which always reads live
 - the task summary states when an answer came from the cache and how old that cache was
@@ -151,8 +155,14 @@ Two agents editing the same record at the same time is ruled out by the assumpti
 
 #### 4.3.4 Schema or UI drift (the 15:30 change)
 
-- Each entity stores a **header hash** (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, **drop that entity's rows and re-acquire them**. No attempt is made to migrate them.
+- Each entity stores a **header hash** (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, **re-acquire the entity's rows** (they are disposable, so re-acquire is the migration) and then **align the old headers to the new ones**, cheapest rung first:
+  1. normalised exact match (case, accents, whitespace, punctuation);
+  2. `difflib.SequenceMatcher` ratio ≥ 0.8 (stdlib);
+  3. value match: join old rows to new rows on the natural key, when the key column aligned in 1–2, and pair the columns whose parsed values agree on ≥ 90 % of the shared keys;
+  4. leftovers: one LLM call with the old headers, the new headers and 3 sample rows, "no counterpart" allowed.
+- The result is `sync_state.column_map`, `{"old header": "new header"}`, chained across epochs so the oldest name stays usable. `data_json` is always keyed by the **live** header; a query written against an older name is translated through the map. This is what keeps learned procedures and the planner's "Valor is the amount" valid across a rename. Headers with no counterpart are left out of the map and logged (`sync.schema_drift {old, new, aligned, unaligned}`). If the alignment is inconclusive, the behaviour is the old one: an empty entity, no map.
 - Columns are mapped by header text, so a column that only **moves** doesn't break anything.
+- The entity key is the nav map's **node id** for the grid screen, not the screen title; the title is one of that node's appearances ([Appendix E §4.2](E-mapping-methodology.md)). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.
 - If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in [Appendix E §4.5](E-mapping-methodology.md). The sync engine marks the entity `stale` and waits for navigation to recover.
 
 #### 4.3.5 Conflict policy, in one line
@@ -172,6 +182,7 @@ Two agents editing the same record at the same time is ruled out by the assumpti
 | Partial read (time ran out or errors) | Staging count < probe count | **Never swapped in.** The old snapshot stays and the entity is marked `partial`, so answers say so |
 | Time budget | Sync running longer than about 60 s inside one task | Stop syncing and use the targeted path; the 4:30 guard (design 3.5) still writes a summary |
 | Destructive control near a grid (Eliminar, Anular, Integraciones) | Denylist | The sync engine never clicks it; read-only actions only |
+| Header hash changed (a column renamed, added or removed) | `sync_state.header_hash` differs from the live header row | Re-acquire, then the §4.3.4 alignment ladder → `column_map`; inconclusive → empty entity, no map; log `sync.schema_drift` |
 | Cache file lost (Railway redeploy, corruption) | Missing file or `PRAGMA integrity_check` fails | Delete it and start cold; correctness is unaffected |
 
 Every row above writes a JSONL event (`sync.probe`, `sync.acquire`, `sync.fallback`, `sync.conflict`, …) with the entity, method, counts and duration. These events feed the Challenge 2 spec and debrief.
@@ -181,7 +192,7 @@ Every row above writes a JSONL event (`sync.probe`, `sync.acquire`, `sync.fallba
 ```sql
 CREATE TABLE rows (
   app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
-  entity      TEXT NOT NULL,          -- e.g. 'Facturas', named from the screen
+  entity      TEXT NOT NULL,          -- nav-map node id of the grid screen; its title is an appearance (E §4.2)
   natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
   data_json   TEXT NOT NULL,          -- {"Numero": "F-0042", "Total": 1520.00, ...}, keyed by header text
   row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
@@ -194,6 +205,8 @@ CREATE TABLE sync_state (
   app_id      TEXT NOT NULL,
   entity      TEXT NOT NULL,
   header_hash TEXT NOT NULL,          -- §4.3.4 schema drift
+  column_map  TEXT,                   -- §4.3.4 {"old header": "new header"}, chained across epochs
+  role        TEXT NOT NULL DEFAULT 'entity',  -- §4.2: 'entity' | 'changelog' (the app-wide probe)
   row_count   INTEGER,                -- §4.2 probe
   probe_hash  TEXT,                   -- §4.2 probe (page 1)
   status      TEXT NOT NULL CHECK (status IN ('complete','partial','stale')),
@@ -212,9 +225,11 @@ Queries use `json_extract(data_json, '$.Total')`, which is built into SQLite, so
 | We chose | Over | We pay | We get |
 |---|---|---|---|
 | A cache + probe | Always reading live | A small staleness window (§4.3.1) | Lookups under 30 s; repeated reads cost almost nothing |
+| The change log as the first probe | Per-entity probes only | Trusts the app's own log; an unlogged edit waits for the expiry backstop | One navigation per task instead of one per entity; edits to old rows are caught |
 | Lazy per-entity sync | Pre-loading everything | The first read of each entity is slow | No budget spent on tables the task doesn't touch |
 | Targeted reads for single records | One sync path for everything | Two code paths | A one-record answer in seconds, and it is always live |
 | A generic JSON-row schema | Typed tables | Weaker typing; `json_extract` in queries | Works on an app we have never seen |
+| Align columns on a header change | Drop and forget | One LLM call on the headers the cheap rungs miss | Procedures and queries survive a rename; the planner keeps knowing which column is the amount |
 | App-always-wins, read-before-write | Merge or last-write-wins logic | Some write tasks fail with a reported conflict | Never corrupts data another user changed |
 | An ephemeral SQLite file | A managed database | A cold start after a redeploy | Zero ops, stdlib only, no stale data surviving a deploy |
 
@@ -228,12 +243,14 @@ Nothing measured yet. Probe cost and the ladder's success rate are measured in t
 
 ## 7. Open questions
 
+- **4.3 / run book step 0.5:** what `Bitácora de cambios` lists (timestamp, user, entity or module, action, record code), its sort order and pagination, and whether every data edit appears as a row. v1 of the probe needs only its page 1 to change; naming the touched entity (v2) needs an entity column.
 - **4.1:** where `Exportar` output goes (a download, a new screen, a printer dialog), and whether we can read it over RFB.
 - **4.4:** whether select-all + copy works on grids or only on text fields, and what format it produces.
 - Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.
 - Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.
 - Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.
 - Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.
+- Whether the natural-key column survives the 15:30 change. If it doesn't, the value-match rung of §4.3.4 is off, the leftovers go to the LLM rung, and the entity simply restarts.
 
 ---
 

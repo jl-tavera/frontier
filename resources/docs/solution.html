@@ -154,14 +154,14 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <p><strong>The agent that operates what has no API.</strong> This is the one document: sections 0–11 are the design, and the appendix table at the end points at the brief, the recon and every research doc, kept in full in <code>resources/docs/appendixes/</code>. <code>solution.html</code> renders this document, the architecture diagram <strong>and all appendixes in full</strong>; <code>uv run resources/docs/build_html.py</code> regenerates it.</p>
 <h2 id="0-one-page-summary">0. One-page summary<a class="headerlink" href="#0-one-page-summary" title="Permanent link">¶</a></h2>
 <p><strong>Problem.</strong> A 15-year-old management system with no API, no docs and no vendor. The evaluator sends a natural-language task plus a VNC desktop (URL + password) and expects a result within 5 minutes. Evaluation runs on an app <strong>we have never seen</strong>, on a clean desktop, and the app <strong>changes at 15:30</strong>.</p>
-<p><strong>Approach.</strong> Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop, turns pixels into a UI tree with CPU-only OCR + classic CV, and lets Claude pick <strong>named elements</strong>, never coordinates. Everything the agent learns about an app (screens, nav graph, procedures, data) is a per-app memory built <strong>at run time</strong>, so the unseen app is handled exactly like SIGECOM. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.</p>
+<p><strong>Approach.</strong> Our own Python process speaks raw RFB (VNC) over WebSocket to the desktop. A task is a natural-language CRUD action: one fast-model call splits it into typed queries, and a deterministic executor answers reads from a SQLite cache behind a freshness probe and replays learned procedures for writes, clicking stored positions as long as the pixels still match. Perception (CPU-only OCR + classic CV) runs only when something changed, Jev answers the typed questions a changed screen raises, and the tool-use agent loop, which picks <strong>named elements</strong>, never coordinates, is the last resort. Everything the agent learns about an app (screens, nav graph, procedures, data) is a per-app memory built <strong>at run time</strong>, so the unseen app is handled exactly like SIGECOM. The 15:30 change is detected by expected-edge checks and repaired locally inside the task.</p>
 <p><strong>What makes it work on an unseen app</strong>
 1. No hand-coded map: perception + a learned nav graph keyed by the app's title bar.
-2. Semantic targets (label + role + grid cell), grounded to pixels at run time, so a moved or renamed button still works.
-3. A disposable SQLite read cache with a freshness probe, so lookups answer in seconds instead of OCR-paging every time.
-4. A plan → act → verify → replan loop with a 270 s guard that always writes a summary.
+2. Semantic targets (label + role + grid cell), grounded to pixels at run time, so a moved or renamed button still works. Each screen and target keeps one <strong>appearance</strong> per app version, and the map is frozen per <strong>epoch</strong>, so a redesign adds a version instead of breaking memory.
+3. A disposable SQLite read cache behind a freshness probe (the app's own change log when it has one, like SIGECOM's Bitácora de cambios), so lookups answer in seconds instead of OCR-paging every time.
+4. A parse → replay → verify executor with a 270 s guard that always writes a summary; the tool-use agent loop runs only when there is nothing to replay.
 5. One JSONL log of every step, which feeds the Challenge 2 spec, the debrief and the eval harness.</p>
-<p><strong>Six decisions</strong> (full table in §4): raw RFB instead of a headless browser · lossless Raw+CopyRect · hybrid OCR+CV perception with Set-of-Mark · learned per-app map instead of a hand map · export/clipboard before OCR for data · online localized repair instead of a full re-learn.</p>
+<p><strong>Eight decisions</strong> (full table in §4): raw RFB instead of a headless browser · lossless Raw+CopyRect · hybrid OCR+CV perception with Set-of-Mark · learned per-app map instead of a hand map · export/clipboard before OCR for data · online localized repair instead of a full re-learn · replay and probe first, perception on change, the agent last · every model through OpenRouter, Jev for typed decisions.</p>
 <p><strong>Measurement.</strong> About 15 NL tasks on SIGECOM (lookup, filter, create, edit, export, multi-screen) with checkable answers. Metrics: success %, time per task, steps per task, click hit rate, drift detected/recovered. Baseline before 15:30, re-run after, plus a map-mutation suite that simulates the change in advance (§6).</p>
 <hr />
 <h2 id="1-problem-and-constraints">1. Problem and constraints<a class="headerlink" href="#1-problem-and-constraints" title="Permanent link">¶</a></h2>
@@ -226,8 +226,8 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
                          [B] Task Runner (1 asyncio task per job, 4:30 budget guard)
                                │
                                ▼
-                         [C] Agent Loop (Claude, tool use)
-                     plan → act → verify → replan → summarize
+                         [C] Agent: parse (fast model) → executor (replay + probe) → summarize
+                             fallback: Jev typed decisions → VLM → tool-use loop (planner model)
                         │            │              │
                         ▼            ▼              ▼
               [D] Tool Layer   [E] Perception   [F] App Memory
@@ -248,8 +248,8 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
   Cross-cutting: [H] structured JSONL log (every step: tool, args, screen_id,
   diff, outcome) → feeds Challenge 2 spec, debrief, and the eval harness.
 
-  [S] Data Sync Engine (track 4): need(entity) → [DB] SQLite cache hit + probe → SQL answer
-      miss / stale → ladder: Exportar → clipboard → OCR paging → staging → atomic swap into [DB]
+  [S] Data Sync Engine (track 4): need(entity) → probe: change-log page 1 (one screen for all entities) or the entity's grid
+      → [DB] SQLite cache hit → SQL answer · miss / stale → ladder: Exportar → clipboard → OCR paging → staging → atomic swap into [DB]
       one-way pull, app always wins, write tasks never read the cache
 </code></pre>
 <h3 id="32-tech-stack">3.2 Tech stack<a class="headerlink" href="#32-tech-stack" title="Permanent link">¶</a></h3>
@@ -278,9 +278,9 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <td>No broker to deploy before 20:00 (upgrade path in §10)</td>
 </tr>
 <tr>
-<td>[C] Agent loop</td>
-<td>Anthropic Python SDK. Claude Opus 5.5 (<code>claude-opus-5-5</code>) for planning, replanning and recovery; Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>) as the optional cheaper tier for routine steps, only if measurements call for it. Prompt caching on system prompt + tool schemas + map summary. Jev (TypeSafe AI) as an optional System 1 behind a confidence gate</td>
-<td>Tool-use loop with batched actions first, then plan-then-execute (Appendix F). Agent frameworks and MCP discarded: no latency gain, more to explain</td>
+<td>[C] Agent</td>
+<td><code>openai</code> SDK pointed at OpenRouter, three model tiers from env: <code>MODEL_FAST</code> (task → typed CRUD queries, summary), <code>MODEL_VLM</code> (re-ground and re-identify with a Set-of-Mark image), <code>MODEL_PLANNER</code> (the tool-use fallback loop, replans). Jev (TypeSafe AI, <code>typesafe-sdk</code>) as System 1 for the typed per-step questions behind a 0.8 confidence gate, with <code>MODEL_FAST</code> as its keyless fallback. Prompt caching where OpenRouter passes it through</td>
+<td>Parse → deterministic executor first, tool-use loop last (Appendix F). Anthropic SDK discarded: one vendor door for every model. Agent frameworks and MCP discarded: no latency gain, more to explain</td>
 </tr>
 <tr>
 <td>[D] Tools</td>
@@ -294,12 +294,12 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td>[F] App memory</td>
-<td>Nav graph: one JSON per app (<code>memory/&lt;app_id&gt;.json</code>, Appendix E §4.2): nodes, edges with semantic targets, procedures, frontier</td>
+<td>Nav graph: one map per app epoch (<code>memory/&lt;app_id&gt;/&lt;version&gt;/map.json</code>, next to that version's reference PNGs and crops, Appendix E §4.2): nodes and targets with one appearance per version, edges, procedures, frontier</td>
 <td>Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded</td>
 </tr>
 <tr>
 <td>[S] Data sync engine</td>
-<td>Plain Python: <code>need(entity)</code> → probe (row count + page-1 hash) → cache hit or acquire through the ladder Exportar → clipboard (<code>ServerCutText</code>) → OCR paging; normalise by header text; staging table → one-transaction swap; write-through read-back after our own writes (Appendix G)</td>
+<td>Plain Python: <code>need(entity)</code> → probe: the app's change-log page 1 when one is registered (once per task, one screen for every entity), else the entity's row count + page-1 hash → cache hit or acquire through the ladder Exportar → clipboard (<code>ServerCutText</code>) → OCR paging; normalise by header text; staging table → one-transaction swap; write-through read-back after our own writes; on a header change, align old → new columns into <code>column_map</code> (Appendix G)</td>
 <td>Always reading live: 30–120 s per entity. Push/CDC: impossible, there is only pixels</td>
 </tr>
 <tr>
@@ -328,9 +328,9 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <ol>
 <li><code>POST /tasks {task, desktop:{url,password}}</code> → validate Bearer → store <code>en_curso</code> → return <code>task_id</code>.</li>
 <li>Runner opens an RFB session [G] with the given URL+password and takes the first screenshot.</li>
-<li>[E] fingerprints the screen and identifies the app (title bar) → [F] loads its map if one exists, otherwise starts cold (first task on an app: ≤ 45 s menu pre-warm, Appendix E §4.3).</li>
-<li>[C] gets the task + current screen elements + map summary and plans in one call. Every tool call: act → settle → [E] diff/fingerprint → compare with the edge's expected screen → return the observed effect.</li>
-<li>Unexpected screen / no effect → [E] flags drift → [F] marks the node stale → [C] runs the repair ladder (§6). This is the 15:30 path.</li>
+<li>[E] fingerprints the screen and identifies the app (title bar) → [F] loads the map for that app and version if one exists, inherits the previous version's map as hints if only the version is new, otherwise starts cold (first task on an app or on a new version: ≤ 45 s menu pre-warm, Appendix E §4.3).</li>
+<li>[C] splits the task into typed CRUD queries with one fast-model call. The executor runs them: reads go change-log probe → [DB] cache → SQL (on a miss, the [S] ladder); writes replay the stored procedure for that (op, entity) with the query's fields. Every step: <code>observe</code> replays the stored bbox while the static pixels match (a target that only moved is found by template match) → act → settle → compare with the edge's expected effect → return the observed effect. Perception runs only on a changed screen.</li>
+<li>Unexpected screen / no effect → [E] flags drift → [F] marks the node stale → [C] runs the repair ladder (§6): Jev picks the new target from the element list, the VLM when Jev is unsure, local re-explore, replan. The tool-use loop with <code>MODEL_PLANNER</code> takes over only when a query has no procedure, the parse is unsure or the ladder is exhausted, and it stores what it did as the procedure for next time. This is the 15:30 path and the unseen-app path.</li>
 <li>Finish or 270 s guard → [C] writes the summary in the README format → status <code>terminada</code> / <code>fallida</code>. [F] persists anything new it learned.</li>
 </ol>
 <h3 id="34-deployment-on-railway">3.4 Deployment on Railway<a class="headerlink" href="#34-deployment-on-railway" title="Permanent link">¶</a></h3>
@@ -361,7 +361,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td>Variables</td>
-<td><code>TEAM_TOKEN</code> (Bearer check), <code>ANTHROPIC_API_KEY</code>, optional <code>JEV_API_KEY</code>, <code>LOG_DIR</code>. The desktop URL and password arrive <strong>per task</strong> in the request body, never from env (track 1.1)</td>
+<td><code>TEAM_TOKEN</code> (Bearer check), <code>OPENROUTER_API_KEY</code>, <code>MODEL_FAST</code>, <code>MODEL_VLM</code>, <code>MODEL_PLANNER</code> (OpenRouter model ids, filled by hand before the first build), optional <code>TYPESAFE_API_KEY</code> (Jev; without it the typed questions go to <code>MODEL_FAST</code>), <code>LOG_DIR</code>. The desktop URL and password arrive <strong>per task</strong> in the request body, never from env (track 1.1)</td>
 </tr>
 <tr>
 <td>Storage</td>
@@ -369,7 +369,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td>Network</td>
-<td>Inbound HTTPS from the evaluator. Outbound WSS to the target's <code>/websockify</code> and HTTPS to the Anthropic API. Nothing else</td>
+<td>Inbound HTTPS from the evaluator. Outbound WSS to the target's <code>/websockify</code>, HTTPS to OpenRouter and to the Jev endpoint. Nothing else</td>
 </tr>
 <tr>
 <td>Resources</td>
@@ -406,12 +406,12 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>Clicking</td>
-<td>Model names the target → grounded by perception</td>
-<td>Model outputs raw x,y: not accurate enough and breaks when layout shifts</td>
+<td>Replay the stored bbox while the static pixels match; a target that only moved by template match of its crop; only then the model names the target and perception grounds it</td>
+<td>Model outputs raw x,y: not accurate enough and breaks when layout shifts. OCR on every step: a second per step for nothing on a mapped app</td>
 </tr>
 <tr>
 <td>Perception</td>
-<td>Hybrid on CPU: OCR (RapidOCR, Latin model) for text+bbox + OpenCV for widget boxes → heuristic UI tree; Claude picks element ids via Set-of-Mark (Appendix H)</td>
+<td>Hybrid on CPU: OCR (RapidOCR, Latin model) for text+bbox + OpenCV for widget boxes → heuristic UI tree; the model picks element ids via Set-of-Mark (Appendix H)</td>
 <td>Vision alone: imprecise boxes. OCR alone: no notion of widgets. Raw x,y from the model: fallback only. Specialist grounding models (UI-TARS, OmniParser captioner): need a GPU</td>
 </tr>
 <tr>
@@ -441,8 +441,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>Data reads</td>
-<td>Native export / clipboard first, OCR paging as fallback; disposable SQLite cache with a probe (Appendix G)</td>
-<td>OCR every page: slow and error-prone. Always-live reads: too slow for lookups</td>
+<td>Disposable SQLite cache behind a probe: the app's change log when it has one, else the entity's grid; on a miss native export / clipboard first, OCR paging last (Appendix G)</td>
+<td>OCR every page: slow and error-prone. Always-live reads: too slow for lookups. Per-entity probe only: one navigation per entity per task</td>
 </tr>
 <tr>
 <td>Concurrency</td>
@@ -455,14 +455,24 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <td>Full re-learn: too slow inside 5 min. Offline-only repair: fails exactly when the change hits</td>
 </tr>
 <tr>
+<td>Redesign-scale change</td>
+<td>Rung 0: open a new epoch that inherits the old map as hints, re-run the pre-warm; screens and targets keep one appearance per version; data columns aligned old → new (§6)</td>
+<td>Treating it as N independent edge failures: ≈ 50 s each, budget gone after 3. Deleting the old map: loses the flip-back and the before/after diff</td>
+</tr>
+<tr>
 <td>Tool exposure</td>
 <td>Plain Python functions called by the loop</td>
 <td>MCP: an extra process and hop; nothing outside the service needs the tools</td>
 </tr>
 <tr>
 <td>Agent loop</td>
-<td>Plan-then-execute with Claude, batched actions, verify per step; Jev as an optional fast verifier/picker (Appendix F)</td>
-<td>Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain</td>
+<td>One fast-model call parses the task into typed CRUD queries; a deterministic executor replays and verifies; Jev answers the typed questions a changed screen raises; the tool-use loop with batched actions runs only as the fallback and learns the procedure (Appendix F)</td>
+<td>Tool-use loop on every task: 3–5× the LLM calls and a second of OCR per step. Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain</td>
+</tr>
+<tr>
+<td>Model access</td>
+<td>Every LLM through OpenRouter (<code>openai</code> SDK with <code>base_url</code>), three tiers from env; Jev through <code>typesafe-sdk</code> with a keyless fallback behind the same <code>decide</code></td>
+<td>Anthropic SDK: a second vendor door and a second fake to maintain; one API shape for every tier is less to build and easier to swap</td>
 </tr>
 <tr>
 <td>Storage</td>
@@ -597,8 +607,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>3.5</td>
-<td><strong>Agent loop</strong> (strategy in Appendix F): plan → act → verify → replan; budget guard that stops at about 4:30 and writes a summary</td>
-<td>never times out without a summary</td>
+<td><strong>Executor + fallback loop</strong> (strategy in Appendix F): parse → replay → verify, the tool-use loop as the last resort; budget guard that stops at about 4:30 and writes a summary</td>
+<td>never times out without a summary; a mapped lookup runs with 2 LLM calls</td>
 </tr>
 <tr>
 <td>3.6</td>
@@ -607,7 +617,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>3.7</td>
-<td><strong>Fast loop strategy</strong>: batching, plan-then-execute, Jev System 1 spike (see Appendix F)</td>
+<td><strong>Fast loop strategy</strong>: replay before perception, Jev System 1 on a changed screen, batching inside the fallback (see Appendix F)</td>
 <td>s/step and steps/task measured on the 3.6 harness; the chosen strategy beats the baseline</td>
 </tr>
 </tbody>
@@ -634,7 +644,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>4.3</td>
-<td><strong>Read cache</strong>: snapshot of entities (Clientes, Facturas, Pedidos) so read-only tasks are answered without a slow UI walk, plus a freshness rule (invalidate after any write)</td>
+<td><strong>Read cache</strong>: snapshot of entities (Clientes, Facturas, Pedidos) so read-only tasks are answered without a slow UI walk, plus a freshness probe: the app's change log when it has one (SIGECOM: Bitácora de cambios), else the entity's grid; our own writes read back and advance the watermark</td>
 <td>a lookup task in under 30s</td>
 </tr>
 <tr>
@@ -681,7 +691,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>7.5</td>
-<td><strong>Set-of-Mark prompt</strong>: element list as text, numbered-box image only on new screens; Claude returns an element id</td>
+<td><strong>Set-of-Mark prompt</strong>: element list as text, numbered-box image only on new screens; the model returns an element id</td>
 <td>≥95% hit on named targets (shared with 3.2)</td>
 </tr>
 <tr>
@@ -691,14 +701,14 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>7.7</td>
-<td><strong>Fallbacks</strong>: upscale + Tesseract on low confidence; Claude raw x,y for targets with no text and no box</td>
+<td><strong>Fallbacks</strong>: upscale + Tesseract on low confidence; VLM raw x,y for targets with no text and no box</td>
 <td>an icon-only button is still clickable</td>
 </tr>
 </tbody>
 </table></div>
 <h2 id="6-incident-response-the-1530-change">6. Incident response: the 15:30 change<a class="headerlink" href="#6-incident-response-the-1530-change" title="Permanent link">¶</a></h2>
 <p>Full spec in Appendix E §4.5–§6. The short version:</p>
-<p><strong>Signals, any one triggers:</strong> S1 target label not found · S2 no change after the action · S3 landed on a different known node · S4 landed on an unmatched screen · S5 app version string changed · S6 the edge's outcome histogram has more than one node with real mass. On the data side, a changed <strong>header hash</strong> of an entity drops and re-acquires that entity (Appendix G §4.3.4).</p>
+<p><strong>Signals, any one triggers:</strong> S1 target label not found · S2 no change after the action · S3 landed on a different known node · S4 landed on an unmatched screen · S5 app version string changed · S6 the edge's outcome histogram has more than one node with real mass · S7 mass drift: under 40 % of the map's menu atoms on screen at task start, or 3 unmatched screens in a row. On the data side, a changed <strong>header hash</strong> of an entity re-acquires that entity and aligns its old columns to the new ones (Appendix G §4.3.4).</p>
 <p><strong>Order of checks on every step:</strong> blocking dialog? → overlay? → data edge? → only then drift. Each of the first three is a cheap false-positive filter.</p>
 <p><strong>Repair ladder, each rung bounded, next rung only on failure:</strong></p>
 <div class="tw"><table>
@@ -711,8 +721,13 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </thead>
 <tbody>
 <tr>
+<td>0</td>
+<td>Re-identify the epoch (S5 or S7 only): open a new epoch directory whose map inherits every node as stale and every edge as a hint, re-run the menu pre-warm; the old epoch is never written again. A redesign costs one pre-warm; a known epoch (the app flipped back) loads for free</td>
+<td>≤ 10 s + pre-warm</td>
+</tr>
+<tr>
 <td>1</td>
-<td>Re-ground in place: fuzzy label → same role + cell → VLM "which element does what the old one did", old action as few-shot. Patch the edge, keep the node</td>
+<td>Re-ground in place: template match of the old crop (moved only, no OCR) → fuzzy label → same role + cell → Jev typed choice over the element list, "which element does what the old one did", old action as few-shot, acted on at ≥ 0.8 → VLM with the Set-of-Mark image. Append the new appearance to the target, keep the node</td>
 <td>≤ 5 s</td>
 </tr>
 <tr>
@@ -732,11 +747,11 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<p>Every rung logs <code>{signal, rung, before, after, cost_ms}</code> to the JSONL, which is what the Challenge 2 spec and the debrief cite.</p>
-<p><strong>Proving it before 15:30.</strong> Drift is a function of (stored map, live screen), so we mutate the stored map with a <code>--mutate &lt;kind&gt;</code> flag (renamed label, removed control, landing mismatch, moved menu item, unknown screen, persistent break) plus two negative controls, and assert the expected log lines. A framebuffer transform hook (0.8× downscale, +40/+25 px shift) proves nothing depends on raw x,y. Run the suite before 15:30, re-run on the real change, show the delta.</p>
+<p>After rung 3 the tool-use loop takes the step with the planner model and writes what worked back as the procedure. Every rung logs <code>{signal, rung, via, confidence, before, after, cost_ms}</code> to the JSONL, which is what the Challenge 2 spec and the debrief cite.</p>
+<p><strong>Proving it before 15:30.</strong> Drift is a function of (stored map, live screen), so we mutate the stored map with a <code>--mutate &lt;kind&gt;</code> flag (renamed label, removed control, landing mismatch, moved menu item, unknown screen, persistent break, version bump, redesign: every atom replaced and two grid headers renamed, with and without a version bump) plus three negative controls, and assert the expected log lines. A framebuffer transform hook (0.8× downscale, +40/+25 px shift) proves nothing depends on raw x,y. Run the suite before 15:30, re-run on the real change, show the delta.</p>
 <h2 id="7-measurement-plan">7. Measurement plan<a class="headerlink" href="#7-measurement-plan" title="Permanent link">¶</a></h2>
 <p>Eval harness (3.6): about 15 NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.</p>
-<p>Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, LLM calls per task, steps per task, recoveries, escalation rate (Jev → Claude). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §6).</p>
+<p>Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, fastpath breakdown per step (hit / moved / perceived / llm), probe outcome (change log or entity, hit or miss), LLM calls per task by tier, steps per task, recoveries, escalation rate (Jev → VLM → planner). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §6). On a redesign: seconds to recognise the epoch at task start, nodes re-identified / inherited, columns aligned / total.</p>
 <h2 id="8-assumptions-and-out-of-scope">8. Assumptions and out of scope<a class="headerlink" href="#8-assumptions-and-out-of-scope" title="Permanent link">¶</a></h2>
 <ul>
 <li>The unseen app is a GUI with readable text (Latin script, horizontal) and conventional widgets. Canvas-heavy, drawing-style apps are out of scope.</li>
@@ -744,7 +759,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <li>Destructive actions (delete, anular, Integraciones) need the task to state them explicitly. Denylist by default: <code>Integraciones, Eliminar, Anular, Borrar, Guardar*, Enviar, Configuración</code>.</li>
 <li>One task at a time per desktop. Parallel tasks on the same desktop aren't supported.</li>
 <li>VNC Authentication (type 2) only; type 1 (None) is trivial to add; VeNCrypt and RA2 are out of scope.</li>
-<li>Icons with no text fall back to Claude raw coordinates. CPU-only deploy, no specialist grounding models.</li>
+<li>Icons with no text fall back to the VLM's raw coordinates. CPU-only deploy, no specialist grounding models.</li>
+<li>The change-log probe trusts the app's own log. An edit the app does not log is caught only by the expiry backstop, or by the per-entity probe on a miss.</li>
 <li>The data cache has a known staleness window (an old row edited without changing the count); bounded by an expiry time and the targeted-read path (Appendix G §4.3.1).</li>
 </ul>
 <h2 id="9-order-and-dependencies">9. Order and dependencies<a class="headerlink" href="#9-order-and-dependencies" title="Permanent link">¶</a></h2>
@@ -781,8 +797,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>App memory persistence</td>
-<td>One JSON per app on the container disk</td>
-<td>Railway volume (<code>RAILWAY_VOLUME_MOUNT_PATH</code>) or Postgres; versioned maps with a drift history; shared across instances</td>
+<td>One JSON per app epoch on the container disk</td>
+<td>Railway volume (<code>RAILWAY_VOLUME_MOUNT_PATH</code>) or Postgres; shared across instances</td>
 <td>Maps must survive a redeploy or be shared by several workers</td>
 </tr>
 <tr>
@@ -805,9 +821,15 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>Agent loop</td>
-<td>L1+L2 batched tool use, then L3 plan-then-execute</td>
-<td>Jev System 1 gate if it passes the adoption criteria; model tiering (Opus 5.5 plan/recover, Sonnet 5.5 routine); prompt caching verified with <code>cache_read_input_tokens</code>; parallel tool calls</td>
+<td>Parse → executor, Jev on a changed screen, the tool-use loop as the fallback</td>
+<td>Jev for <code>effect_ok</code> and <code>done</code> on every step, not only on a miss; per-tier model ids tuned on the harness; prompt caching verified through OpenRouter's usage fields; parallel tool calls</td>
 <td>Seconds per step or LLM calls per task above the harness targets</td>
+</tr>
+<tr>
+<td>Freshness probe</td>
+<td>Change-log page 1 marks every entity stale</td>
+<td>Parse the change-log rows to invalidate only the entities they name</td>
+<td>The Bitácora names the entity per row and re-acquires cost more than the parse</td>
 </tr>
 <tr>
 <td>Mapping across tasks</td>
@@ -850,9 +872,9 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <h2 id="11-known-unknowns-consolidated">11. Known unknowns (consolidated)<a class="headerlink" href="#11-known-unknowns-consolidated" title="Permanent link">¶</a></h2>
 <p>From the brief (Appendix A): summary format and evaluation rules (material README), details of the 15:30 change, access to the test app, team token.</p>
 <p>From the recon (Appendix B): exact RFB server version and security type; VNC server implementation and what wraps SIGECOM; whether SIGECOM is a web app in an embedded browser or a native toolkit; the true native resolution/DPI (1280×800 measured by the POC); the accounting connector behind the Integraciones key; per-IP / rate / concurrency limits.</p>
-<p>From data sync (Appendix G §7): where <code>Exportar</code> output goes; whether select-all + copy works on grids; whether grids show a total count; whether entities have a visible unique id; whether grids can sort newest first; probe cost on the unseen app.</p>
+<p>From data sync (Appendix G §7): what the Bitácora de cambios lists (columns, order, whether every edit appears); where <code>Exportar</code> output goes; whether select-all + copy works on grids; whether grids show a total count; whether entities have a visible unique id; whether grids can sort newest first; probe cost on the unseen app.</p>
 <p>From perception (Appendix H §7): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; <code>click_text</code> hit rate; timings on Railway.</p>
-<p>From the agent loop (Appendix F §7): Jev access (early access key), out-of-distribution behaviour on the unseen app, vendor-run benchmarks.</p>
+<p>From the agent loop (Appendix F §7): Jev's out-of-distribution behaviour on the unseen app, vendor-run benchmarks, which OpenRouter models fill the three tiers.</p>
 <hr />
 <h2 id="appendixes">Appendixes<a class="headerlink" href="#appendixes" title="Permanent link">¶</a></h2>
 <p>The source documents live in <code>resources/docs/appendixes/</code>, letter-prefixed in this order. Every research appendix (C–H) follows the same structure: 1 Summary · 2 Problem and constraints · 3 Options considered · 4 Chosen design · 5 Trade-offs · 6 Evidence and measurement · 7 Open questions · 8 Sources. Each one opens with a status line saying how the final design uses it. <code>solution.html</code> includes all of them in full after this section, and each one is also published as its own page.</p>
@@ -900,7 +922,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <td>Platform mapping: methodology</td>
 <td><a href="#appendix-e">E-mapping-methodology.md</a></td>
 <td><a href="appendixes/E-mapping-methodology.html">open</a></td>
-<td>fingerprint, map schema, pre-warm, planning, repair ladder, budget, tests</td>
+<td>fingerprint, map schema, appearances and epochs, pre-warm, planning, repair ladder, budget, tests</td>
 </tr>
 <tr>
 <td>F</td>
@@ -914,7 +936,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <td>Data sync and read cache</td>
 <td><a href="#appendix-g">G-data-sync.md</a></td>
 <td><a href="appendixes/G-data-sync.html">open</a></td>
-<td>cache, freshness probe, conflicts, errors, SQLite schema</td>
+<td>cache, freshness probe, conflicts, column alignment, errors, SQLite schema</td>
 </tr>
 <tr>
 <td>H</td>
@@ -1508,7 +1530,7 @@ Ayuda
 </tr>
 <tr>
 <td>Agent and service</td>
-<td>Anthropic SDK, FastAPI, all in one process</td>
+<td><code>openai</code> SDK against OpenRouter, <code>typesafe-sdk</code>, FastAPI, all in one process</td>
 <td>good SDKs</td>
 <td>OK</td>
 <td>thin</td>
@@ -1988,7 +2010,7 @@ Ayuda
 <ul>
 <li><code>elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]</code> from track 7. Timing: known screen &lt; 1 s (7.6 cache), <strong>first sight of a dense screen ≈ 8 s</strong> — budgeted below.</li>
 <li><code>settle()</code>, <code>changed_bbox(before, after)</code>, <code>click/type/key</code> from <a href="#appendix-i"><code>poc/rfb_poc.py</code></a>.</li>
-<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. A version change is itself a drift hint (S5).</li>
+<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. An <strong>epoch</strong> is one <code>(app_id, version)</code> and has its own map file (§4.2). A version change is itself a drift signal (S5), and so is mass drift under the same version string (S7).</li>
 </ul>
 <hr />
 <h3 id="3-options-considered_2">3. Options considered<a class="headerlink" href="#3-options-considered_2" title="Permanent link">¶</a></h3>
@@ -2054,7 +2076,7 @@ Ayuda
 <tr>
 <td>9</td>
 <td><strong>Drift has two kinds: appearance (same function, new look/label/place) and workflow (steps reorganised).</strong> Store function → many appearances.</td>
-<td>A redesign adds an appearance instead of breaking the memory.</td>
+<td>A redesign adds an appearance instead of breaking the memory. Implemented as the <code>appearances</code> lists in §4.2.</td>
 <td>MAGNET</td>
 </tr>
 <tr>
@@ -2075,24 +2097,27 @@ Ayuda
 <li><strong><code>fingerprint = (title_band, atoms)</code>.</strong>
    - The title band (top ~15 %) is a <strong>hard key</strong>: it must match before anything else, so Clientes and Proveedores with identical toolbars never merge.
    - Then <code>sim = Jaccard(atoms)</code>: <strong>≥ 0.90 same node · 0.60–0.90 ambiguous · &lt; 0.60 new node.</strong>
-   - Ambiguous: tie-break by the inbound edge label first; only then pay for one VLM yes/no against the node's reference screenshot, with "none of them" allowed.</li>
+   - Ambiguous: tie-break by the inbound edge label first; only then pay for one VLM yes/no against the node's reference screenshot, with "none of them" allowed.
+   - A node keeps one <code>(atoms, ref_png)</code> pair per app version (its <strong>appearances</strong>, §4.2); <code>sim</code> is the max over them. In a new epoch (§4.5 rung 0) the inherited stale nodes use a wider ambiguous band, <strong>0.30–0.90</strong>, with at most 5 candidates ranked by title similarity, so a redesigned screen is re-identified as the old node (and gains an appearance) before a new node is created.</li>
 <li><strong>Overlays are sub-states, not nodes.</strong> If <code>changed_bbox</code> covers &lt; ~25 % of the screen and the parent's labels are still visible (dropdown, combo list, tooltip): <code>overlay = parent_id + overlay labels</code>. Close with <code>Esc</code>, re-verify the parent. Prevents spurious nodes, <code>Esc</code> edges to nowhere, and VLM calls at 0.7–0.9.</li>
 <li><strong>Blocking dialogs are checked before drift.</strong> Small centered rectangle with ≤ 3 buttons → OCR its text into the log → <code>Esc</code> or the non-destructive button → re-fingerprint. A dialog never counts as drift and never starts the ladder.</li>
 <li><strong>In-page state does not change the node.</strong> Filter text, pagination, selected row, scroll are <strong>self-loop edges</strong> with an <code>effect</code> field.</li>
 </ol>
 <p><strong>Done when:</strong> the same screen at two resolutions → one id; 10 distinct SIGECOM screens → 10 ids; a dropdown open/closed → same node.</p>
 <h4 id="42-map-schema-m2-sub-problem-24">4.2 Map schema (M2 → sub-problem 2.4)<a class="headerlink" href="#42-map-schema-m2-sub-problem-24" title="Permanent link">¶</a></h4>
-<p>One JSON per app: <code>memory/&lt;app_id&gt;.json</code>. No database.</p>
-<pre><code class="language-jsonc">node      = {id, title, atoms[], description, ref_png, elements_snapshot,
-             transient, stale, seen, last_seen}
-edge      = {from, action: {kind, target: {label, role, cell}, params},
-             to, effect, data?, scroll?, ok, fail, last_ok, outcomes: {node_id: count}}
+<p>One directory per app epoch: <code>memory/&lt;app_id&gt;/&lt;version&gt;/</code> holds <code>map.json</code> and that version's reference PNGs and static crops, named by node id (<code>epoch-&lt;n&gt;</code> when the title bar carries no version). No database. The live epoch is the directory named after the title bar's version; once a newer one exists the old directory is never written again, which is what makes it a frozen version. §4.5 rung 0 says when a new one is opened.</p>
+<pre><code class="language-jsonc">node      = {id, title, description, transient, stale, seen, last_seen,
+             appearances: [{version, atoms[], ref_png, elements_snapshot, last_seen}]}   // one per app version, newest first; crops as files
+edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell}]}, params},
+             to, effect, data?, scroll?, inherited?, ok, fail, last_ok, outcomes: {node_id: count}}
 procedure = {task_text, steps: [edge_id | self_loop + params], ok, last_ok}
 unexplored[node_id] = [action signatures not yet tried]       // the frontier
 denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;, &quot;Borrar&quot;, &quot;Guardar*&quot;, &quot;Enviar&quot;, &quot;Configuración&quot;]
 </code></pre>
 <ul>
 <li><code>description</code> is written by the LLM <strong>lazily</strong>, in one batched call at write-back, never per node.</li>
+<li><code>appearances</code> is MAGNET's "function → many appearances" (§3.1 idea 9): the node id and its description are the stable function; each app version adds a look: its atoms, <code>ref_png</code>, <code>elements_snapshot</code> and the static crops the replay fast path compares, stored as files in that version's directory. Fingerprint matching and target grounding take the newest appearance first and fall back through the older ones. Rung 1 appends an appearance; it never overwrites one.</li>
+<li><code>inherited: true</code> marks an edge copied from the previous epoch and not yet verified in this one. The planner sees it as a hint, ranked below any verified edge; the first confirmed landing clears the flag.</li>
 <li><code>data: true</code> when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the <strong>find procedure</strong> (search field → type → Enter → <code>Siguiente</code> ≤ N pages), never the repair ladder. We store the procedure, not the row click.</li>
 <li><code>scroll: true</code> when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.</li>
 <li><code>outcomes</code> is the histogram of where this action actually led. More than one node with real mass = an unreliable edge (S6).</li>
@@ -2103,8 +2128,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <h4 id="43-initial-mapping-m3-sub-problems-22-and-25">4.3 Initial mapping (M3 → sub-problems 2.2 and 2.5)<a class="headerlink" href="#43-initial-mapping-m3-sub-problems-22-and-25" title="Permanent link">¶</a></h4>
 <p>Decision for 2.5: <strong>cold + incremental</strong>, with one bounded pre-warm. No app-wide exploration ever.</p>
 <ol>
-<li><strong>Connect → identify app → load map or start cold.</strong> ~5 s.</li>
-<li><strong>Pre-warm, first task on an app only, ≤ 45 s.</strong> Open each top menu: click → <code>settle</code> → OCR → <code>Esc</code> ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. <strong>Open menus only, never click items.</strong> Record <code>menu → item</code> edges with <code>to = unknown</code>. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.</li>
+<li><strong>Connect → identify app → load the epoch or start cold.</strong> ~5 s. <code>(app_id, version)</code> matches a frozen epoch (the app flipped back): load it. Same <code>app_id</code>, new version: §4.5 rung 0 (inherit, pre-warm). No <code>app_id</code> at all (the title bar was rebranded): Jaccard of the first screen's menu atoms against every stored app's root node; ≥ 0.5 adopts that app as a new epoch, else cold.</li>
+<li><strong>Pre-warm, first task on an epoch only, ≤ 45 s.</strong> Open each top menu: click → <code>settle</code> → OCR → <code>Esc</code> ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. <strong>Open menus only, never click items.</strong> Record <code>menu → item</code> edges with <code>to = unknown</code>. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.</li>
 <li><strong>Task-driven mapping.</strong> Every action during a task: act → <code>settle</code> → <code>elements</code> → fingerprint → create/match node → upsert edge with the observed <code>to</code>. <strong>An edge is persisted only once its landing fingerprint is confirmed.</strong> Nothing is learned off the task path unless the planner is stuck.</li>
 <li><strong>Frontier mode (planner stuck).</strong> Take the unexplored actions on the current node, ranked by label similarity to the task text; one action per step; back out via <code>Esc</code> or the recorded return edge. ≤ 40 s per episode.</li>
 <li><strong>Write-back at task end.</strong> Nodes, edges, procedure persisted; new nodes described in one batched LLM call.</li>
@@ -2113,11 +2138,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <p><strong>Done when:</strong> the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.</p>
 <h4 id="44-task-time-use-m4-feeds-35">4.4 Task-time use (M4 → feeds 3.5)<a class="headerlink" href="#44-task-time-use-m4-feeds-35" title="Permanent link">¶</a></h4>
 <ol>
-<li><strong>Plan: one LLM call.</strong> Input: task + compact graph (node titles + descriptions; edges as <code>Inicio —[click "Cartera › Facturas"]→ Facturas</code>; procedures whose <code>task_text</code> is similar). Output: ordered steps, each an edge, a self-loop with params, or <code>explore</code>.</li>
-<li><strong>Execute a step.</strong> Ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell) → act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §4.5.
+<li><strong>Plan.</strong> On a mapped app the plan is the parsed queries plus the stored procedure for each <code>(op, entity)</code> (<a href="#appendix-f">Appendix F §4.1</a>); the graph planner call below runs only in the fallback loop and at §4.5 rung 3. Input: task + compact graph (node titles + descriptions; edges as <code>Inicio —[click "Cartera › Facturas"]→ Facturas</code>; procedures whose <code>task_text</code> is similar). Output: ordered steps, each an edge, a self-loop with params, or <code>explore</code>.</li>
+<li><strong>Execute a step.</strong> Cheapest grounding first: the stored bbox while the node's static crops match byte-for-byte (Spec W <code>observe</code>); a target that only moved, by template match of its stored crop over the frame (≥ 0.95, logged <code>fastpath: moved</code>); only then perception: ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell). Then act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §4.5.
    - <code>fill_field</code>: click the <strong>paired input box</strong> (7.3), confirm a caret or text appeared inside that bbox, else <code>Tab</code>. Keyboard focus is invisible to the fingerprint.</li>
 <li><strong>Verify completion</strong> against the last screen's elements; write the summary in the README format.</li>
-<li><strong>Targets per step:</strong> act + settle ≤ 2 s, OCR ≤ 1 s, fingerprint in ms. <strong>LLM calls per task ≤ 3 on a warm map.</strong></li>
+<li><strong>Targets per step:</strong> act + settle ≤ 2 s, OCR ≤ 1 s when it runs, fingerprint in ms. <strong>LLM calls per task: 2 on a warm map (parse, summary), ≤ 3 with one replan.</strong></li>
 </ol>
 <h4 id="45-change-detection-and-repair-m5-sub-problem-26-the-1530-path">4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)<a class="headerlink" href="#45-change-detection-and-repair-m5-sub-problem-26-the-1530-path" title="Permanent link">¶</a></h4>
 <p><strong>Signals</strong> (any one triggers):</p>
@@ -2153,6 +2178,10 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>S6</td>
 <td>the edge's <code>outcomes</code> histogram has &gt; 1 node with real mass</td>
 </tr>
+<tr>
+<td>S7</td>
+<td>mass drift: at task start fewer than 40 % of the map's menu atoms are on screen, or 3 consecutive S4 inside one task (threshold tunable)</td>
+</tr>
 </tbody>
 </table></div>
 <p><strong>Order of checks on every step: blocker dialog? → overlay? → data edge? → only then drift.</strong> Each of the first three is a cheap false-positive filter.</p>
@@ -2168,8 +2197,14 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </thead>
 <tbody>
 <tr>
+<td>0</td>
+<td><strong>Re-identify the epoch.</strong> Open <code>memory/&lt;app_id&gt;/&lt;new version&gt;/</code> with a <code>map.json</code> copied from the previous epoch, every node <code>stale</code> and every edge <code>inherited</code>; appearances keep their <code>version</code>, so their crops and <code>ref_png</code> still resolve into the old directory; run the §4.3 step 2 pre-warm again. From here each inherited edge goes through rungs 1–3 with its old appearance as the few-shot, and unmatched screens are re-identified against inherited nodes before becoming new ones (§4.1).</td>
+<td>≤ 10 s + one pre-warm</td>
+<td>S5 or S7 only: a version bump or a redesign.</td>
+</tr>
+<tr>
 <td>1</td>
-<td><strong>Re-ground in place.</strong> Fuzzy label → same role + cell → VLM "which element does what the old one did", with the old action as a few-shot example. Patch <code>edge.action.target</code>, keep the node.</td>
+<td><strong>Re-ground in place.</strong> Template match of the old crop (moved only, no OCR) → fuzzy label → same role + cell → Jev typed choice over the element list, "which element does what the old one did", with the old action as a few-shot example, acted on at confidence ≥ 0.8 → VLM with the Set-of-Mark image. Append the new look to <code>target.appearances</code>, keep the node.</td>
 <td>≤ 5 s</td>
 <td>Most of 15:30: a renamed label, a moved item, a new field or confirm dialog.</td>
 </tr>
@@ -2193,7 +2228,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 </tbody>
 </table></div>
-<p>Entry rung depends on the signal: <strong>S1 → 1 → 2 → 3. S3/S4 → <code>Esc</code>/back to the previous node (2 s) → 3.</strong></p>
+<p>Entry rung depends on the signal: <strong>S5/S7 → 0, then every inherited edge follows S1 → 1 → 2 → 3. S1 → 1 → 2 → 3. S3/S4 → <code>Esc</code>/back to the previous node (2 s) → 3.</strong> After rung 3 the tool-use loop takes the step (<a href="#appendix-f">Appendix F §4.1</a>) and writes what worked back as the procedure.</p>
+<p>Why rung 0 exists: without it a redesign is discovered one edge at a time, at up to 50 s per edge, and the budget is gone after three. Recognising the epoch once turns it into a first task on a new app with the old map as hints: one pre-warm, and the old version stays loadable for a flip-back and for the before/after diff in the debrief.</p>
 <p>Why four and not five: a task-driven graph of 10–20 nodes almost never has an alternative route, so the papers' "alternative path" rung would not fire; it is folded into rung 3. Deletion risks losing a good edge to three unlucky failures, so pruning is replaced by ranking. <code>lazy:</code> add pruning when the map grows past what fits in the prompt.</p>
 <p><strong>Done when:</strong> every mutation in §6.1 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.</p>
 <h4 id="46-time-budget-per-task-m6">4.6 Time budget per task (M6)<a class="headerlink" href="#46-time-budget-per-task-m6" title="Permanent link">¶</a></h4>
@@ -2214,22 +2250,22 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 <tr>
 <td>2–10</td>
-<td>OCR, fingerprint, title → load map or cold (8 s on first sight of a dense screen)</td>
+<td>static-crop gate or OCR, fingerprint, title → load map or cold (under 1 s on a replay hit; 8 s on first sight of a dense screen)</td>
 <td>every task</td>
 </tr>
 <tr>
 <td>→ 45</td>
 <td>pre-warm (§4.3 step 2)</td>
-<td>first task on an app only; cap 45 s</td>
+<td>first task on an epoch only (also right after rung 0); cap 45 s</td>
 </tr>
 <tr>
-<td>+ 15</td>
-<td>plan: one LLM call</td>
+<td>+ 3</td>
+<td>parse: one fast-model call (the 15 s graph planner call only in the fallback loop)</td>
 <td>every task</td>
 </tr>
 <tr>
 <td>→ 230</td>
-<td>execute: ground + act + settle + incremental OCR ≈ 3–4 s per step → ~45 steps; + 3 s only when a VLM verify fires</td>
+<td>execute: replay ≈ 1–2 s per step (act + settle, no OCR) on a mapped app; ground + act + settle + incremental OCR ≈ 3–4 s per step when perceiving → ~45 steps; + 0.1 s per Jev call, + 3 s only when a VLM verify fires</td>
 <td>every task</td>
 </tr>
 <tr>
@@ -2291,6 +2327,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>Remap</td>
 <td>Online, localized, 4-rung ladder written back into the graph; rank down, never delete</td>
 <td>Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): fails at the moment we are graded. Passive decay alone (MAGNET): too slow within one task. Pruning: loses good edges to unlucky failures</td>
+</tr>
+<tr>
+<td>Redesign</td>
+<td>Epoch per <code>(app_id, version)</code>, inherited as hints; one appearance per version on nodes and targets</td>
+<td>A single mutable map: pollutes on a redesign and cannot flip back. Full re-learn on a version bump: throws away procedures that still hold. Treating a redesign as independent edge failures: ≈ 50 s each</td>
 </tr>
 <tr>
 <td>Change test</td>
@@ -2379,6 +2420,21 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>rank-down line</td>
 </tr>
 <tr>
+<td><code>version</code> → v4.0, atoms unchanged (<code>version_bump</code>)</td>
+<td>version bump, same screens</td>
+<td>S5 → rung 0 opens <code>v4.0/</code> inheriting <code>v3.9/</code>; <strong>negative control: 0 edge failures</strong></td>
+</tr>
+<tr>
+<td><code>version</code> → v4.0, every node's atoms replaced, two grid headers renamed (<code>redesign</code>)</td>
+<td>redesign</td>
+<td>S5 → rung 0 → one re-identify line per node → <code>rejoin</code>; sync logs <code>schema_drift</code> with a 2-entry <code>column_map</code> (Appendix G §4.3.4)</td>
+</tr>
+<tr>
+<td>same as above, <code>version</code> unchanged (<code>redesign_silent</code>)</td>
+<td>redesign without a version bump</td>
+<td>S7 → rung 0, then as above</td>
+</tr>
+<tr>
 <td>grid cell shifted by 3</td>
 <td>moved button</td>
 <td><strong>negative control: 0 drift lines</strong></td>
@@ -2399,6 +2455,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li>§4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.</li>
 <li>§4.4 planner prompt with the compact graph.</li>
 <li>§4.5 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §6.1 table.</li>
+<li>Epochs and appearances: a new epoch is a directory with a copied <code>map.json</code>, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.</li>
 <li>Baseline numbers before 15:30; re-run after.</li>
 </ol>
 <h4 id="72-deferred-lazy-notes">7.2 Deferred (<code>lazy:</code> notes)<a class="headerlink" href="#72-deferred-lazy-notes" title="Permanent link">¶</a></h4>
@@ -2414,15 +2471,16 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <p><em>Source: <code>resources/docs/appendixes/F-agent-loop.md</code> · <a href="appendixes/F-agent-loop.html">open as its own page</a></em></p>
 <p><strong>Agent loop — fast plan → act → verify (track 3)</strong></p>
 <blockquote>
-<p>Appendix F of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as component [C] (solution.md §3.2); Jev stays a gated 1 h spike · Links checked 2026-10-10.</p>
+<p>Appendix F of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as component [C] (solution.md §3.2): parse → executor first, Jev as System 1 on a changed screen, the tool-use loop as the fallback; every model through OpenRouter · Links checked 2026-10-10.</p>
 </blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/F-agent-loop.html">open as its own page →</a><ol><li><a href="#1-summary_4">1. Summary</a></li><li><a href="#2-problem-and-constraints_3">2. Problem and constraints</a></li><li><a href="#3-options-considered_3">3. Options considered</a></li><li><a href="#4-chosen-design_3">4. Chosen design</a></li><li><a href="#5-trade-offs_2">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_2">6. Evidence and measurement</a></li><li><a href="#7-open-questions_2">7. Open questions</a></li><li><a href="#8-sources_3">8. Sources</a></li></ol></nav>
 <h3 id="1-summary_4">1. Summary<a class="headerlink" href="#1-summary_4" title="Permanent link">¶</a></h3>
-<p><strong>Decision:</strong> Claude runs the loop <strong>in-process</strong> with plain Python tool functions, with no MCP. We build it in three steps, and each one has to earn its place on the 3.6 harness:
-1. A tool-use loop with <strong>batched actions</strong> (L1+L2). This is the first end-to-end path.
-2. <strong>Plan-then-execute</strong> with replan when a check fails (L3). This cuts the number of LLM calls.
-3. A one-hour spike of <strong>Jev</strong> as the System 1 for per-step decisions, with a confidence gate that escalates to Claude (L4). We keep it only if the numbers prove it.</p>
+<p><strong>Decision:</strong> the loop runs <strong>in-process</strong> with plain Python tool functions, with no MCP, and every model call goes through OpenRouter (<code>openai</code> SDK with <code>base_url</code>; the Anthropic SDK is not used). The order on every task, each layer earning its place on the 3.6 harness:
+1. <strong>Parse.</strong> One fast-model call turns the natural-language CRUD action into typed queries (op, entity, where, fields, aggregate).
+2. <strong>Execute</strong> (L3). A deterministic executor answers reads from the cache behind the change-log probe (<a href="#appendix-g">Appendix G §4.2</a>) and replays stored procedures for writes, clicking stored positions while the pixels match (<a href="#appendix-e">Appendix E §4.4</a>). No further model call and no OCR on a mapped app.
+3. <strong>System 1 on a changed screen</strong> (L4). Jev answers the typed per-step questions (which element is the target now, did the action work, is this drift) with a calibrated probability; below the gate, the VLM; still unsure, rungs 2–3 of the ladder.
+4. <strong>Fallback</strong> (L1+L2). The tool-use loop with batched actions runs only when a query has no stored procedure (the first task on an unseen app), the parse is unsure, or the ladder is exhausted, and it writes the steps that worked back as the procedure.</p>
 <blockquote>
-<p><strong>Terminology.</strong> <em>System 2</em> is the slow, deliberate planner (Claude). <em>System 1</em> is a fast decision function that answers narrow, typed questions in about 100 ms (Jev). Jev is TypeSafe AI's "System One" model. It does <strong>not</strong> generate text: it returns typed choices or scores, each with a calibrated probability.</p>
+<p><strong>Terminology.</strong> <em>System 2</em> is the slow, deliberate planner (the planner model, through OpenRouter). <em>System 1</em> is a fast decision function that answers narrow, typed questions in about 100 ms (Jev). Jev is TypeSafe AI's "System One" model. It does <strong>not</strong> generate text: it returns typed choices or scores, each with a calibrated probability.</p>
 </blockquote>
 <hr />
 <h3 id="2-problem-and-constraints_3">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_3" title="Permanent link">¶</a></h3>
@@ -2438,7 +2496,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </thead>
 <tbody>
 <tr>
-<td>Claude call (text state, cached prefix)</td>
+<td>Planner call (text state, cached prefix)</td>
 <td>2–5 s</td>
 <td>grows with image tokens and output length</td>
 </tr>
@@ -2470,13 +2528,19 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </thead>
 <tbody>
 <tr>
-<td>L1: 1 Claude call per action</td>
+<td>L0: parse once, replay stored positions</td>
+<td>~1 (act + settle)</td>
+<td>200+</td>
+<td>the happy path on a mapped app: 2 LLM calls per task</td>
+</tr>
+<tr>
+<td>L1: 1 planner call per action</td>
 <td>3–6</td>
 <td>45–90</td>
 <td>10–30: fits, with little room for recovery</td>
 </tr>
 <tr>
-<td>L2: about 3 actions per Claude call</td>
+<td>L2: about 3 actions per planner call</td>
 <td>1.5–2.5</td>
 <td>110–180</td>
 <td>comfortable</td>
@@ -2488,7 +2552,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>comfortable if replans stay rare</td>
 </tr>
 <tr>
-<td>L4: Jev per step + Claude on escalation</td>
+<td>L4: Jev per step + VLM/planner on escalation</td>
 <td>~0.7–1.5</td>
 <td>180–380</td>
 <td>settle becomes the bottleneck</td>
@@ -2511,35 +2575,35 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <tbody>
 <tr>
 <td><strong>L1. Plain tool-use loop</strong></td>
-<td>Each Claude call returns one tool call → execute → result → next call</td>
-<td><ul><li>Simplest; the Anthropic SDK does it natively.</li><li>Easy to log and debug.</li></ul></td>
+<td>Each planner call returns one tool call → execute → result → next call</td>
+<td><ul><li>Simplest; an OpenAI-style tool-call loop is about 50 lines.</li><li>Easy to log and debug.</li></ul></td>
 <td><ul><li>Slowest: one round trip per click.</li><li>Little time left for recovery.</li></ul></td>
-<td><strong>Baseline.</strong> Build first</td>
+<td><strong>Fallback.</strong> The last rung of the ladder, and the first task on an unseen app</td>
 </tr>
 <tr>
 <td><strong>L2. Batched tool calls</strong></td>
-<td>Claude returns several <code>tool_use</code> blocks in one turn (fill 4 fields + click Guardar). We run them in order and stop at the first failed check</td>
+<td>The planner returns several tool calls in one turn (fill 4 fields + click Guardar). We run them in order and stop at the first failed check</td>
 <td><ul><li>2–4× fewer round trips.</li><li>Same code as L1.</li></ul></td>
 <td><ul><li>A mid-batch failure wastes the rest.</li><li>Needs a verify after each action.</li></ul></td>
-<td><strong>Adopt</strong> together with L1</td>
+<td><strong>Adopt</strong> inside the fallback</td>
 </tr>
 <tr>
-<td><strong>L3. Plan-then-execute</strong></td>
-<td>Claude writes a step list once (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>). A deterministic executor runs it with per-step checks, and Claude is called again only when a check fails</td>
+<td><strong>L3. Parse, then execute</strong></td>
+<td>One fast-model call turns the task into typed CRUD queries; a deterministic executor answers reads from the cache behind the probe and replays the stored procedure for writes (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>) with per-step checks, and a model is called again only when a check fails</td>
 <td><ul><li>The fewest LLM calls.</li><li>The plan doubles as the summary skeleton.</li><li>Pairs with App Memory shortcuts.</li></ul></td>
-<td><ul><li>On an unseen app the first plan is a guess.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
-<td><strong>Adopt</strong> after L1+L2 work</td>
+<td><ul><li>On an unseen app there is nothing to replay yet: the fallback runs once and stores the procedure.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
+<td><strong>Adopt</strong> as the happy path</td>
 </tr>
 <tr>
 <td><strong>L4. System 1 / System 2 with Jev</strong></td>
-<td>Claude plans (as in L3). For each step, Jev answers typed questions over the text state: which element is the target, did it work, is the task done, is there drift. Below the confidence threshold, escalate to Claude</td>
+<td>On a changed screen (a replay miss), Jev answers typed questions over the text state: which element is the target now, did it work, is the task done, is there drift. Below the confidence threshold, escalate to the VLM, then the planner</td>
 <td><ul><li>~100 ms per decision.</li><li>Calibrated probabilities give a principled escalation gate.</li><li>Cheap: $0.042/M input, output free.</li><li>Text-only fits our OCR-first perception.</li></ul></td>
-<td><ul><li>Early access with a waitlist.</li><li>No image input.</li><li>Can't write values.</li><li>Unreliable at counting, arithmetic and dates.</li><li>32k context.</li><li>Unknown out-of-distribution behaviour on an unseen app.</li><li>Benchmarks are vendor-run.</li><li>A second vendor dependency.</li></ul></td>
-<td><strong>Spike</strong> (1 h), gated by the harness</td>
+<td><ul><li>Early access (key in hand; keyless fallback to the fast model).</li><li>No image input.</li><li>Can't write values.</li><li>Unreliable at counting, arithmetic and dates.</li><li>32k context.</li><li>Unknown out-of-distribution behaviour on an unseen app.</li><li>Benchmarks are vendor-run.</li><li>A second vendor dependency.</li></ul></td>
+<td><strong>Adopt</strong> behind <code>decide</code>; measured on the harness (§5)</td>
 </tr>
 <tr>
 <td><strong>L5. Code-as-action</strong></td>
-<td>Each turn Claude writes a short Python snippet calling the tool functions (loops, ifs)</td>
+<td>Each turn the planner writes a short Python snippet calling the tool functions (loops, ifs)</td>
 <td><ul><li>Flexible batching.</li><li>Handles repetition (pagination) in one turn.</li></ul></td>
 <td><ul><li>Needs a sandbox for model-written code.</li><li>Failures happen inside opaque code and are harder to verify and log.</li></ul></td>
 <td>Discarded: L2+L3 give most of the gain without running generated code</td>
@@ -2571,22 +2635,23 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <h3 id="4-chosen-design_3">4. Chosen design<a class="headerlink" href="#4-chosen-design_3" title="Permanent link">¶</a></h3>
 <h4 id="41-recommendation-and-order">4.1 Recommendation and order<a class="headerlink" href="#41-recommendation-and-order" title="Permanent link">¶</a></h4>
 <ol>
-<li><strong>L1+L2.</strong> A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.</li>
-<li><strong>L3.</strong> Add plan-then-execute with strict checks; replan on failure.</li>
-<li><strong>L4 spike (~1 h).</strong> Put Jev behind the <code>effect_ok</code> and <code>target</code> checks and run the harness. Keep it or drop it based on the criteria in §5.</li>
+<li><strong>Parse.</strong> One <code>MODEL_FAST</code> call turns the natural-language CRUD action into typed queries <code>(op, entity, where, fields, aggregate)</code>; confidence under 0.8 hands the task to step 4.</li>
+<li><strong>L3.</strong> The executor: reads behind the change-log probe (<a href="#appendix-g">Appendix G §4.2</a>), writes by replaying the stored procedure, stored positions while the pixels match (<a href="#appendix-e">Appendix E §4.4</a>), strict checks per step. No OCR and no further model call on a mapped app.</li>
+<li><strong>L4.</strong> On a replay miss, Jev answers <code>target</code>, <code>effect_ok</code> and <code>drift</code> in one call; below the gate the VLM with a Set-of-Mark image; then rungs 2–3 of the ladder (<a href="#appendix-e">Appendix E §4.5</a>).</li>
+<li><strong>L1+L2.</strong> The tool-use loop with batched actions, on <code>MODEL_PLANNER</code>: the last rung, and the first task on an unseen app. It writes the steps that worked back as the procedure, so the next task runs through step 2.</li>
 <li>Throughout, apply the accelerators from §4.2.</li>
 </ol>
 <h4 id="42-cross-cutting-accelerators-apply-to-every-option">4.2 Cross-cutting accelerators (apply to every option)<a class="headerlink" href="#42-cross-cutting-accelerators-apply-to-every-option" title="Permanent link">¶</a></h4>
 <ul>
 <li><strong>Text over images.</strong> Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.</li>
 <li><strong>Prompt caching</strong> on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.</li>
-<li><strong>Model tiering.</strong> Sonnet-class for routine steps; Opus-class only for recovery and replan. Add this only if measurements show we need it.</li>
+<li><strong>Model tiering.</strong> Three OpenRouter tiers from env: <code>MODEL_FAST</code> (parse, summary, Jev's keyless fallback), <code>MODEL_VLM</code> (image questions), <code>MODEL_PLANNER</code> (fallback loop, replan). Tune the ids on the harness, never in code; the Anthropic SDK is not used anywhere.</li>
 <li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="#appendix-d">Appendix D</a> and <a href="#appendix-e">Appendix E §4.4</a>).</li>
 <li><strong>Settle.</strong> Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.</li>
 </ul>
 <h4 id="43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)<a class="headerlink" href="#43-jev-as-system-1-l4" title="Permanent link">¶</a></h4>
-<p><strong>Fit.</strong> Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in Claude or in code.</p>
-<p><strong>Proposed call per step</strong> (state as text or JSON, a single parallel pass):</p>
+<p><strong>Fit.</strong> Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in the OpenRouter models or in code.</p>
+<p><strong>Call per step</strong> (state as text or JSON, every question in one pass; <code>typesafe-sdk</code>, model <code>jev-latest</code>):</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2623,14 +2688,25 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 </tbody>
 </table></div>
-<p>Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to Claude. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.</p>
+<pre><code class="language-python">from typesafe_sdk import AsyncTypeSafeClient, Choice, Noul, Score   # pip: typesafe-sdk
+
+r = await AsyncTypeSafeClient().system_one(
+    state={&quot;elements&quot;: elements_text, &quot;old_action&quot;: &quot;click 'Facturas' (menu, cell 2,1) → Facturas&quot;},
+    questions={
+        &quot;target&quot;: Choice(instructions=&quot;Which element does what `old_action` did?&quot;, criteria={e.id: e.text for e in elements}),
+        &quot;effect_ok&quot;: Noul(instructions=&quot;Did the last action produce the expected screen?&quot;),
+        &quot;drift&quot;: Score(instructions=&quot;How unlike the stored map is this screen?&quot;, criteria=[&quot;same&quot;, &quot;moved&quot;, &quot;redesigned&quot;]),
+    })
+# r.answers[&quot;target&quot;].choice and .confidence; exact signatures per the SDK docs
+</code></pre>
+<p>Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to the VLM, then the planner. Ask everything at once: one call per step, never one per question. All of it sits behind one function, <code>decide(state, questions)</code>; with no <code>TYPESAFE_API_KEY</code> the same questions go to <code>MODEL_FAST</code> in JSON mode, whose confidences are not calibrated, so that path is compared on accuracy and latency only. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.</p>
 <hr />
 <h3 id="5-trade-offs_2">5. Trade-offs<a class="headerlink" href="#5-trade-offs_2" title="Permanent link">¶</a></h3>
-<p><strong>Adoption criteria</strong> for Jev. On the 3.6 harness, with Jev in place compared to Claude-only:
+<p><strong>What the harness must show</strong> for Jev, compared to the keyless <code>MODEL_FAST</code> fallback and to the VLM-only ladder:
 - success % no more than 5 points lower;
 - at least 5× faster per decision;
 - escalation rate under 30%.</p>
-<p>If it fails any of these, drop it. L3 stays intact because Jev only replaces the per-step checks.</p>
+<p>If it fails, <code>decide</code> points at <code>MODEL_FAST</code> and nothing else changes: Jev only answers the per-step questions; the executor and the fallback loop stay intact.</p>
 <hr />
 <h3 id="6-evidence-and-measurement_2">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement_2" title="Permanent link">¶</a></h3>
 <p>All from the JSONL log [H], for every option:
@@ -2639,15 +2715,17 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 - steps per task;
 - success %;
 - recoveries;
-- escalation rate (Jev → Claude).</p>
+- escalation rate (Jev → VLM → planner);
+- fastpath breakdown per step (hit / moved / perceived / llm) and probe outcome.</p>
 <p>Run the baseline before 15:30 and again after.</p>
 <hr />
 <h3 id="7-open-questions_2">7. Open questions<a class="headerlink" href="#7-open-questions_2" title="Permanent link">¶</a></h3>
-<p><strong>Risks</strong> of the Jev spike.
-1. <strong>Access.</strong> It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
+<p><strong>Risks</strong> of Jev as System 1.
+1. <strong>Access.</strong> Key in hand. If it stops working, <code>decide</code> falls back to <code>MODEL_FAST</code> and nothing else changes.
 2. <strong>Out-of-distribution behaviour.</strong> The evaluation app is unseen. The confidence gate is the mitigation.
 3. <strong>Unverified claims.</strong> The vendor states 40–200× speedups; users report a median of about 7×.
-4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.</p>
+4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.
+5. <strong>Model ids.</strong> The three OpenRouter tiers are placeholders in <code>.env.example</code> until filled by hand; the fakes keep the tests independent of them.</p>
 <hr />
 <h3 id="8-sources_3">8. Sources<a class="headerlink" href="#8-sources_3" title="Permanent link">¶</a></h3>
 <ul>
@@ -2664,7 +2742,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/G-data-sync.html">open as its own page →</a><ol><li><a href="#1-summary_5">1. Summary</a></li><li><a href="#2-problem-and-constraints_4">2. Problem and constraints</a></li><li><a href="#3-options-considered_4">3. Options considered</a></li><li><a href="#4-chosen-design_4">4. Chosen design</a></li><li><a href="#5-trade-offs_3">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_3">6. Evidence and measurement</a></li><li><a href="#7-open-questions_3">7. Open questions</a></li><li><a href="#8-sources_4">8. Sources</a></li></ol></nav>
 <h3 id="1-summary_5">1. Summary<a class="headerlink" href="#1-summary_5" title="Permanent link">¶</a></h3>
 <p><strong>Scope:</strong> an expansion of <a href="#frontier-challenge-1-solution">solution.md §5 Track 4</a> (4.1–4.4).
-<strong>Decision:</strong> a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.</p>
+<strong>Decision:</strong> a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, cheapest scope first: the app's own change log when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>, one screen for every entity), else the entity's grid. The app always wins, and write tasks never read from the cache.</p>
 <hr />
 <h3 id="2-problem-and-constraints_4">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_4" title="Permanent link">¶</a></h3>
 <p>What "sync" means here. There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (<a href="#appendix-b">Appendix B</a>). In this project, "sync" means:</p>
@@ -2784,6 +2862,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
      │                      │── yes ─────────────────►│ probe()                      │
+     │                      │                         │ change log registered? once: │
+     │                      │                         │── navigate + read page 1 ───►│  (Bitácora)
+     │                      │                         │◄─ page-1 hash ───────────────│
+     │                      │                         │ == watermark? ── yes: all fresh
+     │                      │                         │ (no change log, or changed:) │
      │                      │                         │── navigate + read footer ───►│
      │                      │                         │◄─ count=812, page1 hash ─────│
      │                      │                         │ matches sync_state? ── yes   │
@@ -2801,7 +2884,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </code></pre>
 <p>The steps:
 1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
-2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation plus one footer/first-page read, a few seconds.
+2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation to the change log per task (or one per entity when the app has no change log) plus one first-page read, a few seconds.
 3. <strong>Miss or mismatch:</strong> acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
    - <strong>Export (4.1):</strong> the whole table in one action. Lossless if the file or screen it produces can be read.
    - <strong>Clipboard (4.4):</strong> select-all + copy → <code>ServerCutText</code>. Lossless text, usually tab-separated.
@@ -2814,11 +2897,10 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <h4 id="42-keeping-it-in-sync">4.2 Keeping it in sync<a class="headerlink" href="#42-keeping-it-in-sync" title="Permanent link">¶</a></h4>
 <p>Nothing pushes changes to us. Freshness has to be <strong>detected</strong> by looking at the screen. In order of use:</p>
 <ol>
-<li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
-<li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed":
-   - the grid's <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size), and
-   - a <strong>hash of page 1</strong>, sorted newest first if the grid can sort.
-   Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
+<li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. Then re-read change-log page 1 so the watermark includes our own entry; that entry is also the proof of the write for the summary. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
+<li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed", cheapest scope first:
+   - <strong>The app's change log</strong>, when it has one (SIGECOM: <code>Herramientas › Bitácora de cambios</code>). It is registered as an entity with <code>role = 'changelog'</code> and probed once per task: its page-1 hash equals the stored watermark → every entity is fresh, no per-entity navigation. It differs → every entity is marked <code>stale</code>, re-acquired lazily only when a query needs it, and the watermark advances. v1 marks everything; naming the touched entity from the row waits until the screen's columns are known (§7). An app with no change log skips this scope.
+   - <strong>The entity's own grid</strong>: the <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size) and a <strong>hash of page 1</strong>, sorted newest first if the grid can sort. Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
 <li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
 <li><strong>Optional pre-warm.</strong> If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.</li>
 </ol>
@@ -2854,7 +2936,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 </tbody>
 </table></div>
-<p>The last row is the <strong>known staleness window</strong>, and we accept it. Mitigations:
+<p>The last row is the <strong>known staleness window</strong>, and we accept it. When the app has a change log that records edits, the change-log probe closes it: an old-row edit is a new log entry. Mitigations when it has none:
 - the expiry time puts an upper bound on it
 - any answer that depends on one specific record goes through the targeted path (§4.1.2), which always reads live
 - the task summary states when an answer came from the cache and how old that cache was</p>
@@ -2875,8 +2957,14 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <p>Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" (<a href="#frontier-challenge-1-solution">solution.md §8</a>). A human <code>operador2</code> is not ruled out, and steps 2 and 4 are what protect us from them.</p>
 <h5 id="434-schema-or-ui-drift-the-1530-change">4.3.4 Schema or UI drift (the 15:30 change)<a class="headerlink" href="#434-schema-or-ui-drift-the-1530-change" title="Permanent link">¶</a></h5>
 <ul>
-<li>Each entity stores a <strong>header hash</strong> (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, <strong>drop that entity's rows and re-acquire them</strong>. No attempt is made to migrate them.</li>
+<li>Each entity stores a <strong>header hash</strong> (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, <strong>re-acquire the entity's rows</strong> (they are disposable, so re-acquire is the migration) and then <strong>align the old headers to the new ones</strong>, cheapest rung first:
+  1. normalised exact match (case, accents, whitespace, punctuation);
+  2. <code>difflib.SequenceMatcher</code> ratio ≥ 0.8 (stdlib);
+  3. value match: join old rows to new rows on the natural key, when the key column aligned in 1–2, and pair the columns whose parsed values agree on ≥ 90 % of the shared keys;
+  4. leftovers: one LLM call with the old headers, the new headers and 3 sample rows, "no counterpart" allowed.</li>
+<li>The result is <code>sync_state.column_map</code>, <code>{"old header": "new header"}</code>, chained across epochs so the oldest name stays usable. <code>data_json</code> is always keyed by the <strong>live</strong> header; a query written against an older name is translated through the map. This is what keeps learned procedures and the planner's "Valor is the amount" valid across a rename. Headers with no counterpart are left out of the map and logged (<code>sync.schema_drift {old, new, aligned, unaligned}</code>). If the alignment is inconclusive, the behaviour is the old one: an empty entity, no map.</li>
 <li>Columns are mapped by header text, so a column that only <strong>moves</strong> doesn't break anything.</li>
+<li>The entity key is the nav map's <strong>node id</strong> for the grid screen, not the screen title; the title is one of that node's appearances (<a href="#appendix-e">Appendix E §4.2</a>). A renamed screen is still the same entity. The sync engine stores the id it is given and never reads the map itself.</li>
 <li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="#appendix-e">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
 </ul>
 <h5 id="435-conflict-policy-in-one-line">4.3.5 Conflict policy, in one line<a class="headerlink" href="#435-conflict-policy-in-one-line" title="Permanent link">¶</a></h5>
@@ -2937,6 +3025,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>The sync engine never clicks it; read-only actions only</td>
 </tr>
 <tr>
+<td>Header hash changed (a column renamed, added or removed)</td>
+<td><code>sync_state.header_hash</code> differs from the live header row</td>
+<td>Re-acquire, then the §4.3.4 alignment ladder → <code>column_map</code>; inconclusive → empty entity, no map; log <code>sync.schema_drift</code></td>
+</tr>
+<tr>
 <td>Cache file lost (Railway redeploy, corruption)</td>
 <td>Missing file or <code>PRAGMA integrity_check</code> fails</td>
 <td>Delete it and start cold; correctness is unaffected</td>
@@ -2947,7 +3040,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <h4 id="45-database-schema">4.5 Database schema<a class="headerlink" href="#45-database-schema" title="Permanent link">¶</a></h4>
 <pre><code class="language-sql">CREATE TABLE rows (
   app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
-  entity      TEXT NOT NULL,          -- e.g. 'Facturas', named from the screen
+  entity      TEXT NOT NULL,          -- nav-map node id of the grid screen; its title is an appearance (E §4.2)
   natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
   data_json   TEXT NOT NULL,          -- {&quot;Numero&quot;: &quot;F-0042&quot;, &quot;Total&quot;: 1520.00, ...}, keyed by header text
   row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
@@ -2960,6 +3053,8 @@ CREATE TABLE sync_state (
   app_id      TEXT NOT NULL,
   entity      TEXT NOT NULL,
   header_hash TEXT NOT NULL,          -- §4.3.4 schema drift
+  column_map  TEXT,                   -- §4.3.4 {&quot;old header&quot;: &quot;new header&quot;}, chained across epochs
+  role        TEXT NOT NULL DEFAULT 'entity',  -- §4.2: 'entity' | 'changelog' (the app-wide probe)
   row_count   INTEGER,                -- §4.2 probe
   probe_hash  TEXT,                   -- §4.2 probe (page 1)
   status      TEXT NOT NULL CHECK (status IN ('complete','partial','stale')),
@@ -2988,6 +3083,12 @@ CREATE TABLE sync_state (
 <td>Lookups under 30 s; repeated reads cost almost nothing</td>
 </tr>
 <tr>
+<td>The change log as the first probe</td>
+<td>Per-entity probes only</td>
+<td>Trusts the app's own log; an unlogged edit waits for the expiry backstop</td>
+<td>One navigation per task instead of one per entity; edits to old rows are caught</td>
+</tr>
+<tr>
 <td>Lazy per-entity sync</td>
 <td>Pre-loading everything</td>
 <td>The first read of each entity is slow</td>
@@ -3004,6 +3105,12 @@ CREATE TABLE sync_state (
 <td>Typed tables</td>
 <td>Weaker typing; <code>json_extract</code> in queries</td>
 <td>Works on an app we have never seen</td>
+</tr>
+<tr>
+<td>Align columns on a header change</td>
+<td>Drop and forget</td>
+<td>One LLM call on the headers the cheap rungs miss</td>
+<td>Procedures and queries survive a rename; the planner keeps knowing which column is the amount</td>
 </tr>
 <tr>
 <td>App-always-wins, read-before-write</td>
@@ -3025,12 +3132,14 @@ CREATE TABLE sync_state (
 <hr />
 <h3 id="7-open-questions_3">7. Open questions<a class="headerlink" href="#7-open-questions_3" title="Permanent link">¶</a></h3>
 <ul>
+<li><strong>4.3 / run book step 0.5:</strong> what <code>Bitácora de cambios</code> lists (timestamp, user, entity or module, action, record code), its sort order and pagination, and whether every data edit appears as a row. v1 of the probe needs only its page 1 to change; naming the touched entity (v2) needs an entity column.</li>
 <li><strong>4.1:</strong> where <code>Exportar</code> output goes (a download, a new screen, a printer dialog), and whether we can read it over RFB.</li>
 <li><strong>4.4:</strong> whether select-all + copy works on grids or only on text fields, and what format it produces.</li>
 <li>Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.</li>
 <li>Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.</li>
 <li>Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.</li>
 <li>Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.</li>
+<li>Whether the natural-key column survives the 15:30 change. If it doesn't, the value-match rung of §4.3.4 is off, the leftovers go to the LLM rung, and the entity simply restarts.</li>
 </ul>
 <hr />
 <h3 id="8-sources_4">8. Sources<a class="headerlink" href="#8-sources_4" title="Permanent link">¶</a></h3>
@@ -3046,8 +3155,8 @@ CREATE TABLE sync_state (
 - <strong>OCR</strong> (RapidOCR with a Latin model) gives exact text and boxes.
 - <strong>Classic CV</strong> (OpenCV) gives widget boxes: fields, buttons, grid lines.
 - <strong>Heuristics</strong> turn those into a <strong>UI tree</strong>: containment, grouping, label↔field pairing, grids.
-- <strong>Claude</strong> sees an element list, plus a Set-of-Mark image only when the screen is new, and answers with an <strong>element id</strong>, never x,y.
-- <strong>Raw coordinates from Claude</strong> are a last-resort fallback.</p>
+- <strong>The model</strong> (the planner or the VLM, through OpenRouter) sees an element list, plus a Set-of-Mark image only when the screen is new, and answers with an <strong>element id</strong>, never x,y. On a mapped app it is not asked at all: the saved snapshot replays first (Spec W).
+- <strong>Raw coordinates from the VLM</strong> are a last-resort fallback.</p>
 <p>The whole pipeline is built around caching, because measurement (§6) shows that recognizing every line is the expensive part, not finding them.</p>
 <hr />
 <h3 id="2-problem-and-constraints_5">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_5" title="Permanent link">¶</a></h3>
@@ -3115,7 +3224,7 @@ CREATE TABLE sync_state (
 <td>Discarded: latency inside the 5-minute budget</td>
 </tr>
 <tr>
-<td>VLM as OCR (Claude reading the image)</td>
+<td>VLM as OCR (the VLM reading the image)</td>
 <td>Understands context</td>
 <td>Imprecise boxes, seconds per call, tokens</td>
 <td>Semantics only (§3.3), never as the source of boxes</td>
@@ -3160,7 +3269,7 @@ CREATE TABLE sync_state (
 </thead>
 <tbody>
 <tr>
-<td><strong>Claude + element list (text) + Set-of-Mark image on new screens</strong>: numbered boxes drawn on the screenshot; the model answers <code>click #12</code></td>
+<td><strong>The model + element list (text) + Set-of-Mark image on new screens</strong>: numbered boxes drawn on the screenshot; the model answers <code>click #12</code></td>
 <td>The model never predicts pixels. SoM and OmniParser show that marks plus a parsed element list greatly improve grounding for general-purpose VLMs. Text-only on known screens keeps it cheap</td>
 <td>Only as good as the element list (§3.1/§3.2)</td>
 <td><strong>Chosen</strong></td>
@@ -3206,6 +3315,7 @@ CREATE TABLE sync_state (
 <h4 id="42-fingerprint-and-change-detection">4.2 Fingerprint and change detection<a class="headerlink" href="#42-fingerprint-and-change-detection" title="Permanent link">¶</a></h4>
 <ul>
 <li><strong>Fingerprint:</strong> the sorted set of <em>stable</em> texts (title, menu, labels, column headers), plus a coarse layout hash of the tree. Values are excluded: grid cells, dates, the "Hoy:" clock. It doesn't depend on resolution, because it uses text and relative structure, not pixels.</li>
+<li><strong>Moved, not changed:</strong> before any OCR, a static element whose crop no longer matches at its stored bbox is searched over the frame with <code>cv2.matchTemplate</code>; lossless frames make the match exact, so a hit at ≥ 0.95 updates the bbox and skips perception (Spec W). Only a crop found nowhere triggers OCR.</li>
 <li><strong>Drift (15:30):</strong></li>
 <li>Same fingerprint but a known element is missing or has moved means a <strong>changed screen</strong>.</li>
 <li>An unknown fingerprint after a known action means a <strong>changed navigation</strong>.</li>
@@ -3224,8 +3334,8 @@ merge → elements → tree (containment · grouping · label↔field · grids �
   │
   ├─► fingerprint → screen cache: known screen = reuse whole tree, re-read only changed region
   ├─► app map (2.4) / drift (2.6)
-  └─► Claude: element list as text; + SoM image only on new or unexpected screens
-fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box → Claude raw x,y
+  └─► the model: element list as text; + SoM image only on new or unexpected screens
+fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box → VLM raw x,y
 </code></pre>
 <p><strong>Two caches make this fast:</strong>
 - <strong>Line cache:</strong> key = hash of the line's pixels, value = text. Because frames are lossless and fonts are fixed, the same label always renders to the same bytes.
@@ -3233,7 +3343,7 @@ fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box �
 <hr />
 <h3 id="5-trade-offs-we-accept">5. Trade-offs we accept<a class="headerlink" href="#5-trade-offs-we-accept" title="Permanent link">¶</a></h3>
 <ul>
-<li><strong>Icons with no text aren't understood.</strong> They fall back to Claude raw coordinates, or to the optional detector.</li>
+<li><strong>Icons with no text aren't understood.</strong> They fall back to the VLM's raw coordinates, or to the optional detector.</li>
 <li><strong>Heuristic grouping can mis-pair labels</strong> on dense forms. Action verification (3.3) catches it: "typed into a field, the wrong area changed."</li>
 <li><strong>CPU only:</strong> no specialist grounding models and no learned tree models. They're next steps if we get a GPU.</li>
 <li><strong>Latin-script, horizontal text</strong> is an assumption already stated in the design.</li>

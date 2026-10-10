@@ -16,7 +16,7 @@ Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`,
 
 - `elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]` from track 7. Timing: known screen < 1 s (7.6 cache), **first sight of a dense screen ≈ 8 s** — budgeted below.
 - `settle()`, `changed_bbox(before, after)`, `click/type/key` from `poc/rfb_poc.py`.
-- App identity = title-bar text with the version split off: `app_id = "SIGECOM · Distribuidora Andina"`, `version = "v3.9"`. A version change is itself a drift hint (S5).
+- App identity = title-bar text with the version split off: `app_id = "SIGECOM · Distribuidora Andina"`, `version = "v3.9"`. An **epoch** is one `(app_id, version)` and has its own map file (§4.2). A version change is itself a drift signal (S5), and so is mass drift under the same version string (S7).
 
 ---
 
@@ -34,7 +34,7 @@ Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`,
 | 6 | **Map incrementally from tasks, write back after every task.** | Full exploration costs 10 min–hours; we have 5. Warm start is where the speed comes from: 98.75% vs 82.7%, −62.5% latency. | MobileGPT, AppAgentX |
 | 7 | **Plan once over the compact graph, then execute with verification.** Show "this click leads to X" next to candidates. | 1.03 LLM calls/task vs 4.5; 27 s vs 87 s per task. | GraphPilot, ActionEngine, AutoDroid |
 | 8 | **Localize a failure to one edge and patch it back into the graph.** Re-derive with the old action as a few-shot example. | The only repair pattern in the literature that writes back; 100% accurate on 16% of actions in MobileGPT. | ActionEngine Patcher, MobileGPT |
-| 9 | **Drift has two kinds: appearance (same function, new look/label/place) and workflow (steps reorganised).** Store function → many appearances. | A redesign adds an appearance instead of breaking the memory. | MAGNET |
+| 9 | **Drift has two kinds: appearance (same function, new look/label/place) and workflow (steps reorganised).** Store function → many appearances. | A redesign adds an appearance instead of breaking the memory. Implemented as the `appearances` lists in §4.2. | MAGNET |
 | 10 | **Degrade gracefully and rank edges by recency × success.** Cheap signals: no screen change, loops, one action with several outcomes. | Each rung is bounded, so the 5-min budget survives a failure. | LLM-Explorer, UI-KOBE, MAGNET, MobileGPT, ScreenSearch |
 
 **Deliberately skipped** (none fits a one-day build; `lazy:` notes say when to revisit): macro/shortcut mining (EAM, AppAgentX), embeddings + vector DB, Neo4j, offline crawls, trained Q-model/MCTS (EAM), distributed exploration (ScreenSearch).
@@ -51,6 +51,7 @@ Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`,
    - The title band (top ~15 %) is a **hard key**: it must match before anything else, so Clientes and Proveedores with identical toolbars never merge.
    - Then `sim = Jaccard(atoms)`: **≥ 0.90 same node · 0.60–0.90 ambiguous · < 0.60 new node.**
    - Ambiguous: tie-break by the inbound edge label first; only then pay for one VLM yes/no against the node's reference screenshot, with "none of them" allowed.
+   - A node keeps one `(atoms, ref_png)` pair per app version (its **appearances**, §4.2); `sim` is the max over them. In a new epoch (§4.5 rung 0) the inherited stale nodes use a wider ambiguous band, **0.30–0.90**, with at most 5 candidates ranked by title similarity, so a redesigned screen is re-identified as the old node (and gains an appearance) before a new node is created.
 4. **Overlays are sub-states, not nodes.** If `changed_bbox` covers < ~25 % of the screen and the parent's labels are still visible (dropdown, combo list, tooltip): `overlay = parent_id + overlay labels`. Close with `Esc`, re-verify the parent. Prevents spurious nodes, `Esc` edges to nowhere, and VLM calls at 0.7–0.9.
 5. **Blocking dialogs are checked before drift.** Small centered rectangle with ≤ 3 buttons → OCR its text into the log → `Esc` or the non-destructive button → re-fingerprint. A dialog never counts as drift and never starts the ladder.
 6. **In-page state does not change the node.** Filter text, pagination, selected row, scroll are **self-loop edges** with an `effect` field.
@@ -59,19 +60,21 @@ Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`,
 
 ### 4.2 Map schema (M2 → sub-problem 2.4)
 
-One JSON per app: `memory/<app_id>.json`. No database.
+One directory per app epoch: `memory/<app_id>/<version>/` holds `map.json` and that version's reference PNGs and static crops, named by node id (`epoch-<n>` when the title bar carries no version). No database. The live epoch is the directory named after the title bar's version; once a newer one exists the old directory is never written again, which is what makes it a frozen version. §4.5 rung 0 says when a new one is opened.
 
 ```jsonc
-node      = {id, title, atoms[], description, ref_png, elements_snapshot,
-             transient, stale, seen, last_seen}
-edge      = {from, action: {kind, target: {label, role, cell}, params},
-             to, effect, data?, scroll?, ok, fail, last_ok, outcomes: {node_id: count}}
+node      = {id, title, description, transient, stale, seen, last_seen,
+             appearances: [{version, atoms[], ref_png, elements_snapshot, last_seen}]}   // one per app version, newest first; crops as files
+edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell}]}, params},
+             to, effect, data?, scroll?, inherited?, ok, fail, last_ok, outcomes: {node_id: count}}
 procedure = {task_text, steps: [edge_id | self_loop + params], ok, last_ok}
 unexplored[node_id] = [action signatures not yet tried]       // the frontier
 denylist  = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Enviar", "Configuración"]
 ```
 
 - `description` is written by the LLM **lazily**, in one batched call at write-back, never per node.
+- `appearances` is MAGNET's "function → many appearances" (§3.1 idea 9): the node id and its description are the stable function; each app version adds a look: its atoms, `ref_png`, `elements_snapshot` and the static crops the replay fast path compares, stored as files in that version's directory. Fingerprint matching and target grounding take the newest appearance first and fall back through the older ones. Rung 1 appends an appearance; it never overwrites one.
+- `inherited: true` marks an edge copied from the previous epoch and not yet verified in this one. The planner sees it as a hint, ranked below any verified edge; the first confirmed landing clears the flag.
 - `data: true` when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the **find procedure** (search field → type → Enter → `Siguiente` ≤ N pages), never the repair ladder. We store the procedure, not the row click.
 - `scroll: true` when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.
 - `outcomes` is the histogram of where this action actually led. More than one node with real mass = an unreliable edge (S6).
@@ -84,8 +87,8 @@ denylist  = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Envia
 
 Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide exploration ever.
 
-1. **Connect → identify app → load map or start cold.** ~5 s.
-2. **Pre-warm, first task on an app only, ≤ 45 s.** Open each top menu: click → `settle` → OCR → `Esc` ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. **Open menus only, never click items.** Record `menu → item` edges with `to = unknown`. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.
+1. **Connect → identify app → load the epoch or start cold.** ~5 s. `(app_id, version)` matches a frozen epoch (the app flipped back): load it. Same `app_id`, new version: §4.5 rung 0 (inherit, pre-warm). No `app_id` at all (the title bar was rebranded): Jaccard of the first screen's menu atoms against every stored app's root node; ≥ 0.5 adopts that app as a new epoch, else cold.
+2. **Pre-warm, first task on an epoch only, ≤ 45 s.** Open each top menu: click → `settle` → OCR → `Esc` ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. **Open menus only, never click items.** Record `menu → item` edges with `to = unknown`. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.
 3. **Task-driven mapping.** Every action during a task: act → `settle` → `elements` → fingerprint → create/match node → upsert edge with the observed `to`. **An edge is persisted only once its landing fingerprint is confirmed.** Nothing is learned off the task path unless the planner is stuck.
 4. **Frontier mode (planner stuck).** Take the unexplored actions on the current node, ranked by label similarity to the task text; one action per step; back out via `Esc` or the recorded return edge. ≤ 40 s per episode.
 5. **Write-back at task end.** Nodes, edges, procedure persisted; new nodes described in one batched LLM call.
@@ -95,11 +98,11 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 
 ### 4.4 Task-time use (M4 → feeds 3.5)
 
-1. **Plan: one LLM call.** Input: task + compact graph (node titles + descriptions; edges as `Inicio —[click "Cartera › Facturas"]→ Facturas`; procedures whose `task_text` is similar). Output: ordered steps, each an edge, a self-loop with params, or `explore`.
-2. **Execute a step.** Ground `target.label` on the current `elements` (exact → fuzzy → same role in the same cell) → act → `settle` → fingerprint → **compare with `edge.to`**. Match: `ok++`, next step. Mismatch: §4.5.
+1. **Plan.** On a mapped app the plan is the parsed queries plus the stored procedure for each `(op, entity)` ([Appendix F §4.1](F-agent-loop.md)); the graph planner call below runs only in the fallback loop and at §4.5 rung 3. Input: task + compact graph (node titles + descriptions; edges as `Inicio —[click "Cartera › Facturas"]→ Facturas`; procedures whose `task_text` is similar). Output: ordered steps, each an edge, a self-loop with params, or `explore`.
+2. **Execute a step.** Cheapest grounding first: the stored bbox while the node's static crops match byte-for-byte (Spec W `observe`); a target that only moved, by template match of its stored crop over the frame (≥ 0.95, logged `fastpath: moved`); only then perception: ground `target.label` on the current `elements` (exact → fuzzy → same role in the same cell). Then act → `settle` → fingerprint → **compare with `edge.to`**. Match: `ok++`, next step. Mismatch: §4.5.
    - `fill_field`: click the **paired input box** (7.3), confirm a caret or text appeared inside that bbox, else `Tab`. Keyboard focus is invisible to the fingerprint.
 3. **Verify completion** against the last screen's elements; write the summary in the README format.
-4. **Targets per step:** act + settle ≤ 2 s, OCR ≤ 1 s, fingerprint in ms. **LLM calls per task ≤ 3 on a warm map.**
+4. **Targets per step:** act + settle ≤ 2 s, OCR ≤ 1 s when it runs, fingerprint in ms. **LLM calls per task: 2 on a warm map (parse, summary), ≤ 3 with one replan.**
 
 ### 4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)
 
@@ -113,6 +116,7 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 | S4 | landed on an unmatched screen |
 | S5 | app version string changed |
 | S6 | the edge's `outcomes` histogram has > 1 node with real mass |
+| S7 | mass drift: at task start fewer than 40 % of the map's menu atoms are on screen, or 3 consecutive S4 inside one task (threshold tunable) |
 
 **Order of checks on every step: blocker dialog? → overlay? → data edge? → only then drift.** Each of the first three is a cheap false-positive filter.
 
@@ -120,12 +124,15 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 
 | Rung | What | Budget | When it fires |
 |---|---|---|---|
-| 1 | **Re-ground in place.** Fuzzy label → same role + cell → VLM "which element does what the old one did", with the old action as a few-shot example. Patch `edge.action.target`, keep the node. | ≤ 5 s | Most of 15:30: a renamed label, a moved item, a new field or confirm dialog. |
+| 0 | **Re-identify the epoch.** Open `memory/<app_id>/<new version>/` with a `map.json` copied from the previous epoch, every node `stale` and every edge `inherited`; appearances keep their `version`, so their crops and `ref_png` still resolve into the old directory; run the §4.3 step 2 pre-warm again. From here each inherited edge goes through rungs 1–3 with its old appearance as the few-shot, and unmatched screens are re-identified against inherited nodes before becoming new ones (§4.1). | ≤ 10 s + one pre-warm | S5 or S7 only: a version bump or a redesign. |
+| 1 | **Re-ground in place.** Template match of the old crop (moved only, no OCR) → fuzzy label → same role + cell → Jev typed choice over the element list, "which element does what the old one did", with the old action as a few-shot example, acted on at confidence ≥ 0.8 → VLM with the Set-of-Mark image. Append the new look to `target.appearances`, keep the node. | ≤ 5 s | Most of 15:30: a renamed label, a moved item, a new field or confirm dialog. |
 | 2 | **Local re-explore.** Mark the node `stale`, run §4.3 step 4 on this node only, write the new edges. It is the pre-warm function applied to one node: no new code. | ≤ 30 s | An item moved to another menu. |
 | 3 | **Re-plan with the edge marked `broken`.** One LLM call: the planner takes another graph route if one exists, otherwise plans freely. Every step still fingerprints, so the moment a known node appears we **rejoin the graph.** | ≤ 15 s | Workflow drift. |
 | 4 | **Rank down, never delete.** `fail++`; the planner prompt shows the edge with its `ok/fail`. | 0 | Always, after any failure. |
 
-Entry rung depends on the signal: **S1 → 1 → 2 → 3. S3/S4 → `Esc`/back to the previous node (2 s) → 3.**
+Entry rung depends on the signal: **S5/S7 → 0, then every inherited edge follows S1 → 1 → 2 → 3. S1 → 1 → 2 → 3. S3/S4 → `Esc`/back to the previous node (2 s) → 3.** After rung 3 the tool-use loop takes the step ([Appendix F §4.1](F-agent-loop.md)) and writes what worked back as the procedure.
+
+Why rung 0 exists: without it a redesign is discovered one edge at a time, at up to 50 s per edge, and the budget is gone after three. Recognising the epoch once turns it into a first task on a new app with the old map as hints: one pre-warm, and the old version stays loadable for a flip-back and for the before/after diff in the debrief.
 
 Why four and not five: a task-driven graph of 10–20 nodes almost never has an alternative route, so the papers' "alternative path" rung would not fire; it is folded into rung 3. Deletion risks losing a good edge to three unlucky failures, so pruning is replaced by ranking. `lazy:` add pruning when the map grows past what fits in the prompt.
 
@@ -138,10 +145,10 @@ Why four and not five: a task-driven graph of 10–20 nodes almost never has an 
 | t (s) | Step | When |
 |---|---|---|
 | 0–2 | connect + first frame | every task |
-| 2–10 | OCR, fingerprint, title → load map or cold (8 s on first sight of a dense screen) | every task |
-| → 45 | pre-warm (§4.3 step 2) | first task on an app only; cap 45 s |
-| + 15 | plan: one LLM call | every task |
-| → 230 | execute: ground + act + settle + incremental OCR ≈ 3–4 s per step → ~45 steps; + 3 s only when a VLM verify fires | every task |
+| 2–10 | static-crop gate or OCR, fingerprint, title → load map or cold (under 1 s on a replay hit; 8 s on first sight of a dense screen) | every task |
+| → 45 | pre-warm (§4.3 step 2) | first task on an epoch only (also right after rung 0); cap 45 s |
+| + 3 | parse: one fast-model call (the 15 s graph planner call only in the fallback loop) | every task |
+| → 230 | execute: replay ≈ 1–2 s per step (act + settle, no OCR) on a mapped app; ground + act + settle + incremental OCR ≈ 3–4 s per step when perceiving → ~45 steps; + 0.1 s per Jev call, + 3 s only when a VLM verify fires | every task |
 | 230–270 | reserve: one re-plan (15 s) + one local re-explore (20 s); execution flows into it if unused | on drift |
 | 270 | summary call (~10 s) → persist map → status | never dropped |
 
@@ -162,6 +169,7 @@ Decisions for the design doc, with the discarded alternative:
 | Data targets | `data` edges → find procedure | Storing the row click: fails on any other data state, triggers the ladder for nothing |
 | Task-time use | One planning call over the graph, then per-step verification against `edge.to` | Reactive per-step LLM without a graph: 3–5× more calls (GraphPilot, ActionEngine) |
 | Remap | Online, localized, 4-rung ladder written back into the graph; rank down, never delete | Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): fails at the moment we are graded. Passive decay alone (MAGNET): too slow within one task. Pruning: loses good edges to unlucky failures |
+| Redesign | Epoch per `(app_id, version)`, inherited as hints; one appearance per version on nodes and targets | A single mutable map: pollutes on a redesign and cannot flip back. Full re-learn on a version bump: throws away procedures that still hold. Treating a redesign as independent edge failures: ≈ 50 s each |
 | Change test | Mutate the stored map + framebuffer transform hook | Waiting for the real 15:30 change: no baseline, nothing measurable in advance |
 | Storage | One JSON per app | Neo4j + vector DB (AppAgentX, EAM): two services for a graph of 10–20 nodes |
 
@@ -188,6 +196,9 @@ Drift is a function of (stored map, live screen). We can't change the screen, so
 | delete all edges into a node | menu item moved | rung 2 re-adds it |
 | node atoms → junk | unknown screen | S4 → rung 3 → `rejoin` line |
 | "Zzzz" repeated across 3 tasks | persistent break | rank-down line |
+| `version` → v4.0, atoms unchanged (`version_bump`) | version bump, same screens | S5 → rung 0 opens `v4.0/` inheriting `v3.9/`; **negative control: 0 edge failures** |
+| `version` → v4.0, every node's atoms replaced, two grid headers renamed (`redesign`) | redesign | S5 → rung 0 → one re-identify line per node → `rejoin`; sync logs `schema_drift` with a 2-entry `column_map` (Appendix G §4.3.4) |
+| same as above, `version` unchanged (`redesign_silent`) | redesign without a version bump | S7 → rung 0, then as above |
 | grid cell shifted by 3 | moved button | **negative control: 0 drift lines** |
 | page 2 · filter applied · `operador2` | data state, not drift | **negative control: 0 drift lines** |
 
@@ -203,7 +214,8 @@ Real-pixel drift with no app change: a transform hook in [E] that downscales the
 2. §4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.
 3. §4.4 planner prompt with the compact graph.
 4. §4.5 signals + rung 1, then rungs 2–3; `--mutate` flag and the §6.1 table.
-5. Baseline numbers before 15:30; re-run after.
+5. Epochs and appearances: a new epoch is a directory with a copied `map.json`, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.
+6. Baseline numbers before 15:30; re-run after.
 
 ### 7.2 Deferred (`lazy:` notes)
 

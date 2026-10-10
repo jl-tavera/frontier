@@ -78,7 +78,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <ul>
 <li><code>elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]</code> from track 7. Timing: known screen &lt; 1 s (7.6 cache), <strong>first sight of a dense screen ≈ 8 s</strong> — budgeted below.</li>
 <li><code>settle()</code>, <code>changed_bbox(before, after)</code>, <code>click/type/key</code> from <a href="../solution.html#appendix-i"><code>poc/rfb_poc.py</code></a>.</li>
-<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. A version change is itself a drift hint (S5).</li>
+<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. An <strong>epoch</strong> is one <code>(app_id, version)</code> and has its own map file (§4.2). A version change is itself a drift signal (S5), and so is mass drift under the same version string (S7).</li>
 </ul>
 <hr />
 <h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
@@ -144,7 +144,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <tr>
 <td>9</td>
 <td><strong>Drift has two kinds: appearance (same function, new look/label/place) and workflow (steps reorganised).</strong> Store function → many appearances.</td>
-<td>A redesign adds an appearance instead of breaking the memory.</td>
+<td>A redesign adds an appearance instead of breaking the memory. Implemented as the <code>appearances</code> lists in §4.2.</td>
 <td>MAGNET</td>
 </tr>
 <tr>
@@ -165,24 +165,27 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <li><strong><code>fingerprint = (title_band, atoms)</code>.</strong>
    - The title band (top ~15 %) is a <strong>hard key</strong>: it must match before anything else, so Clientes and Proveedores with identical toolbars never merge.
    - Then <code>sim = Jaccard(atoms)</code>: <strong>≥ 0.90 same node · 0.60–0.90 ambiguous · &lt; 0.60 new node.</strong>
-   - Ambiguous: tie-break by the inbound edge label first; only then pay for one VLM yes/no against the node's reference screenshot, with "none of them" allowed.</li>
+   - Ambiguous: tie-break by the inbound edge label first; only then pay for one VLM yes/no against the node's reference screenshot, with "none of them" allowed.
+   - A node keeps one <code>(atoms, ref_png)</code> pair per app version (its <strong>appearances</strong>, §4.2); <code>sim</code> is the max over them. In a new epoch (§4.5 rung 0) the inherited stale nodes use a wider ambiguous band, <strong>0.30–0.90</strong>, with at most 5 candidates ranked by title similarity, so a redesigned screen is re-identified as the old node (and gains an appearance) before a new node is created.</li>
 <li><strong>Overlays are sub-states, not nodes.</strong> If <code>changed_bbox</code> covers &lt; ~25 % of the screen and the parent's labels are still visible (dropdown, combo list, tooltip): <code>overlay = parent_id + overlay labels</code>. Close with <code>Esc</code>, re-verify the parent. Prevents spurious nodes, <code>Esc</code> edges to nowhere, and VLM calls at 0.7–0.9.</li>
 <li><strong>Blocking dialogs are checked before drift.</strong> Small centered rectangle with ≤ 3 buttons → OCR its text into the log → <code>Esc</code> or the non-destructive button → re-fingerprint. A dialog never counts as drift and never starts the ladder.</li>
 <li><strong>In-page state does not change the node.</strong> Filter text, pagination, selected row, scroll are <strong>self-loop edges</strong> with an <code>effect</code> field.</li>
 </ol>
 <p><strong>Done when:</strong> the same screen at two resolutions → one id; 10 distinct SIGECOM screens → 10 ids; a dropdown open/closed → same node.</p>
 <h3 id="42-map-schema-m2-sub-problem-24">4.2 Map schema (M2 → sub-problem 2.4)<a class="headerlink" href="#42-map-schema-m2-sub-problem-24" title="Permanent link">¶</a></h3>
-<p>One JSON per app: <code>memory/&lt;app_id&gt;.json</code>. No database.</p>
-<pre><code class="language-jsonc">node      = {id, title, atoms[], description, ref_png, elements_snapshot,
-             transient, stale, seen, last_seen}
-edge      = {from, action: {kind, target: {label, role, cell}, params},
-             to, effect, data?, scroll?, ok, fail, last_ok, outcomes: {node_id: count}}
+<p>One directory per app epoch: <code>memory/&lt;app_id&gt;/&lt;version&gt;/</code> holds <code>map.json</code> and that version's reference PNGs and static crops, named by node id (<code>epoch-&lt;n&gt;</code> when the title bar carries no version). No database. The live epoch is the directory named after the title bar's version; once a newer one exists the old directory is never written again, which is what makes it a frozen version. §4.5 rung 0 says when a new one is opened.</p>
+<pre><code class="language-jsonc">node      = {id, title, description, transient, stale, seen, last_seen,
+             appearances: [{version, atoms[], ref_png, elements_snapshot, last_seen}]}   // one per app version, newest first; crops as files
+edge      = {from, action: {kind, target: {appearances: [{version, label, role, cell}]}, params},
+             to, effect, data?, scroll?, inherited?, ok, fail, last_ok, outcomes: {node_id: count}}
 procedure = {task_text, steps: [edge_id | self_loop + params], ok, last_ok}
 unexplored[node_id] = [action signatures not yet tried]       // the frontier
 denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;, &quot;Borrar&quot;, &quot;Guardar*&quot;, &quot;Enviar&quot;, &quot;Configuración&quot;]
 </code></pre>
 <ul>
 <li><code>description</code> is written by the LLM <strong>lazily</strong>, in one batched call at write-back, never per node.</li>
+<li><code>appearances</code> is MAGNET's "function → many appearances" (§3.1 idea 9): the node id and its description are the stable function; each app version adds a look: its atoms, <code>ref_png</code>, <code>elements_snapshot</code> and the static crops the replay fast path compares, stored as files in that version's directory. Fingerprint matching and target grounding take the newest appearance first and fall back through the older ones. Rung 1 appends an appearance; it never overwrites one.</li>
+<li><code>inherited: true</code> marks an edge copied from the previous epoch and not yet verified in this one. The planner sees it as a hint, ranked below any verified edge; the first confirmed landing clears the flag.</li>
 <li><code>data: true</code> when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the <strong>find procedure</strong> (search field → type → Enter → <code>Siguiente</code> ≤ N pages), never the repair ladder. We store the procedure, not the row click.</li>
 <li><code>scroll: true</code> when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.</li>
 <li><code>outcomes</code> is the histogram of where this action actually led. More than one node with real mass = an unreliable edge (S6).</li>
@@ -193,8 +196,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <h3 id="43-initial-mapping-m3-sub-problems-22-and-25">4.3 Initial mapping (M3 → sub-problems 2.2 and 2.5)<a class="headerlink" href="#43-initial-mapping-m3-sub-problems-22-and-25" title="Permanent link">¶</a></h3>
 <p>Decision for 2.5: <strong>cold + incremental</strong>, with one bounded pre-warm. No app-wide exploration ever.</p>
 <ol>
-<li><strong>Connect → identify app → load map or start cold.</strong> ~5 s.</li>
-<li><strong>Pre-warm, first task on an app only, ≤ 45 s.</strong> Open each top menu: click → <code>settle</code> → OCR → <code>Esc</code> ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. <strong>Open menus only, never click items.</strong> Record <code>menu → item</code> edges with <code>to = unknown</code>. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.</li>
+<li><strong>Connect → identify app → load the epoch or start cold.</strong> ~5 s. <code>(app_id, version)</code> matches a frozen epoch (the app flipped back): load it. Same <code>app_id</code>, new version: §4.5 rung 0 (inherit, pre-warm). No <code>app_id</code> at all (the title bar was rebranded): Jaccard of the first screen's menu atoms against every stored app's root node; ≥ 0.5 adopts that app as a new epoch, else cold.</li>
+<li><strong>Pre-warm, first task on an epoch only, ≤ 45 s.</strong> Open each top menu: click → <code>settle</code> → OCR → <code>Esc</code> ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. <strong>Open menus only, never click items.</strong> Record <code>menu → item</code> edges with <code>to = unknown</code>. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.</li>
 <li><strong>Task-driven mapping.</strong> Every action during a task: act → <code>settle</code> → <code>elements</code> → fingerprint → create/match node → upsert edge with the observed <code>to</code>. <strong>An edge is persisted only once its landing fingerprint is confirmed.</strong> Nothing is learned off the task path unless the planner is stuck.</li>
 <li><strong>Frontier mode (planner stuck).</strong> Take the unexplored actions on the current node, ranked by label similarity to the task text; one action per step; back out via <code>Esc</code> or the recorded return edge. ≤ 40 s per episode.</li>
 <li><strong>Write-back at task end.</strong> Nodes, edges, procedure persisted; new nodes described in one batched LLM call.</li>
@@ -203,11 +206,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <p><strong>Done when:</strong> the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.</p>
 <h3 id="44-task-time-use-m4-feeds-35">4.4 Task-time use (M4 → feeds 3.5)<a class="headerlink" href="#44-task-time-use-m4-feeds-35" title="Permanent link">¶</a></h3>
 <ol>
-<li><strong>Plan: one LLM call.</strong> Input: task + compact graph (node titles + descriptions; edges as <code>Inicio —[click "Cartera › Facturas"]→ Facturas</code>; procedures whose <code>task_text</code> is similar). Output: ordered steps, each an edge, a self-loop with params, or <code>explore</code>.</li>
-<li><strong>Execute a step.</strong> Ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell) → act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §4.5.
+<li><strong>Plan.</strong> On a mapped app the plan is the parsed queries plus the stored procedure for each <code>(op, entity)</code> (<a href="F-agent-loop.html">Appendix F §4.1</a>); the graph planner call below runs only in the fallback loop and at §4.5 rung 3. Input: task + compact graph (node titles + descriptions; edges as <code>Inicio —[click "Cartera › Facturas"]→ Facturas</code>; procedures whose <code>task_text</code> is similar). Output: ordered steps, each an edge, a self-loop with params, or <code>explore</code>.</li>
+<li><strong>Execute a step.</strong> Cheapest grounding first: the stored bbox while the node's static crops match byte-for-byte (Spec W <code>observe</code>); a target that only moved, by template match of its stored crop over the frame (≥ 0.95, logged <code>fastpath: moved</code>); only then perception: ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell). Then act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §4.5.
    - <code>fill_field</code>: click the <strong>paired input box</strong> (7.3), confirm a caret or text appeared inside that bbox, else <code>Tab</code>. Keyboard focus is invisible to the fingerprint.</li>
 <li><strong>Verify completion</strong> against the last screen's elements; write the summary in the README format.</li>
-<li><strong>Targets per step:</strong> act + settle ≤ 2 s, OCR ≤ 1 s, fingerprint in ms. <strong>LLM calls per task ≤ 3 on a warm map.</strong></li>
+<li><strong>Targets per step:</strong> act + settle ≤ 2 s, OCR ≤ 1 s when it runs, fingerprint in ms. <strong>LLM calls per task: 2 on a warm map (parse, summary), ≤ 3 with one replan.</strong></li>
 </ol>
 <h3 id="45-change-detection-and-repair-m5-sub-problem-26-the-1530-path">4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)<a class="headerlink" href="#45-change-detection-and-repair-m5-sub-problem-26-the-1530-path" title="Permanent link">¶</a></h3>
 <p><strong>Signals</strong> (any one triggers):</p>
@@ -243,6 +246,10 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>S6</td>
 <td>the edge's <code>outcomes</code> histogram has &gt; 1 node with real mass</td>
 </tr>
+<tr>
+<td>S7</td>
+<td>mass drift: at task start fewer than 40 % of the map's menu atoms are on screen, or 3 consecutive S4 inside one task (threshold tunable)</td>
+</tr>
 </tbody>
 </table></div>
 <p><strong>Order of checks on every step: blocker dialog? → overlay? → data edge? → only then drift.</strong> Each of the first three is a cheap false-positive filter.</p>
@@ -258,8 +265,14 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </thead>
 <tbody>
 <tr>
+<td>0</td>
+<td><strong>Re-identify the epoch.</strong> Open <code>memory/&lt;app_id&gt;/&lt;new version&gt;/</code> with a <code>map.json</code> copied from the previous epoch, every node <code>stale</code> and every edge <code>inherited</code>; appearances keep their <code>version</code>, so their crops and <code>ref_png</code> still resolve into the old directory; run the §4.3 step 2 pre-warm again. From here each inherited edge goes through rungs 1–3 with its old appearance as the few-shot, and unmatched screens are re-identified against inherited nodes before becoming new ones (§4.1).</td>
+<td>≤ 10 s + one pre-warm</td>
+<td>S5 or S7 only: a version bump or a redesign.</td>
+</tr>
+<tr>
 <td>1</td>
-<td><strong>Re-ground in place.</strong> Fuzzy label → same role + cell → VLM "which element does what the old one did", with the old action as a few-shot example. Patch <code>edge.action.target</code>, keep the node.</td>
+<td><strong>Re-ground in place.</strong> Template match of the old crop (moved only, no OCR) → fuzzy label → same role + cell → Jev typed choice over the element list, "which element does what the old one did", with the old action as a few-shot example, acted on at confidence ≥ 0.8 → VLM with the Set-of-Mark image. Append the new look to <code>target.appearances</code>, keep the node.</td>
 <td>≤ 5 s</td>
 <td>Most of 15:30: a renamed label, a moved item, a new field or confirm dialog.</td>
 </tr>
@@ -283,7 +296,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 </tbody>
 </table></div>
-<p>Entry rung depends on the signal: <strong>S1 → 1 → 2 → 3. S3/S4 → <code>Esc</code>/back to the previous node (2 s) → 3.</strong></p>
+<p>Entry rung depends on the signal: <strong>S5/S7 → 0, then every inherited edge follows S1 → 1 → 2 → 3. S1 → 1 → 2 → 3. S3/S4 → <code>Esc</code>/back to the previous node (2 s) → 3.</strong> After rung 3 the tool-use loop takes the step (<a href="F-agent-loop.html">Appendix F §4.1</a>) and writes what worked back as the procedure.</p>
+<p>Why rung 0 exists: without it a redesign is discovered one edge at a time, at up to 50 s per edge, and the budget is gone after three. Recognising the epoch once turns it into a first task on a new app with the old map as hints: one pre-warm, and the old version stays loadable for a flip-back and for the before/after diff in the debrief.</p>
 <p>Why four and not five: a task-driven graph of 10–20 nodes almost never has an alternative route, so the papers' "alternative path" rung would not fire; it is folded into rung 3. Deletion risks losing a good edge to three unlucky failures, so pruning is replaced by ranking. <code>lazy:</code> add pruning when the map grows past what fits in the prompt.</p>
 <p><strong>Done when:</strong> every mutation in §6.1 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.</p>
 <h3 id="46-time-budget-per-task-m6">4.6 Time budget per task (M6)<a class="headerlink" href="#46-time-budget-per-task-m6" title="Permanent link">¶</a></h3>
@@ -304,22 +318,22 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 <tr>
 <td>2–10</td>
-<td>OCR, fingerprint, title → load map or cold (8 s on first sight of a dense screen)</td>
+<td>static-crop gate or OCR, fingerprint, title → load map or cold (under 1 s on a replay hit; 8 s on first sight of a dense screen)</td>
 <td>every task</td>
 </tr>
 <tr>
 <td>→ 45</td>
 <td>pre-warm (§4.3 step 2)</td>
-<td>first task on an app only; cap 45 s</td>
+<td>first task on an epoch only (also right after rung 0); cap 45 s</td>
 </tr>
 <tr>
-<td>+ 15</td>
-<td>plan: one LLM call</td>
+<td>+ 3</td>
+<td>parse: one fast-model call (the 15 s graph planner call only in the fallback loop)</td>
 <td>every task</td>
 </tr>
 <tr>
 <td>→ 230</td>
-<td>execute: ground + act + settle + incremental OCR ≈ 3–4 s per step → ~45 steps; + 3 s only when a VLM verify fires</td>
+<td>execute: replay ≈ 1–2 s per step (act + settle, no OCR) on a mapped app; ground + act + settle + incremental OCR ≈ 3–4 s per step when perceiving → ~45 steps; + 0.1 s per Jev call, + 3 s only when a VLM verify fires</td>
 <td>every task</td>
 </tr>
 <tr>
@@ -381,6 +395,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>Remap</td>
 <td>Online, localized, 4-rung ladder written back into the graph; rank down, never delete</td>
 <td>Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): fails at the moment we are graded. Passive decay alone (MAGNET): too slow within one task. Pruning: loses good edges to unlucky failures</td>
+</tr>
+<tr>
+<td>Redesign</td>
+<td>Epoch per <code>(app_id, version)</code>, inherited as hints; one appearance per version on nodes and targets</td>
+<td>A single mutable map: pollutes on a redesign and cannot flip back. Full re-learn on a version bump: throws away procedures that still hold. Treating a redesign as independent edge failures: ≈ 50 s each</td>
 </tr>
 <tr>
 <td>Change test</td>
@@ -469,6 +488,21 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <td>rank-down line</td>
 </tr>
 <tr>
+<td><code>version</code> → v4.0, atoms unchanged (<code>version_bump</code>)</td>
+<td>version bump, same screens</td>
+<td>S5 → rung 0 opens <code>v4.0/</code> inheriting <code>v3.9/</code>; <strong>negative control: 0 edge failures</strong></td>
+</tr>
+<tr>
+<td><code>version</code> → v4.0, every node's atoms replaced, two grid headers renamed (<code>redesign</code>)</td>
+<td>redesign</td>
+<td>S5 → rung 0 → one re-identify line per node → <code>rejoin</code>; sync logs <code>schema_drift</code> with a 2-entry <code>column_map</code> (Appendix G §4.3.4)</td>
+</tr>
+<tr>
+<td>same as above, <code>version</code> unchanged (<code>redesign_silent</code>)</td>
+<td>redesign without a version bump</td>
+<td>S7 → rung 0, then as above</td>
+</tr>
+<tr>
 <td>grid cell shifted by 3</td>
 <td>moved button</td>
 <td><strong>negative control: 0 drift lines</strong></td>
@@ -489,6 +523,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li>§4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.</li>
 <li>§4.4 planner prompt with the compact graph.</li>
 <li>§4.5 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §6.1 table.</li>
+<li>Epochs and appearances: a new epoch is a directory with a copied <code>map.json</code>, an appearance is a list where there was one value; rung 0 and S7; the three redesign mutations in §6.1.</li>
 <li>Baseline numbers before 15:30; re-run after.</li>
 </ol>
 <h3 id="72-deferred-lazy-notes">7.2 Deferred (<code>lazy:</code> notes)<a class="headerlink" href="#72-deferred-lazy-notes" title="Permanent link">¶</a></h3>
