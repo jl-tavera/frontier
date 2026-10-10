@@ -63,8 +63,6 @@ async def test_joins_shared_and_asks_only_raw_and_copyrect(screen):
         s = await open_session(srv.url, "secret")
         assert srv.shared == 1
         assert srv.encodings == [0, 1]
-        with pytest.raises(NotImplementedError):
-            await s.send_clipboard("x")
         await s.close()
 
 
@@ -76,4 +74,32 @@ async def test_scripted_paint_and_clipboard_reach_the_session(screen):
         await _until(lambda: s.clipboard)
         assert s.fb[6:9, 5:9, 2::-1].tolist() == [[[255, 0, 0]] * 4] * 3
         assert s.clipboard == "año"
+        await s.close()
+
+
+async def test_send_clipboard_arrives_byte_for_byte_as_latin1(screen):
+    text = ("Señor Muñoz, cédula 1.234.567; " * 7)[:200]
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        await s.send_clipboard(text)
+        await _until(lambda: srv.cut_texts)
+        assert srv.cut_texts == [text]
+        await s.close()
+
+
+async def test_wait_clipboard_returns_the_next_server_cut_text(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        waiter = asyncio.create_task(s.wait_clipboard(2))
+        await asyncio.sleep(0.05)
+        await srv.push_clipboard("Nombre\tCédula\nAna\t123")
+        assert await waiter == "Nombre\tCédula\nAna\t123"
+        assert s.clipboard == "Nombre\tCédula\nAna\t123"
+        await s.close()
+
+
+async def test_wait_clipboard_is_none_after_timeout(screen):
+    async with FakeRFBServer(screen[0], "secret") as srv:
+        s = await open_session(srv.url, "secret")
+        assert await s.wait_clipboard(0.1) is None
         await s.close()

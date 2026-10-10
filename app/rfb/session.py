@@ -25,6 +25,7 @@ class RFBSession:
         self.buf = bytearray()
         self.last_change = 0.0
         self.clipboard = ""
+        self.cut_arrived = asyncio.Event()
         self.updated = asyncio.Event()
 
     async def _read(self, n):
@@ -91,6 +92,7 @@ class RFBSession:
             elif msg == 3:  # ServerCutText
                 (ln,) = struct.unpack(">3xI", await self._read(7))
                 self.clipboard = (await self._read(ln)).decode("latin-1")
+                self.cut_arrived.set()
             else:
                 raise RuntimeError(f"unknown server message {msg}")
 
@@ -119,9 +121,21 @@ class RFBSession:
         for c in text:  # Latin-1 chars (ñ, á...) map 1:1 to keysyms
             await self._keysym(KEYS["enter"] if c == "\n" else ord(c))
 
-    # lazy: stub so the class satisfies Session; B2 sends ClientCutText.
     async def send_clipboard(self, text):
-        raise NotImplementedError("clipboard send lands in B2")
+        data = text.encode("latin-1")  # RFB 3.8 cut text is Latin-1 only
+        await self.ws.send(struct.pack(">B3xI", 6, len(data)) + data)  # ClientCutText
+
+    async def wait_clipboard(self, timeout):
+        """The next ServerCutText to arrive, or None if none comes within `timeout` seconds.
+
+        Text that arrived before the call is ignored: call it right after sending the copy keys,
+        before the desktop's reply can land (a full round trip later)."""
+        self.cut_arrived.clear()
+        try:
+            await asyncio.wait_for(self.cut_arrived.wait(), timeout)
+        except TimeoutError:
+            return None
+        return self.clipboard
 
     async def close(self):
         self.reader.cancel()
