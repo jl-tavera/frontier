@@ -1,0 +1,30 @@
+[project]
+name = "frontier"
+version = "0.1.0"
+description = "Agent that operates a desktop app with no API, over RFB."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "httpx",
+    "websockets>=13",
+    "pycryptodome",
+    "numpy",
+    "pillow",
+    "opencv-python-headless",
+    "rapidocr-onnxruntime",
+    "onnxruntime",
+    "openai",
+    "typesafe-sdk",
+    "pyyaml",
+]
+
+[dependency-groups]
+dev = ["pytest", "pytest-asyncio"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
