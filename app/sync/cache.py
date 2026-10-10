@@ -5,9 +5,12 @@ One Cache per task: the change log is probed at most once per instance.
 """
 import hashlib
 import json
+import re
 import sqlite3
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -43,10 +46,16 @@ CREATE TABLE IF NOT EXISTS sync_state (
 
 Probe = Callable[[str], tuple[int, str]]
 Rows = list[dict]
+Llm = Callable[[list[str], list[str], Rows], dict]  # (old leftovers, new leftovers, 3 sample rows) -> {old: new | None}
 
 
 def _sha(obj) -> str:
     return hashlib.sha1(json.dumps(obj, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
+
+
+def _norm(header: str) -> str:
+    """Case, accents, whitespace and punctuation don't count."""
+    return "".join(c for c in unicodedata.normalize("NFKD", header).lower() if c.isalnum())
 
 
 def _now() -> str:
@@ -61,8 +70,8 @@ class Need:
 
 class Cache:
     def __init__(self, app_id: str, probe: Probe, path: Path | str = "memory/cache.sqlite", log: Log | None = None,
-                 expiry_s: float = 600):
-        self.app_id, self.probe, self.log, self.expiry_s = app_id, probe, log, expiry_s
+                 expiry_s: float = 600, llm: Llm | None = None):
+        self.app_id, self.probe, self.log, self.expiry_s, self.llm = app_id, probe, log, expiry_s, llm
         self._changelog_probed = False
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(path)
@@ -76,6 +85,8 @@ class Cache:
         count, page_hash = self.probe(entity)
         keyed = {self._natural_key(r, key): r for r in rows}
         header_hash = _sha(sorted({h for r in rows for h in r}))
+        old = self._state(entity)
+        column_map = old and old["column_map"]
         now = _now()
         with self.db:
             self.db.execute("DELETE FROM rows_staging WHERE app_id=? AND entity=?", (self.app_id, entity))
@@ -95,14 +106,19 @@ class Cache:
                 self.db.execute("DELETE FROM rows_staging WHERE app_id=? AND entity=?", (self.app_id, entity))
                 self._event("sync.acquire", entity=entity, method=source, rows=staged, probe_count=count, outcome="partial")
                 return "partial"
+            if old and old["header_hash"] != header_hash:  # the 15:30 change: re-acquire is the migration
+                old_rows = {nk: json.loads(d) for nk, d in self.db.execute(
+                    "SELECT natural_key, data_json FROM rows WHERE app_id=? AND entity=?", (self.app_id, entity))}
+                aligned = self._align(entity, old_rows, keyed, json.loads(column_map or "{}"))
+                column_map = json.dumps(aligned, ensure_ascii=False) if aligned else None
             self.db.execute("DELETE FROM rows WHERE app_id=? AND entity=?", (self.app_id, entity))
             self.db.execute("INSERT INTO rows SELECT * FROM rows_staging WHERE app_id=? AND entity=?", (self.app_id, entity))
             self.db.execute("DELETE FROM rows_staging WHERE app_id=? AND entity=?", (self.app_id, entity))
             self.db.execute(
                 "INSERT OR REPLACE INTO sync_state"
-                " (app_id, entity, header_hash, role, row_count, probe_hash, status, method, acquired_at)"
-                " VALUES (?,?,?,'entity',?,?,'complete',?,?)",
-                (self.app_id, entity, header_hash, count, page_hash, source, now),
+                " (app_id, entity, header_hash, column_map, role, row_count, probe_hash, status, method, acquired_at)"
+                " VALUES (?,?,?,?,'entity',?,?,'complete',?,?)",
+                (self.app_id, entity, header_hash, column_map, count, page_hash, source, now),
             )
         self._event("sync.acquire", entity=entity, method=source, rows=staged, probe_count=count, outcome="complete")
         return "complete"
@@ -147,8 +163,54 @@ class Cache:
             self._watermark(changelog["entity"])
 
     def query(self, sql: str, params: tuple = ()) -> list[tuple]:
-        """SQL over `json_extract(data_json, '$.Col')`."""
+        """SQL over `json_extract(data_json, '$.Col')`; a retired header is translated through `column_map`."""
+        renamed = {}
+        for (m,) in self.db.execute("SELECT column_map FROM sync_state WHERE app_id=? AND column_map IS NOT NULL", (self.app_id,)):
+            renamed.update(json.loads(m))
+        live = {h for (h,) in self.db.execute(
+            "SELECT DISTINCT j.key FROM rows, json_each(rows.data_json) AS j WHERE app_id=?", (self.app_id,))}
+        renamed = {old: new for old, new in renamed.items() if old not in live}  # only a name no grid shows any more
+        sql = re.sub(r"'\$\.([^'.\[]+)'", lambda m: f"'$.{renamed.get(m[1], m[1])}'", sql)
         return [tuple(r) for r in self.db.execute(sql, params)]
+
+    def _align(self, entity: str, old: dict[str, dict], new: dict[str, dict], prior: dict) -> dict | None:
+        """Old header -> new header (G §4.3.4), chained onto `prior`. None when the alignment is inconclusive."""
+        old_h = sorted({h for r in old.values() for h in r})
+        new_h = sorted({h for r in new.values() for h in r})
+        left_old = [h for h in old_h if h not in new_h]
+        left_new = [h for h in new_h if h not in old_h]
+        pairs = {}
+
+        def pair(score, threshold):
+            for o in list(left_old):
+                best = max(left_new, key=lambda n: score(o, n), default=None)
+                if best is not None and score(o, best) >= threshold:
+                    pairs[o] = best
+                    left_old.remove(o)
+                    left_new.remove(best)
+
+        shared = old.keys() & new.keys()
+        pair(lambda o, n: float(_norm(o) == _norm(n)), 1.0)
+        pair(lambda o, n: SequenceMatcher(None, o, n).ratio(), 0.8)
+        if shared:
+            pair(lambda o, n: sum(old[k].get(o) == new[k].get(n) for k in shared) / len(shared), 0.9)
+        if left_old and left_new and self.llm:
+            try:
+                answer = self.llm(list(left_old), list(left_new), list(new.values())[:3])
+                if not isinstance(answer, dict):
+                    raise TypeError(f"llm returned {type(answer).__name__}")
+            except Exception as e:
+                self._event("sync.schema_drift", entity=entity, old=old_h, new=new_h, aligned={}, unaligned=old_h,
+                            outcome="inconclusive", detail=repr(e))
+                return None
+            for o, n in answer.items():
+                if o in left_old and n in left_new:
+                    pairs[o] = n
+                    left_old.remove(o)
+                    left_new.remove(n)
+        self._event("sync.schema_drift", entity=entity, old=old_h, new=new_h, aligned=pairs, unaligned=left_old)
+        chained = {a: pairs.get(b, b) for a, b in prior.items() if b in pairs or b in new_h}
+        return {**chained, **pairs}
 
     def _state(self, entity: str) -> dict | None:
         return self._one("SELECT * FROM sync_state WHERE app_id=? AND entity=?", entity)
