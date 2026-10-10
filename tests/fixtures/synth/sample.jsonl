@@ -1,0 +1,16 @@
+{"ts": 1760100000.0, "event": "task.start", "task_id": "t1", "args": {"task": "¿Cuántas facturas vencidas tiene ACME?"}}
+{"ts": 1760100000.1, "event": "drift", "signal": "S5", "rung": 0, "via": "inherit", "confidence": null, "before": "v1", "after": "v2", "cost_ms": 1500.0}
+{"ts": 1760100000.2, "event": "drift", "signal": "S5", "rung": 0, "via": "reidentify", "confidence": null, "before": null, "after": "facturas", "cost_ms": 500.0}
+{"ts": 1760100000.4, "event": "sync.probe", "app_id": "sigecom", "scope": "changelog", "entity": "facturas", "outcome": "miss"}
+{"ts": 1760100000.5, "event": "sync.probe", "app_id": "sigecom", "scope": "entity", "entity": "facturas", "outcome": "hit"}
+{"ts": 1760100000.6, "event": "sync.schema_drift", "app_id": "sigecom", "entity": "facturas", "old": ["Vence", "Valor", "Estado"], "new": ["Vencimiento", "Valor", "Situación"], "aligned": {"Vence": "Vencimiento", "Valor": "Valor"}, "unaligned": ["Estado"]}
+{"ts": 1760100001.2, "event": "step", "tool": "click", "args": ["Facturas"], "screen_id": "facturas", "diff": [10, 40, 300, 200], "outcome": "ok", "signal": null, "detail": "hit", "cost_ms": 120.0}
+{"ts": 1760100002.0, "event": "drift", "signal": "S1", "rung": 1, "via": "fuzzy", "confidence": null, "before": "Facturas", "after": "Facturación", "cost_ms": 340.0}
+{"ts": 1760100002.1, "event": "step", "tool": "click", "args": ["Facturas"], "screen_id": "facturas", "diff": null, "outcome": "ok", "signal": "S1", "detail": "rung 1 via fuzzy", "cost_ms": 410.0}
+{"ts": 1760100002.5, "event": "drift", "signal": "S1", "rung": 1, "via": "decide", "confidence": 0.86, "before": "Buscar", "after": "Filtrar", "cost_ms": 900.0}
+{"ts": 1760100003.0, "event": "step", "tool": "click_text", "args": ["Exportar"], "screen_id": "facturas", "diff": null, "outcome": "fail", "signal": "S1", "detail": "not found: Exportar", "cost_ms": 650.0}
+{"ts": 1760100003.2, "event": "drift", "signal": "S1", "rung": 1, "via": null, "confidence": 0.4, "before": "Exportar", "after": null, "cost_ms": 700.0}
+{"ts": 1760100003.9, "event": "drift", "signal": "S1", "rung": 3, "via": "replan", "confidence": null, "before": "reportes", "after": ["e3", "e7"], "cost_ms": 2100.0}
+{"ts": 1760100004.0, "event": "step", "tool": "click_text", "args": ["Exportar"], "screen_id": "reportes", "diff": [20, 60, 120, 80], "outcome": "ok", "signal": null, "detail": "moved", "cost_ms": 300.0}
+{"ts": 1760100004.1, "event": "llm", "tier": "fast", "model": "x/y", "usage": {}, "cost_ms": 800.0}
+{"ts": 1760100004.5, "event": "task.end", "task_id": "t1", "outcome": "terminada", "args": {"summary": "respuesta: 12"}}
