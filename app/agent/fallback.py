@@ -12,6 +12,8 @@ from app.memory.planner import compact
 from app.perception.ground import elements_text, som_image
 
 BATCH = 8
+# lazy: a fixed threshold, blind to how long a turn takes; scale it by the measured turn time if slow models overrun
+WRAP_S = 30  # under this many seconds left the model is told to finish with what it has
 TOOLS = {  # name -> (description, params); every param is a string
     "click_text": ("Click the button, menu item or link whose text is label.", ["label"]),
     "fill_field": ("Type value into the input paired with the field label.", ["label", "value"]),
@@ -43,6 +45,14 @@ def _screen(tools) -> tuple[str | None, list[dict]]:
         png = base64.b64encode(som_image(tools.session.fb, obs.elements)).decode()
         parts.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{png}"}})
     return obs.node, parts
+
+
+def _clock(ex) -> dict:
+    left = ex.deadline - ex.loop.time()
+    text = f"{left:.0f} seconds left."
+    if left < WRAP_S:
+        text += " Time is almost up: call done now with what you have read so far, saying what is missing."
+    return {"type": "text", "text": text}
 
 
 def _pin(tools) -> str | None:
@@ -77,7 +87,8 @@ async def agent_loop(task: str, plan: Plan, ex) -> dict:
         # joins them with the first edge
         {"role": "system", "content": [{"type": "text", "text": SYSTEM + compact(m, task),
                                         "cache_control": {"type": "ephemeral"}}]},
-        {"role": "user", "content": [{"type": "text", "text": f"Task: {task}\nQueries parsed so far: {queries}"}, *screen]}]
+        {"role": "user", "content": [{"type": "text", "text": f"Task: {task}\nQueries parsed so far: {queries}"}, _clock(ex),
+                                     *screen]}]
     steps: list[dict] = []
     # lazy: no turn cap, run_task's budget guard ends a model that never calls done
     while True:
@@ -119,4 +130,4 @@ async def agent_loop(task: str, plan: Plan, ex) -> dict:
                     out = f"{'ok' if e.ok else 'failed'} screen={e.screen_id} signal={e.signal}: {e.detail}"
             messages.append({"role": "tool", "tool_call_id": call.id, "content": out})
         here, screen = _screen(tools)
-        messages.append({"role": "user", "content": screen})
+        messages.append({"role": "user", "content": [_clock(ex), *screen]})

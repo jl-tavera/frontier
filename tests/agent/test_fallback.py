@@ -100,3 +100,23 @@ def test_go_to_is_offered_only_once_the_map_has_an_edge(monkeypatch, fixtures_di
     assert "go_to" not in first and "click_text" in first  # cold map: no edges
     assert "go_to" in second  # the clicks it just made are edges now
 
+
+def turns(call) -> list[str]:
+    """The text of every user message the model got on this call."""
+    return [" ".join(p["text"] for p in m["content"] if p["type"] == "text")
+            for m in call["messages"] if m["role"] == "user"]
+
+
+def test_every_turn_tells_the_seconds_left_and_a_short_budget_ends_with_the_answer_read_so_far(
+        monkeypatch, fixtures_dir, tmp_path):
+    *_, llm = run(monkeypatch, fixtures_dir, tmp_path / "memory", READ, LEARN, [("done", {"answer": "1"})],
+                  {"text": "respuesta: 1"})
+    assert all("seconds left" in t and "call done now" not in t for t in turns(llm.calls[2]))
+
+    monkeypatch.setattr(runner, "BUDGET_S", 30.0)  # 20 s after the summary reserve: under the wrap-up threshold
+    status, _, _, llm = run(monkeypatch, fixtures_dir, tmp_path / "memory2", READ,
+                            [("click_text", {"label": "Cartera"})], [("done", {"answer": "aún no lo leí"})],
+                            {"text": "No alcanzó a leer las facturas", "data": {}})
+    assert "call done now" in turns(llm.calls[2])[-1]
+    assert status["status"] == "terminada" and "presupuesto agotado" not in status["summary"]
+    assert '"aún no lo leí"' in llm.calls[3]["messages"][-1]["content"]  # the done answer reached the summary
