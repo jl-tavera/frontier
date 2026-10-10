@@ -117,43 +117,87 @@ def mini_tocs(body: str) -> str:
     return re.sub(r'<h2 id="appendix-([a-i])".*?(?=<h2 id="appendix-|\Z)', add, body, flags=re.S)
 
 
-SVG = """<figure class="arch"><svg viewBox="0 0 1180 880" role="img" aria-label="Architecture: evaluator calls the Railway service; inside it the entrypoint, task runner, agent, tools and replay, perception, data sync engine, RFB session, app memory, SQLite read cache and JSONL log; the agent calls OpenRouter and Jev and the RFB session talks to the target desktop">
-<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
-<g class="rail"><rect x="230" y="20" width="640" height="840" rx="14"/><text x="250" y="46" class="t">Railway service · <tspan class="m">frontier-agent</tspan> · one container, one process</text></g>
-<g class="ext"><rect x="20" y="70" width="170" height="90" rx="8"/><text x="32" y="92" class="t">Evaluator</text><text x="32" y="112" class="l">hidden eval set</text><text x="32" y="128" class="l">task + {url, password}</text><text x="32" y="144" class="l">5 min per task</text></g>
-<g class="box"><rect x="260" y="70" width="270" height="80" rx="8"/><text x="272" y="92" class="t">[A] Entrypoint API</text><text x="272" y="110" class="l">FastAPI + uvicorn · Bearer auth</text><text x="272" y="125" class="l">POST /tasks → task_id &lt; 2 s</text><text x="272" y="140" class="l">GET /tasks/{id} · GET /health</text></g>
-<g class="box"><rect x="560" y="70" width="280" height="80" rx="8"/><text x="572" y="92" class="t">[B] Task Runner</text><text x="572" y="110" class="l">asyncio task per job</text><text x="572" y="125" class="l">270 s budget guard · in-process state</text><text x="572" y="140" class="l">always writes a summary</text></g>
-<g class="box hi"><rect x="260" y="190" width="580" height="90" rx="8"/><text x="272" y="212" class="t">[C] Agent — parse → executor (replay + probe) → summarize</text><text x="272" y="232" class="l">openai SDK → OpenRouter · MODEL_FAST / MODEL_VLM / MODEL_PLANNER from env</text><text x="272" y="248" class="l">fallback: Jev typed decisions (0.8 gate) → VLM → tool-use loop (planner)</text><text x="272" y="264" class="l">picks element ids (Set-of-Mark), never x,y</text></g>
-<g class="box"><rect x="260" y="320" width="270" height="100" rx="8"/><text x="272" y="342" class="t">[D] Tools + [W] Replay</text><text x="272" y="360" class="l">[W] stored xy → verify → repair</text><text x="272" y="375" class="l">low: click · type · key · screenshot</text><text x="272" y="390" class="l">mid: click_text · fill_field · wait_for</text><text x="272" y="405" class="l">high: navigate_to, read_grid, export</text></g>
-<g class="box"><rect x="560" y="320" width="280" height="100" rx="8"/><text x="572" y="342" class="t">[E] Perception</text><text x="572" y="360" class="l">RapidOCR (ONNX, Latin PP-OCRv5)</text><text x="572" y="375" class="l">OpenCV boxes + grid lines · numpy</text><text x="572" y="390" class="l">UI tree · fingerprint · changed_bbox</text><text x="572" y="405" class="l">Tesseract fallback · line-pixel cache</text></g>
-<g class="box hi"><rect x="260" y="460" width="270" height="100" rx="8"/><text x="272" y="482" class="t">[S] Data Sync Engine (track 4)</text><text x="272" y="500" class="l">need(entity), not screens · lazy</text><text x="272" y="515" class="l">ladder: Exportar → clipboard → OCR</text><text x="272" y="530" class="l">probe: change-log p.1 or count+hash</text><text x="272" y="545" class="l">staging → atomic swap · app wins</text></g>
-<g class="box"><rect x="260" y="600" width="270" height="100" rx="8"/><text x="272" y="622" class="t">[F] App Memory (nav map)</text><text x="272" y="640" class="l">one map per app epoch (version)</text><text x="272" y="655" class="l">nodes · edges · procedures · frontier</text><text x="272" y="670" class="l">appearances + last-good xy per edge</text><text x="272" y="685" class="l">ref PNGs + crops shipped in image</text></g>
-<g class="box hi"><rect x="560" y="600" width="280" height="100" rx="8"/><text x="572" y="622" class="t">[DB] SQLite read cache</text><text x="572" y="640" class="l">stdlib sqlite3 · WAL · one file</text><text x="572" y="655" class="l">rows(app, entity, key, data_json)</text><text x="572" y="670" class="l">sync_state(count, hash, status)</text><text x="572" y="685" class="l">json_extract → SQL filters · ephemeral</text></g>
-<g class="box"><rect x="560" y="460" width="280" height="100" rx="8"/><text x="572" y="482" class="t">[G] RFB Session</text><text x="572" y="500" class="l">websockets ≥13 · pycryptodome (DES)</text><text x="572" y="515" class="l">Raw + CopyRect (lossless) · shared=1</text><text x="572" y="530" class="l">settle (quiet-time) · clipboard</text><text x="572" y="545" class="l">numpy framebuffer 1280×800</text></g>
-<g class="box log"><rect x="260" y="730" width="580" height="60" rx="8"/><text x="272" y="750" class="t">[H] JSONL structured log</text><text x="272" y="767" class="l">every step: tool · args · screen_id · diff · outcome · signal · rung · cost_ms · sync.probe/acquire/fallback</text><text x="272" y="782" class="l">→ Challenge 2 spec · debrief · eval harness · mutation suite</text></g>
-<text x="250" y="822" class="l">Deploy: one Railway service · Docker python:3.12-slim + uv · uvicorn, 1 worker on $PORT</text>
-<text x="250" y="838" class="l">env TEAM_TOKEN · OPENROUTER_API_KEY · MODEL_* · TYPESAFE_API_KEY? · no volume · CPU</text>
-<g class="ext"><rect x="910" y="190" width="250" height="90" rx="8"/><text x="922" y="212" class="t">OpenRouter + Jev</text><text x="922" y="232" class="l">OpenRouter · chat + tool use</text><text x="922" y="248" class="l">MODEL_FAST / VLM / PLANNER</text><text x="922" y="264" class="l">Jev (typesafe-sdk) · System 1</text></g>
-<g class="ext"><rect x="910" y="430" width="250" height="170" rx="8"/><text x="922" y="452" class="t">Target desktop (Railway)</text><text x="922" y="472" class="l">noVNC page · /health</text><text x="922" y="488" class="l">websockify → VNC server</text><text x="922" y="504" class="l">(Docker 86a79607eef2:0)</text><text x="922" y="520" class="l">SIGECOM v3.9 · unseen app</text><text x="922" y="536" class="l">pixels only · no DOM, no API</text><text x="922" y="552" class="l">shared: operador / operador2</text></g>
+SVG = """<figure class="arch"><svg viewBox="0 0 1180 545" role="img" aria-label="Components and deployment: the evaluator calls one Railway service holding the entrypoint, task runner, agent, data sync engine, perception, tools and replay, SQLite read cache, app memory, RFB session and JSONL log; the agent calls OpenRouter and Jev, and the RFB session talks to the target desktop">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker><marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
+<g class="rail"><rect x="210" y="20" width="720" height="480" rx="14"/><text x="230" y="46" class="t">Railway service · <tspan class="m">frontier-agent</tspan> · one container, one process</text></g>
+<g class="ext"><rect x="16" y="70" width="150" height="56" rx="8"/><text x="28" y="92" class="t">Evaluator</text><text x="28" y="111" class="l">HTTPS + Bearer · 5 min</text></g>
+<g class="box"><rect x="230" y="70" width="210" height="56" rx="8"/><text x="242" y="92" class="t">[A] Entrypoint API</text><text x="242" y="111" class="l">FastAPI · Bearer · task_id &lt; 2 s</text></g>
+<g class="box"><rect x="465" y="70" width="445" height="56" rx="8"/><text x="477" y="92" class="t">[B] Task runner</text><text x="477" y="111" class="l">asyncio task per job · 270 s guard · always writes a summary</text></g>
+<g class="box"><rect x="230" y="160" width="680" height="56" rx="8"/><text x="242" y="182" class="t">[C] Agent</text><text x="242" y="201" class="l">parse → executor (replay + probe) → summarize · fallbacks: Jev → VLM → planner tool-use loop</text></g>
+<g class="box hi"><rect x="230" y="250" width="210" height="56" rx="8"/><text x="242" y="272" class="t">[S] Data sync engine</text><text x="242" y="291" class="l">probe, else Exportar → OCR</text></g>
+<g class="box"><rect x="465" y="250" width="210" height="56" rx="8"/><text x="477" y="272" class="t">[E] Perception</text><text x="477" y="291" class="l">RapidOCR + OpenCV · on change</text></g>
+<g class="box hi"><rect x="700" y="250" width="210" height="56" rx="8"/><text x="712" y="272" class="t">[D] Tools + [W] Replay</text><text x="712" y="291" class="l">stored xy → verify → repair</text></g>
+<g class="box hi"><rect x="230" y="340" width="210" height="56" rx="8"/><text x="242" y="362" class="t">[DB] SQLite read cache</text><text x="242" y="381" class="l">SQL answers · app always wins</text></g>
+<g class="box"><rect x="465" y="340" width="210" height="56" rx="8"/><text x="477" y="362" class="t">[F] App memory</text><text x="477" y="381" class="l">nav map per app epoch (JSON)</text></g>
+<g class="box"><rect x="700" y="340" width="210" height="56" rx="8"/><text x="712" y="362" class="t">[G] RFB session</text><text x="712" y="381" class="l">RFB 3.8 over WSS · clipboard</text></g>
+<g class="box log"><rect x="230" y="430" width="680" height="48" rx="8"/><text x="242" y="450" class="t">[H] JSONL log</text><text x="242" y="468" class="l">every step: tool · screen · effect · signal · rung · cost → Challenge 2 spec, debrief, eval harness</text></g>
+<text x="210" y="527" class="e">One Railway service · Docker python:3.12-slim + uv · uvicorn, 1 worker · no volume · CPU-only · SIGECOM's map and seeded cache ship in the image</text>
+<g class="ext"><rect x="985" y="120" width="185" height="56" rx="8"/><text x="997" y="142" class="t">OpenRouter</text><text x="997" y="161" class="l">MODEL_FAST · VLM · PLANNER</text></g>
+<g class="ext"><rect x="985" y="200" width="185" height="56" rx="8"/><text x="997" y="222" class="t">Jev (TypeSafe AI)</text><text x="997" y="241" class="l">typed decisions · optional</text></g>
+<g class="ext"><rect x="985" y="320" width="185" height="110" rx="8"/><text x="997" y="342" class="t">Target desktop</text><text x="997" y="362" class="l">noVNC → websockify → VNC</text><text x="997" y="380" class="l">SIGECOM v3.9 · unseen app</text><text x="997" y="398" class="l">pixels only · shared login</text></g>
 <g class="edge">
-<line x1="190" y1="100" x2="260" y2="100"/><text x="225" y="92" class="e" text-anchor="middle">HTTPS + Bearer</text>
-<line x1="260" y1="125" x2="190" y2="125"/><text x="225" y="142" class="e" text-anchor="middle">task_id · status</text>
-<line x1="530" y1="110" x2="560" y2="110"/>
-<line x1="700" y1="150" x2="700" y2="190"/><text x="708" y="175" class="e">asyncio task</text>
-<line x1="395" y1="280" x2="395" y2="320"/><text x="403" y="305" class="e">tool calls</text>
-<line x1="700" y1="320" x2="700" y2="280"/><text x="708" y="305" class="e">elements · effects</text>
-<polyline points="530,370 545,370 545,485 560,485" fill="none"/><text x="552" y="455" class="e" text-anchor="end">act</text>
-<line x1="395" y1="420" x2="395" y2="460"/><text x="403" y="445" class="e">read_grid · export</text>
-<line x1="530" y1="535" x2="560" y2="535"/><text x="545" y="575" class="e" text-anchor="middle">navigate · clipboard · OCR</text>
-<line x1="700" y1="460" x2="700" y2="420"/><text x="708" y="445" class="e">framebuffer</text>
-<polyline points="260,650 245,650 245,235 260,235" fill="none"/><text x="240" y="440" class="e" text-anchor="middle" transform="rotate(-90 240 440)">nav map</text>
-<polyline points="500,560 500,580 700,580 700,600" fill="none"/><text x="610" y="575" class="e" text-anchor="middle">staging → atomic swap · SQL answers back</text>
-<line x1="840" y1="225" x2="910" y2="225"/><text x="875" y="215" class="e" text-anchor="middle">completions</text>
-<line x1="910" y1="250" x2="840" y2="250"/><text x="875" y="266" class="e" text-anchor="middle">Jev decide</text>
-<line x1="840" y1="500" x2="910" y2="500"/><text x="875" y="490" class="e" text-anchor="middle">WSS /websockify</text>
-<line x1="910" y1="525" x2="840" y2="525"/><text x="875" y="541" class="e" text-anchor="middle">RFB 3.8 frames</text>
+<line x1="166" y1="88" x2="230" y2="88"/><line x1="230" y1="110" x2="166" y2="110"/>
+<line x1="440" y1="98" x2="465" y2="98"/>
+<line x1="690" y1="126" x2="690" y2="160"/><text x="698" y="147" class="e">job</text>
+<line x1="335" y1="216" x2="335" y2="250"/><text x="343" y="237" class="e">reads</text>
+<line x1="570" y1="250" x2="570" y2="216"/><text x="578" y="237" class="e">elements</text>
+<line x1="805" y1="216" x2="805" y2="250"/><text x="813" y="237" class="e">write steps</text>
+<line x1="335" y1="306" x2="335" y2="340"/><text x="343" y="327" class="e">swap · SQL</text>
+<line x1="805" y1="306" x2="805" y2="340"/><text x="813" y="327" class="e">act</text>
+<polyline points="700,368 688,368 688,278 675,278" fill="none"/><text x="698" y="323" class="e" text-anchor="middle" transform="rotate(-90 698 323)">frames</text>
+<polyline points="465,368 452,368 452,216" fill="none"/><text x="462" y="290" class="e" text-anchor="middle" transform="rotate(-90 462 290)">map</text>
+<line x1="910" y1="168" x2="985" y2="168"/><text x="935" y="161" class="e">LLM calls</text>
+<line x1="910" y1="208" x2="985" y2="208"/><text x="935" y="201" class="e">decide</text>
+<line x1="910" y1="358" x2="985" y2="358"/><text x="935" y="351" class="e">WSS</text>
+<line x1="985" y1="384" x2="910" y2="384"/><text x="935" y="399" class="e">frames</text>
 </g>
-</svg><figcaption>Architecture and deployment. Letters match §3.1 and the tech stack in §3.2; [S] and [DB] are the data sync design (track 4, Appendix G).</figcaption></figure>"""
+</svg><figcaption>Figure 1 — Components and deployment. Letters match the tech stack in §3.2; accent borders are the fast path (replay and the read cache). Variables and storage are in §3.4.</figcaption></figure>"""
+
+FLOW = """<figure class="arch"><svg viewBox="0 0 1180 520" role="img" aria-label="One task end to end: POST, open RFB, identify the app, load its map, parse into queries; reads probe and answer from the cache, else acquire; writes replay each step and verify, else run the repair ladder and finally the tool-use loop; everything ends in a summary within 270 seconds">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker><marker id="af" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"/></marker></defs>
+<g class="box log"><rect x="20" y="14" width="1140" height="30" rx="8"/><text x="34" y="34" class="l"><tspan font-weight="700">270 s guard</tspan> on the whole task: whatever happens below, the runner writes a summary and a status</text></g>
+<g class="box"><rect x="20" y="60" width="200" height="44" rx="8"/><text x="32" y="78" class="t">POST /tasks</text><text x="32" y="95" class="l">task_id &lt; 2 s · en_curso</text></g>
+<g class="box"><rect x="20" y="120" width="200" height="44" rx="8"/><text x="32" y="138" class="t">Open RFB [G]</text><text x="32" y="155" class="l">url + password from the task</text></g>
+<g class="box"><rect x="20" y="180" width="200" height="44" rx="8"/><text x="32" y="198" class="t">Identify app [E]</text><text x="32" y="215" class="l">title bar → app + version</text></g>
+<g class="box"><rect x="20" y="240" width="200" height="44" rx="8"/><text x="32" y="258" class="t">Load map [F]</text><text x="32" y="275" class="l">warm · inherit · cold ≤ 45 s</text></g>
+<g class="box hi"><rect x="20" y="300" width="200" height="44" rx="8"/><text x="32" y="318" class="t">Parse [C]</text><text x="32" y="335" class="l">fast model → CRUD queries</text></g>
+<text x="270" y="86" class="lane">READ · each query</text>
+<g class="box hi"><rect x="270" y="100" width="210" height="52" rx="8"/><text x="282" y="121" class="t">Probe [S]</text><text x="282" y="140" class="l">change-log p.1 or count + hash</text></g>
+<g class="box hi"><rect x="520" y="100" width="200" height="52" rx="8"/><text x="532" y="121" class="t">SQL on the cache [DB]</text><text x="532" y="140" class="l">answer in seconds</text></g>
+<g class="box slow"><rect x="270" y="180" width="250" height="44" rx="8"/><text x="282" y="198" class="t">Acquire [S]</text><text x="282" y="215" class="l">Exportar → clipboard → OCR paging</text></g>
+<g class="box slow"><rect x="550" y="180" width="190" height="44" rx="8"/><text x="562" y="198" class="t">Staging → swap</text><text x="562" y="215" class="l">one transaction</text></g>
+<text x="270" y="266" class="lane">WRITE · each step of the stored procedure</text>
+<g class="box hi"><rect x="270" y="290" width="230" height="62" rx="8"/><text x="282" y="310" class="t">Observe [W]</text><text x="282" y="328" class="l">crops equal → stored snapshot</text><text x="282" y="344" class="l">moved → template · changed → [E]</text></g>
+<g class="box hi"><rect x="530" y="290" width="150" height="62" rx="8"/><text x="542" y="310" class="t">Act + settle</text><text x="542" y="328" class="l">click stored xy</text><text x="542" y="344" class="l">wait until quiet</text></g>
+<g class="box hi"><rect x="700" y="290" width="150" height="62" rx="8"/><text x="712" y="310" class="t">Verify</text><text x="712" y="328" class="l">effect matches</text><text x="712" y="344" class="l">the stored edge?</text></g>
+<g class="box slow"><rect x="270" y="390" width="250" height="52" rx="8"/><text x="282" y="411" class="t">1 · Re-ground</text><text x="282" y="430" class="l">template → fuzzy → Jev ≥ 0.8 → VLM</text></g>
+<g class="box slow"><rect x="545" y="390" width="135" height="52" rx="8"/><text x="557" y="411" class="t">2 · Re-explore</text><text x="557" y="430" class="l">this node only</text></g>
+<g class="box slow"><rect x="705" y="390" width="125" height="52" rx="8"/><text x="717" y="411" class="t">3 · Replan</text><text x="717" y="430" class="l">one LLM call</text></g>
+<g class="box slow"><rect x="855" y="390" width="170" height="52" rx="8"/><text x="867" y="411" class="t">Tool-use loop</text><text x="867" y="430" class="l">MODEL_PLANNER</text></g>
+<g class="box hi"><rect x="1020" y="200" width="140" height="60" rx="8"/><text x="1032" y="223" class="t">Summary [C]</text><text x="1032" y="243" class="l">terminada / fallida</text></g>
+<g class="edge fast">
+<line x1="120" y1="104" x2="120" y2="120"/><line x1="120" y1="164" x2="120" y2="180"/><line x1="120" y1="224" x2="120" y2="240"/><line x1="120" y1="284" x2="120" y2="300"/>
+<polyline points="220,310 245,310 245,126 270,126" fill="none"/>
+<line x1="220" y1="332" x2="270" y2="332"/>
+<line x1="480" y1="126" x2="520" y2="126"/><text x="500" y="118" class="e" text-anchor="middle">fresh</text>
+<polyline points="720,126 1095,126 1095,200" fill="none"/><text x="905" y="118" class="e" text-anchor="middle">answer</text>
+<line x1="500" y1="321" x2="530" y2="321"/><line x1="680" y1="321" x2="700" y2="321"/>
+<polyline points="775,290 775,278 385,278 385,290" fill="none"/><text x="580" y="273" class="e" text-anchor="middle">ok → next step</text>
+<polyline points="850,321 1075,321 1075,260" fill="none"/><text x="962" y="313" class="e" text-anchor="middle">all steps done</text>
+</g>
+<g class="edge slow">
+<line x1="330" y1="152" x2="330" y2="180"/><text x="338" y="171" class="e">stale / miss</text>
+<line x1="520" y1="202" x2="550" y2="202"/>
+<line x1="620" y1="180" x2="620" y2="152"/>
+<polyline points="775,352 775,372 395,372 395,390" fill="none"/><text x="585" y="386" class="e" text-anchor="middle">miss or drift (S1–S7)</text>
+<line x1="520" y1="416" x2="545" y2="416"/><line x1="680" y1="416" x2="705" y2="416"/><line x1="830" y1="416" x2="855" y2="416"/>
+<polyline points="1025,416 1140,416 1140,260" fill="none"/>
+<polyline points="120,344 120,476 940,476 940,442" fill="none"/><text x="530" y="470" class="e" text-anchor="middle">no procedure for this query · parse unsure</text>
+</g>
+<g class="edge fast"><line x1="20" y1="504" x2="60" y2="504"/></g><text x="68" y="508" class="e">fast path</text>
+<g class="edge slow"><line x1="150" y1="504" x2="190" y2="504"/></g><text x="198" y="508" class="e">fallback, only when the step before fails</text>
+<text x="1160" y="508" class="e" text-anchor="end">[x] = component in Figure 1</text>
+</svg><figcaption>Figure 2 — One task, end to end. Reads answer from the cache after a probe; writes replay the stored procedure step by step. A rung that works resumes the step, and the tool-use loop stores what it did as the procedure for next time (full ladder in §6). Write tasks never read the cache; the app always wins.</figcaption></figure>"""
 
 TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -179,11 +223,11 @@ td ul{margin:0;padding-left:18px}td p{margin:0}
 pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
 blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
-figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;max-width:1180px;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
 .rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
 .ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
-svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
-.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+svg .l{font-size:11.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}svg .lane{font-size:11px;font-weight:700;letter-spacing:.06em;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}.edge.fast line,.edge.fast polyline{stroke:var(--accent);stroke-width:2.2;marker-end:url(#af)}.edge.slow line,.edge.slow polyline{stroke-dasharray:5 4}.box.slow rect{stroke-dasharray:5 4;stroke:var(--muted)}
 @media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
 @media (max-width:700px){.mini-toc ol{columns:1}}
 @media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
@@ -202,6 +246,7 @@ def build_solution():
     md_src = (DOCS / "solution.md").read_text(encoding="utf-8")
     body, toc = render("\n\n".join([md_src] + [inline_md(k) for k in LETTERS]))
     body = body.replace('<div id="arch"></div>', SVG)
+    body = body.replace('<div id="flow"></div>', FLOW)
     for k, (stem, _) in APPENDIXES.items():  # .md links from solution.md and from inside the appendixes -> anchors
         body = body.replace(f'href="appendixes/{stem}.md"', f'href="#appendix-{k}"').replace(f'href="{stem}.md"', f'href="#appendix-{k}"')
     body = body.replace('href="../solution.md"', f'href="{TOP}"').replace('href="../references/', 'href="references/')
