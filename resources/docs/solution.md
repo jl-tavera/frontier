@@ -48,45 +48,6 @@ Digest of the recon in Appendix B:
 
 <div id="arch"></div>
 
-```
- Evaluator ──HTTPS+Bearer──► [A] Entrypoint API (FastAPI)
-                               │ POST /tasks → task_id (<2s), spawns worker
-                               │ GET /tasks/{id} ← status + summary
-                               ▼
-                         [B] Task Runner (1 asyncio task per job, 4:30 budget guard)
-                               │
-                               ▼
-                         [C] Agent: parse (fast model) → executor (replay + probe) → summarize
-                             fallback: Jev typed decisions → VLM → tool-use loop (planner model)
-                        │            │              │
-                        ▼            ▼              ▼
-              [D] Tool Layer   [E] Perception   [F] App Memory
-              high: navigate_to,  screenshot →      per-app map: screens,
-                    read_grid,    elements(text,     fingerprints, nav graph,
-                    export        bbox, kind)        learned procedures,
-              mid:  click_text,   OCR + vision       data cache
-                    fill_field,   screen fingerprint (JSON/SQLite on disk)
-                    wait_for      diff / change det.
-              low:  click,type,key,screenshot
-                        │            ▲
-                        ▼            │ framebuffer
-                    [G] RFB Session (poc/rfb_poc.py RFB class, hardened)
-                        │  WSS /websockify, VNC auth, settle, clipboard
-                        ▼
-                  Remote desktop (SIGECOM or the unseen app)
-
-  Cross-cutting: [H] structured JSONL log (every step: tool, args, screen_id,
-  diff, outcome) → feeds Challenge 2 spec, debrief, and the eval harness.
-
-  [W] Replay (fast path under [D]): observe → static crops byte-equal? snapshot, no OCR
-      · moved? template match · else [E] perceives · replay_edge: stored xy → verify to → repair + rewrite xy
-      dev time (SIGECOM): map --visit + seed → memory/ (map, ref PNGs, crops, cache.sqlite) committed, shipped in the image
-
-  [S] Data Sync Engine (track 4): need(entity) → probe: change-log page 1 (one screen for all entities) or the entity's grid
-      → [DB] SQLite cache hit → SQL answer · miss / stale → ladder: Exportar → clipboard → OCR paging → staging → atomic swap into [DB]
-      one-way pull, app always wins, write tasks never read the cache
-```
-
 ### 3.2 Tech stack
 
 | Layer | Framework / library | Why (and what it replaced) |
@@ -106,6 +67,8 @@ Digest of the recon in Appendix B:
 | Deploy | Railway, Docker, one service, CPU-only | §3.4 |
 
 ### 3.3 Per-task flow
+
+<div id="flow"></div>
 
 1. `POST /tasks {task, desktop:{url,password}}` → validate Bearer → store `en_curso` → return `task_id`.
 2. Runner opens an RFB session [G] with the given URL+password and takes the first screenshot.
