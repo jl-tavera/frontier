@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run /build <n> auto for each ticket, each in its own git worktree, up to three at a time.
+"""Run /build <n> auto for each ticket, each in its own git worktree, up to four at a time.
 
     python autopilot.py              every open `ready-for-agent` ticket
     python autopilot.py 51-55 58     a range and/or single numbers
@@ -35,7 +35,7 @@ import time
 
 LABEL = "ready-for-agent"
 STUCK = "needs-human"
-MAX_JOBS = 3  # lazy: a constant; make it a flag when a project wants more at once
+MAX_JOBS = 4  # lazy: a constant; make it a flag when a project wants more at once
 CEILING = 0.80  # lazy: one ceiling for both windows; split them if the weekly one bites first
 INSTALL = {"pnpm-lock.yaml": ["pnpm", "install", "--frozen-lockfile", "--prefer-offline"],
            "package-lock.json": ["npm", "ci"]}

@@ -1,13 +1,13 @@
 ---
 name: autopilot
-description: "Build, ship and merge a queue of tickets unattended: one fresh headless /build <n> auto session per ticket, each in its own git worktree, up to three at once in dependency order while usage allows. The first ticket that needs a human stops new starts. This chat is the control room."
+description: "Build, ship and merge a queue of tickets unattended: one fresh headless /build <n> auto session per ticket, each in its own git worktree, up to four at once in dependency order while usage allows. The first ticket that needs a human stops new starts. This chat is the control room."
 disable-model-invocation: true
 argument-hint: "[51-55 | 51 53 54 | empty = every ready-for-agent ticket] [--max N] [--serial]"
 ---
 
 # Autopilot
 
-Start the queue and report on it. You don't build anything here: every ticket runs in its own fresh `claude -p "/build <n> auto"` session in its own worktree (`<repo>-worktrees/<n>`), started by the script next to this file. Up to three run at once; another starts only while the 5-hour and weekly usage windows are under 80%. `--serial` runs one at a time.
+Start the queue and report on it. You don't build anything here: every ticket runs in its own fresh `claude -p "/build <n> auto"` session in its own worktree (`<repo>-worktrees/<n>`), started by the script next to this file. Up to four run at once; another starts only while the 5-hour and weekly usage windows are under 80%. `--serial` runs one at a time.
 
 1. **Start it in the background**, from the project root, with the user's arguments as given:
    `python ~/.claude/skills/autopilot/autopilot.py $ARGUMENTS` with `run_in_background: true`. Then watch its output with Monitor so each line reaches the chat as it's printed.
