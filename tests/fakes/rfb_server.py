@@ -6,7 +6,9 @@
       srv.shared, srv.encodings, srv.cut_texts, srv.requests
       await srv.paint(x, y, rgb)        # push a Raw rectangle (h × w × 3 RGB uint8)
       await srv.push_clipboard("text")  # push ServerCutText
-      await srv.drop()                  # close the client socket
+      await srv.drop()                  # close the client socket; new connections are still served
+      srv.refuse = True                 # close every new connection straight away
+      srv.connections                   # connections served so far
 """
 import asyncio
 import os
@@ -42,6 +44,8 @@ class FakeRFBServer:
         self.shared: int | None = None
         self.encodings: list[int] | None = None
         self.ws = None
+        self.refuse = False
+        self.connections = 0
 
     async def __aenter__(self):
         self._server = await serve(self._handle, "127.0.0.1", 0, subprotocols=["binary"], max_size=None)
@@ -54,9 +58,10 @@ class FakeRFBServer:
         await self._server.wait_closed()
 
     async def _handle(self, ws):
-        if ws.request.path != "/websockify":
+        if self.refuse or ws.request.path != "/websockify":
             await ws.close()
             return
+        self.connections += 1
         self.ws, buf = ws, bytearray()
 
         async def read(n):
