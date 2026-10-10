@@ -7,6 +7,7 @@ from pathlib import Path
 from numpy import ndarray
 
 from app.contracts import BBox, Element
+from app.perception.tree import build
 
 LATIN_REC = Path(__file__).parent / "models" / "latin_rec.onnx"
 LOW_CONF = 0.8
@@ -62,4 +63,4 @@ def _bbox(quad: ndarray) -> BBox:
 
 
 def elements(fb: ndarray) -> list[Element]:
-    return [Element(i, ln.text, ln.bbox, "text", ln.conf) for i, ln in enumerate(ocr(fb))]
+    return build(fb, ocr(fb))

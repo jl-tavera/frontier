@@ -49,10 +49,3 @@ def test_low_confidence_lines_are_flagged(facturas_fb):
     assert pointer.conf < 0.8 and pointer.low_conf
     assert not buscar.low_conf
 
-
-def test_elements_are_one_text_element_per_line(facturas_fb):
-    lines = perception.ocr(facturas_fb)
-    els = perception.elements(facturas_fb)
-    assert [(e.text, e.bbox, e.conf) for e in els] == [(ln.text, ln.bbox, ln.conf) for ln in lines]
-    assert {e.kind for e in els} == {"text"}
-    assert len({e.id for e in els}) == len(els)
