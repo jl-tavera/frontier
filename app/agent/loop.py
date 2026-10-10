@@ -121,6 +121,7 @@ class Executor:
         self.tools: Tools | None = None
         self.cache: Cache | None = None
         self.closed = False
+        self.deadline = float("inf")  # the loop time the task's budget guard fires at
 
     async def db(self, fn, *args):
         return await self.loop.run_in_executor(self.pool, fn, *args)
@@ -314,7 +315,7 @@ async def run_task(task: str, session: Session, log: Log, budget_s: float, *, ll
     results: list[dict] = []
     done: dict[int, dict] = {}  # by the query's index in the parse, so results come out in the order asked
     i, deadline = 0, asyncio.get_running_loop().time() + budget_s - reserve
-    guard = asyncio.timeout_at(deadline)
+    ex.deadline, guard = deadline, asyncio.timeout_at(deadline)
     try:
         async with guard:
             await ex.open(task, decide, mutate)
