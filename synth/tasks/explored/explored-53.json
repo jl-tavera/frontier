@@ -1,0 +1,8 @@
+{
+  "id": "explored-53",
+  "nivel": "regular",
+  "instruccion": "Cambia la ciudad de Comercializadora Valencia a Bogotá.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

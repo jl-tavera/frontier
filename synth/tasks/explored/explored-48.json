@@ -1,0 +1,9 @@
+{
+  "id": "explored-48",
+  "nivel": "regular",
+  "instruccion": "¿En qué ciudad está el cliente con NIT 1019876543?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "Cali",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

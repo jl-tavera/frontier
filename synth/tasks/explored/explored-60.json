@@ -1,0 +1,12 @@
+{
+  "id": "explored-60",
+  "nivel": "dificil",
+  "instruccion": "Cámbiale la ciudad a Abarrotes Moreno Central, ahora es Cali.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "835196490",
+    "840261120"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

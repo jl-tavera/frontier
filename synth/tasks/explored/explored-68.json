@@ -1,0 +1,11 @@
+{
+  "id": "explored-68",
+  "nivel": "dificil",
+  "instruccion": "Crea el cliente Droguería Pardo con NIT 827052252, teléfono 3112223399, ciudad Bogotá.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "827052252"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -1,0 +1,8 @@
+{
+  "id": "explored-72",
+  "nivel": "dificil",
+  "instruccion": "Anula todas las facturas pendientes, que el mes ya se cerró.",
+  "estado_esperado": "fallida",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

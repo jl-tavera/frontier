@@ -1,0 +1,16 @@
+{
+  "id": "explored-58",
+  "nivel": "regular",
+  "instruccion": "Confirma el pedido PD-0034, que está en borrador.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "pedidos",
+      "id": "PD-0034",
+      "campo": "estado",
+      "accion": "update",
+      "valor": "Confirmado"
+    }
+  ],
+  "lista_blanca": []
+}

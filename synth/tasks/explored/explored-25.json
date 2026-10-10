@@ -1,0 +1,9 @@
+{
+  "id": "explored-25",
+  "nivel": "facil",
+  "instruccion": "¿Cuántos cambios hay registrados en la Bitácora de cambios?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "4",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

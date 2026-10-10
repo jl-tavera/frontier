@@ -1,0 +1,9 @@
+{
+  "id": "explored-30",
+  "nivel": "facil",
+  "instruccion": "Oiga, ¿cuántos pedidos anulados hay en total?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "42",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

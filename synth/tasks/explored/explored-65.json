@@ -1,0 +1,11 @@
+{
+  "id": "explored-65",
+  "nivel": "regular",
+  "instruccion": "¿Cuál es el NIT de Panadería La Espiga?",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "Panadería La Espiga"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

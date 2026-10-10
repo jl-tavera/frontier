@@ -1,0 +1,11 @@
+{
+  "id": "explored-66",
+  "nivel": "regular",
+  "instruccion": "Corrige la dirección de Tienda Don Pepe: ahora es Calle 10 # 5-20.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "Tienda Don Pepe"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

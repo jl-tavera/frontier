@@ -1,0 +1,9 @@
+{
+  "id": "explored-15",
+  "nivel": "facil",
+  "instruccion": "¿Cuál es la factura de mayor valor que hay registrada?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "FV-10127",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

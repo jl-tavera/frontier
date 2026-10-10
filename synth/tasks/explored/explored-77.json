@@ -1,0 +1,11 @@
+{
+  "id": "explored-77",
+  "nivel": "regular",
+  "instruccion": "Ponle estado Abierto al pedido más reciente.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "Abierto"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

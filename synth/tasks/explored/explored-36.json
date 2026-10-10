@@ -1,0 +1,9 @@
+{
+  "id": "explored-36",
+  "nivel": "regular",
+  "instruccion": "¿Cuántos pedidos tiene Distribuciones El Faro y cuántos de ellos están en borrador?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "8; 5",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

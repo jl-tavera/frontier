@@ -1,0 +1,9 @@
+{
+  "id": "explored-20",
+  "nivel": "regular",
+  "instruccion": "¿Cuánto suman las facturas vencidas de Comercializadora Valencia?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "6090000",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

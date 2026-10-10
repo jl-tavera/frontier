@@ -1,0 +1,9 @@
+{
+  "id": "explored-19",
+  "nivel": "facil",
+  "instruccion": "Mire a ver cuántas facturas pagadas tiene Almacén Osorio S.A.S.",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "2",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "explored-38",
+  "nivel": "facil",
+  "instruccion": "¿Cuántos pedidos entregados tiene Almacén Osorio S.A.S.?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "4",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

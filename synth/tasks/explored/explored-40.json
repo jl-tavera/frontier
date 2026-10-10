@@ -1,0 +1,9 @@
+{
+  "id": "explored-40",
+  "nivel": "dificil",
+  "instruccion": "¿Cuántos pedidos y cuántas facturas tiene Droguería Osorio La 14?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "3; 3",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

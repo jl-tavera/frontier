@@ -1,0 +1,9 @@
+{
+  "id": "explored-18",
+  "nivel": "facil",
+  "instruccion": "¿Cuántas facturas vencen mañana?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "0",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

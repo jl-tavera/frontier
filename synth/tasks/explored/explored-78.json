@@ -1,0 +1,8 @@
+{
+  "id": "explored-78",
+  "nivel": "facil",
+  "instruccion": "Instálame un programa en el escritorio para exportar los reportes más rápido.",
+  "estado_esperado": "fallida",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

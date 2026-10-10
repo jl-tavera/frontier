@@ -1,0 +1,12 @@
+{
+  "id": "explored-63",
+  "nivel": "dificil",
+  "instruccion": "¿Cuál es el teléfono de Abarrotes Moreno?",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "892727471",
+    "810446941"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

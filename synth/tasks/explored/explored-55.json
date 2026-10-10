@@ -1,0 +1,37 @@
+{
+  "id": "explored-55",
+  "nivel": "facil",
+  "instruccion": "Crea el cliente Droguería El Roble, NIT 901998877, teléfono 3187776655, ciudad Barranquilla.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "nombre",
+      "accion": "create",
+      "valor": "Droguería El Roble"
+    },
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "nit",
+      "accion": "create",
+      "valor": "901998877"
+    },
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "telefono",
+      "accion": "create",
+      "valor": "3187776655"
+    },
+    {
+      "entidad": "clientes",
+      "id": "nuevo",
+      "campo": "ciudad",
+      "accion": "create",
+      "valor": "Barranquilla"
+    }
+  ],
+  "lista_blanca": []
+}

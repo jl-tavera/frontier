@@ -1,0 +1,16 @@
+{
+  "id": "explored-51",
+  "nivel": "regular",
+  "instruccion": "Mueva a Droguería Vargas Express a Medellín, que se trasladaron.",
+  "estado_esperado": "terminada",
+  "diff_esperado": [
+    {
+      "entidad": "clientes",
+      "id": "CL-0018",
+      "campo": "ciudad",
+      "accion": "update",
+      "valor": "Medellín"
+    }
+  ],
+  "lista_blanca": []
+}

@@ -1,0 +1,11 @@
+{
+  "id": "explored-67",
+  "nivel": "dificil",
+  "instruccion": "Registra al cliente Comercializadora Valencia, NIT 852132082, teléfono 3001239876, ciudad Cali.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "852132082"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

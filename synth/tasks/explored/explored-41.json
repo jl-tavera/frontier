@@ -1,0 +1,9 @@
+{
+  "id": "explored-41",
+  "nivel": "regular",
+  "instruccion": "¿Cuál es el pedido con el total más bajo?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "PD-0041",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

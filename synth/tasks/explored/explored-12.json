@@ -1,0 +1,9 @@
+{
+  "id": "explored-12",
+  "nivel": "regular",
+  "instruccion": "¿Cuántas facturas vencidas hay en total en la cartera?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "86",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -1,0 +1,11 @@
+{
+  "id": "explored-76",
+  "nivel": "regular",
+  "instruccion": "Registra al cliente Tienda La Esquina, NIT 900111222, teléfono 3109876543, ciudad Tokio.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "Tokio"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}
