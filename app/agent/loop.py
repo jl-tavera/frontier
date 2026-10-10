@@ -32,6 +32,7 @@ from app.warm.replay import observe
 
 CONFIDENT, SUMMARY_S = 0.8, 10.0
 AGGREGATES = {"sum", "avg", "min", "max"}
+WRITES = {"create", "update", "delete"}
 COLUMN = re.compile(r"[^'\".\[\]]+")  # a column name that can't step out of its json path
 Fallback = Callable[[str, Plan, "Executor"], Awaitable[dict]]
 ReadGrid = Callable[[ndarray], Grid]
@@ -42,6 +43,20 @@ def page_probe(grid: Grid) -> tuple[int, str]:
     # lazy: the count is page 1's, not the total, so E's short-read guard only catches a read shorter than one page;
     # read the grid's total when the app shows one
     return len(grid.rows), _sha(grid.rows)
+
+
+def schedule(queries: list[Query], hits: set[str]) -> list[int]:
+    """The run order, as indices into `queries`: reads the cache answers (entity in `hits`, no earlier write on it)
+    first, then the rest grouped by entity in order of first appearance, parsed order kept inside each group."""
+    first, groups, written = [], {}, set()
+    for i, q in enumerate(queries):
+        if q.op == "read" and q.entity in hits and q.entity not in written:
+            first.append(i)
+        else:
+            groups.setdefault(q.entity, []).append(i)
+        if q.op in WRITES:
+            written.add(q.entity)
+    return first + [i for g in groups.values() for i in g]
 
 
 class _NeedsPerception(Exception):
@@ -172,9 +187,24 @@ class Executor:
                 out.append({"id": nid, "name": node["title"], "columns": cols})
         return out
 
-    async def read(self, q: Query, deadline: float) -> dict:
-        need = await self.db(self.cache.need, q.entity)
-        if need.status != "hit":
+    async def hits(self, queries: list[Query]) -> set[str]:
+        """The entities the cache answers for, among those read before any write on them: one `need` each. Only behind
+        a change log, whose one probe answers for all; with none each `need` probes its entity on screen, so a read
+        asks for itself where its entity's group runs."""
+        # lazy: E has no public "has a change log"; use one when it grows
+        if not await self.db(self.cache._changelog):
+            return set()
+        ask, written = [], set()
+        for q in queries:
+            if q.op == "read" and q.entity not in written and q.entity not in ask:
+                ask.append(q.entity)
+            if q.op in WRITES:
+                written.add(q.entity)
+        return {e for e in ask if (await self.db(self.cache.need, e)).status == "hit"}
+
+    async def read(self, q: Query, deadline: float, hit: bool = False) -> dict:
+        """`hit`: the cache already answered `need` for this entity this task, so no probe again."""
+        if not hit and (await self.db(self.cache.need, q.entity)).status != "hit":
             if not (await self.step("go_to", q.entity)).ok:
                 raise _HandOff(f"sin ruta a {q.entity}")
             status = await self.db(acquire_by_paging, q.entity, lambda: self.read_grid(self.session.fb),
@@ -279,7 +309,8 @@ async def run_task(task: str, session: Session, log: Log, budget_s: float, *, ll
     ex = Executor(session, log, llm=llm, memory=Path(memory), perceive=perceive, read_grid=read_grid)
     reserve = min(SUMMARY_S, budget_s / 3)
     results: list[dict] = []
-    deadline = asyncio.get_running_loop().time() + budget_s - reserve
+    done: dict[int, dict] = {}  # by the query's index in the parse, so results come out in the order asked
+    i, deadline = 0, asyncio.get_running_loop().time() + budget_s - reserve
     guard = asyncio.timeout_at(deadline)
     try:
         async with guard:
@@ -289,15 +320,23 @@ async def run_task(task: str, session: Session, log: Log, budget_s: float, *, ll
             try:
                 if plan.confidence < CONFIDENT:
                     raise _HandOff(f"parse inseguro ({plan.confidence:.2f})")
-                for q in plan.queries:
+                cached = await ex.hits(plan.queries)
+                for i in schedule(plan.queries, cached):
+                    q = plan.queries[i]
                     if q.op == "explore":
                         raise _HandOff("la tarea pide explorar")
-                    results.append({"op": q.op, "entity": q.entity,
-                                    **await (ex.read(q, deadline) if q.op == "read" else ex.write(q))})
+                    r = await (ex.read(q, deadline, q.entity in cached) if q.op == "read" else ex.write(q))
+                    done[i] = {"op": q.op, "entity": q.entity, **r}
+                    # a read leaves its entity in the cache for the next one; a write leaves it to `need` again
+                    if q.op == "read" and r["ok"]:
+                        cached.add(q.entity)
+                    else:
+                        cached.discard(q.entity)
             except _HandOff as why:
                 log.event("handoff", args={"reason": str(why)})
-                rest = Plan(plan.queries[len(results):], plan.confidence)  # what is done stays done
-                results.append({"op": "fallback", "reason": str(why), **await fallback(task, rest, ex)})
+                rest = Plan([q for j, q in enumerate(plan.queries) if j not in done], plan.confidence)  # done stays done
+                # at the query that handed off (0 when none ran yet)
+                done[i] = {"op": "fallback", "reason": str(why), **await fallback(task, rest, ex)}
     except Exception as e:
         results.append({"ok": False, "detail": f"tiempo agotado: quedaban {reserve:.1f} s para el resumen" if guard.expired()
                         else f"error: {type(e).__name__}: {e}"})
@@ -305,5 +344,6 @@ async def run_task(task: str, session: Session, log: Log, budget_s: float, *, ll
         if ex.m:
             ex.m.write_back()
         await ex.close()
+    results = [done[j] for j in sorted(done)] + results
     status = "terminada" if results and all(r.get("ok") for r in results) else "fallida"
     return await summarize(task, status, results, llm, reserve)
