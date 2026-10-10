@@ -6,6 +6,7 @@ import re
 import time
 import unicodedata
 from dataclasses import asdict, dataclass, field
+from difflib import get_close_matches
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -16,7 +17,7 @@ from app.contracts import Element, Target
 from app.memory.fingerprint import Fingerprint, fingerprint, jaccard, split_title
 
 DENYLIST = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Enviar", "Configuración"]
-SAME, AMBIGUOUS, OVERLAY_AREA, ADOPT = 0.90, 0.60, 0.25, 0.5
+SAME, AMBIGUOUS, OVERLAY_AREA, ADOPT, SAME_APP = 0.90, 0.60, 0.25, 0.5, 0.9
 CROP_KINDS = {"title", "menu", "button", "header"}
 
 
@@ -99,6 +100,11 @@ class AppMap:
         app_id, version = split_title(title)
         # lazy: reads every stored map per load; index titles in one file if memory/ grows past a handful of epochs
         maps = [cls._read(memory, p) for p in sorted(memory.glob("*/*/map.json"), key=lambda p: (p.stat().st_mtime, p))]
+        # OCR reads the same title with other case, spacing and a letter or two off: a stored app that close is this one
+        # lazy: names sharing ~90 % of their letters (…Andina vs …Andes) share a map; key on the menus too if that bites
+        ids = {_slug(m.app_id).replace("-", ""): m.app_id for m in maps}
+        if hit := get_close_matches(_slug(app_id).replace("-", ""), ids, 1, SAME_APP):
+            app_id = ids[hit[0]]
         for m in reversed(maps):
             if title in m.titles:
                 return m
@@ -110,8 +116,9 @@ class AppMap:
             if best:
                 return best.inherit(title)
         app_dir = memory / _dirname(app_id)
-        if version and (app_dir / version / "map.json").is_file():  # a map saved without this title, e.g. committed
-            m = cls._read(memory, app_dir / version / "map.json")
+        # a map saved without this title, e.g. committed; its version directory may be cased as OCR first read it
+        if version and (same := [m for m in maps if m.app_id == app_id and m.version.lower() == version]):
+            m = same[-1]
         else:
             m = cls(memory, app_id, cls._epoch(app_dir, version))
         m.titles.append(title)
