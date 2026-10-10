@@ -1,0 +1,44 @@
+{
+ "app_id": "SIGECOM · Distribuidora Andina",
+ "version": "v4.0",
+ "titles": ["SIGECOM · Distribuidora Andina   v4.0"],
+ "root": "inicio",
+ "nodes": {
+  "inicio": {"id": "inicio", "title": "Inicio", "description": "Pantalla principal con la barra de menús.",
+             "transient": false, "stale": false, "seen": 4, "last_seen": 1791000000.0, "appearances": []},
+  "facturas": {"id": "facturas", "title": "Facturas", "description": "Lista de facturas con filtro por estado.",
+               "transient": false, "stale": false, "seen": 3, "last_seen": 1791000000.0, "appearances": []},
+  "clientes": {"id": "clientes", "title": "Clientes", "description": "Lista de clientes con búsqueda.",
+               "transient": false, "stale": false, "seen": 2, "last_seen": 1790500000.0, "appearances": []},
+  "cliente-nuevo": {"id": "cliente-nuevo", "title": "Cliente nuevo", "description": "Formulario para crear un cliente.",
+                    "transient": false, "stale": false, "seen": 1, "last_seen": 1790400000.0, "appearances": []}
+ },
+ "edges": {
+  "inicio|click|Ventas › Facturas": {"from": "inicio", "to": "facturas", "effect": null, "inherited": true,
+   "ok": 5, "fail": 0, "last_ok": 1790000000.0, "outcomes": {"facturas": 5},
+   "action": {"kind": "click", "params": {"menu": "Ventas"}, "target": {"appearances": [
+    {"version": "v3.9", "label": "Facturas", "role": "menu", "cell": [3, 1], "xy": [330, 58]}]}}},
+  "inicio|click|Herramientas › Bitácora de cambios": {"from": "inicio", "to": null, "effect": null,
+   "ok": 0, "fail": 0, "last_ok": null, "outcomes": {},
+   "action": {"kind": "click", "params": {"menu": "Herramientas"}, "target": {"appearances": [
+    {"version": "v4.0", "label": "Bitácora de cambios", "role": "menu", "cell": [4, 1], "xy": [420, 58]}]}}},
+  "inicio|click|Cartera › Facturas": {"from": "inicio", "to": "facturas", "effect": null, "inherited": false,
+   "ok": 3, "fail": 1, "last_ok": 1791000000.0, "outcomes": {"facturas": 3},
+   "action": {"kind": "click", "params": {"menu": "Cartera"}, "target": {"appearances": [
+    {"version": "v4.0", "label": "Facturas", "role": "menu", "cell": [2, 1], "xy": [280, 58]}]}}},
+  "inicio|click|Comercial › Clientes": {"from": "inicio", "to": "clientes", "effect": null, "inherited": false,
+   "ok": 2, "fail": 0, "last_ok": 1790500000.0, "outcomes": {"clientes": 2},
+   "action": {"kind": "click", "params": {"menu": "Comercial"}, "target": {"appearances": [
+    {"version": "v4.0", "label": "Clientes", "role": "menu", "cell": [1, 1], "xy": [150, 58]}]}}},
+  "clientes|click|Nuevo": {"from": "clientes", "to": "cliente-nuevo", "effect": null, "inherited": false,
+   "ok": 1, "fail": 0, "last_ok": 1790400000.0, "outcomes": {"cliente-nuevo": 1},
+   "action": {"kind": "click", "params": {}, "target": {"appearances": [
+    {"version": "v4.0", "label": "Nuevo", "role": "button", "cell": [10, 1], "xy": [1150, 99]}]}}}
+ },
+ "procedures": [
+  {"task_text": "leer facturas pendientes", "steps": ["inicio|click|Cartera › Facturas"], "ok": 2, "last_ok": 1791000000.0},
+  {"task_text": "crear cliente nuevo", "steps": ["inicio|click|Comercial › Clientes", "clientes|click|Nuevo"], "ok": 1, "last_ok": 1790400000.0}
+ ],
+ "unexplored": {},
+ "denylist": ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Enviar", "Configuración"]
+}
