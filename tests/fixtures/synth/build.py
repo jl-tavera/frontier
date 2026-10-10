@@ -4,20 +4,20 @@ import json
 import sqlite3
 from pathlib import Path
 
-CLIENTES = ["NIT", "Nombre", "Ciudad", "Teléfono"]
+CLIENTES = ["Código", "NIT", "Razón social o nombre", "Ciudad", "Teléfono"]
 FACTURAS = ["Código", "Cliente", "Fecha", "Vence", "Valor", "Estado"]
-PEDIDOS = ["Número", "Cliente", "Fecha", "Total", "Estado"]
-BITACORA = ["Fecha", "Usuario", "Acción", "Detalle"]
+PEDIDOS = ["Código", "Cliente", "Fecha", "Total", "Estado"]
+BITACORA = ["Hora", "Usuario", "Pantalla", "Registro", "Campo", "Antes", "Después", "Acción"]
 
 ROWS = {
     "comercial-maestros-clientes": (CLIENTES, [
-        ("900123456-7", "Ferretería Ruiz", "Bogotá", "3001234567"),
-        ("800555111-2", "Distribuciones El Faro", "Cali", "3109876543"),
-        ("52345678", "Ana Torres", "Medellín", "3014440000"),
-        ("1019876543", "Ana Torres", "Bogotá", "3205551212"),
-        ("901777888-1", "Almacén Díaz", "Pereira", "3157770000"),  # no facturas, no pedidos
-        ("860222333-4", "Comercial Ruiz", "Manizales", "3123334455"),
-        ("830444555-6", "Depósito Hernández", "Cali", "3186660000"),
+        ("CL-0001", "900123456-7", "Ferretería Ruiz", "Bogotá", "3001234567"),
+        ("CL-0002", "800555111-2", "Distribuciones El Faro", "Cali", "3109876543"),
+        ("CL-0003", "52345678", "Ana Torres", "Medellín", "3014440000"),
+        ("CL-0004", "1019876543", "Ana Torres", "Bogotá", "3205551212"),
+        ("CL-0005", "901777888-1", "Almacén Díaz", "Pereira", "3157770000"),  # no facturas, no pedidos
+        ("CL-0006", "860222333-4", "Comercial Ruiz", "Barranquilla", "3123334455"),
+        ("CL-0007", "830444555-6", "Depósito Hernández", "Cali", "3186660000"),
     ]),
     "cartera-facturas": (FACTURAS, [
         ("FV-10001", "Ferretería Ruiz", "2026-09-12", "2026-10-13", 450000, "Vencida"),
@@ -32,18 +32,17 @@ ROWS = {
         ("FV-10010", "Depósito Hernández", "2026-09-20", "2026-10-20", 310000, "Pagada"),
     ]),
     "comercial-ventas-pedidos": (PEDIDOS, [
-        ("PE-2001", "Ferretería Ruiz", "2026-09-03", 1200000, "Entregado"),
-        ("PE-2002", "Distribuciones El Faro", "2026-09-18", 860000, "Entregado"),
-        ("PE-2006", "Depósito Hernández", "2026-09-25", 150000, "Entregado"),
-        ("PE-2003", "Ferretería Ruiz", "2026-10-02", 540000, "Abierto"),
-        ("PE-2004", "Comercial Ruiz", "2026-10-05", 300000, "Abierto"),
-        ("PE-2005", "Distribuciones El Faro", "2026-10-08", 450000, "Abierto"),
-        ("PE-2007", "Comercial Ruiz", "2026-09-28", 210000, "Abierto"),
+        ("PD-2001", "Ferretería Ruiz", "2026-09-03", 1200000, "Entregado"),
+        ("PD-2002", "Distribuciones El Faro", "2026-09-18", 860000, "Entregado"),
+        ("PD-2006", "Depósito Hernández", "2026-09-25", 150000, "Entregado"),
+        ("PD-2003", "Ferretería Ruiz", "2026-10-02", 540000, "Confirmado"),
+        ("PD-2004", "Comercial Ruiz", "2026-10-05", 300000, "Confirmado"),
+        ("PD-2005", "Distribuciones El Faro", "2026-10-08", 450000, "Confirmado"),
+        ("PD-2007", "Comercial Ruiz", "2026-09-28", 210000, "Confirmado"),
     ]),
     "herramientas-bitacora": (BITACORA, [
-        ("2026-10-14", "operador", "update", "CL-0007 direccion"),
-        ("2026-10-13", "operador2", "create", "FV-10002"),
-        ("2026-10-12", "operador", "export", "pedidos"),
+        ("13/10/2026 10:05", "operador2", "pedidos/PD-0010", "Pedido PD-0010", "Estado", "Borrador", "Confirmado", "Edición"),
+        ("10/10/2026 15:42", "operador2", "clientes/CL-0031", "Cliente CL-0031", "Ciudad", "Pereira", "Cali", "Edición"),
     ]),
 }
 

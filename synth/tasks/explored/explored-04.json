@@ -1,0 +1,9 @@
+{
+  "id": "explored-04",
+  "nivel": "regular",
+  "instruccion": "¿Cuántos pedidos confirmados y cuántas facturas vencidas tiene Ferretería Ruiz e Hijos?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "1; 6",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

@@ -494,6 +494,14 @@ CREATE TABLE unusable (               -- §4.4: a rung that failed on this grid,
 <li>Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.</li>
 <li>Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.</li>
 <li>Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.</li>
+<li><strong>Answered by the explorer session (2026-10-10, SIGECOM v4.2, <code>Hoy: 14/10/2026</code>, operador2):</strong></li>
+<li>Bitácora columns are Hora, Usuario, Pantalla (<code>clientes/CL-0031</code>), Registro, Campo, Antes, Después, Acción, plus a Revertir button. It sorts newest first, pages with Anterior/Siguiente, and has filters for Registro, Usuario, Pantalla and Desde/Hasta. It held 2 rows, so the entity column v2 needs exists.</li>
+<li>Every entity has a visible unique code (<code>CL-0121</code>, <code>PD-0143</code>, <code>FV-10047</code>), so the natural key is the code.</li>
+<li>No grid shows a total count. Grids show 20 rows per page with Anterior/Página N/Siguiente.</li>
+<li>Default sort: Pedidos by Fecha descending, Facturas by Fecha ascending, Clientes by name.</li>
+<li>Reportes generados has ID, Nombre, Filtros, Fecha and Usuario, and says "Las descargas se habilitan desde el puesto del supervisor", so operador2 can't read an <code>Exportar</code> output. The export is checked by its Reportes generados row only. <code>Exportar</code> itself was not pressed.</li>
+<li>Search filters match substrings, ignore case and respect accents. "Ferretería Ruiz" also returns "Ferretería Ruiz e Hijos", and "Ferreteria Ruiz" returns nothing.</li>
+<li>The browser path (agent-browser over noVNC) can't type <code>/</code> or any modified key. <code>Control+a</code> arrives as <code>a</code>. The RFB path sends keysyms directly and is not affected.</li>
 <li>Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.</li>
 <li>Whether the natural-key column survives the 15:30 change. If it doesn't, the value-match rung of §4.3.4 is off, the leftovers go to the LLM rung, and the entity simply restarts.</li>
 </ul>

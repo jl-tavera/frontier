@@ -1,0 +1,9 @@
+{
+  "id": "explored-05",
+  "nivel": "regular",
+  "instruccion": "¿Cuántos pedidos se registraron ayer?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "2",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

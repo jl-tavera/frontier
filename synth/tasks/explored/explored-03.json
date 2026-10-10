@@ -1,0 +1,9 @@
+{
+  "id": "explored-03",
+  "nivel": "regular",
+  "instruccion": "Oiga, ¿cuánta plata nos debe Ferretería Ruiz e Hijos en facturas vencidas?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "18750000",
+  "diff_esperado": [],
+  "lista_blanca": []
+}
