@@ -1,0 +1,693 @@
+{
+  "name": "after",
+  "cases": [
+    {
+      "name": "fail-homonym-01",
+      "inputs": {
+        "id": "fail-homonym-01",
+        "text": "Cambia el teléfono de Ana Torres a 1.",
+        "practice": {
+          "id": "fail-homonym-01",
+          "nivel": "dificil",
+          "instruccion": "Cambia el teléfono de Ana Torres a 1.",
+          "estado_esperado": "fallida",
+          "claves_razon": [
+            "52345678",
+            "1019876543"
+          ],
+          "diff_esperado": [],
+          "lista_blanca": []
+        }
+      },
+      "metadata": {
+        "category": "fail",
+        "nivel": "dificil"
+      },
+      "expected_output": {
+        "estado": "fallida",
+        "respuesta": null,
+        "claves_razon": [
+          "52345678",
+          "1019876543"
+        ]
+      },
+      "output": {
+        "summary": {
+          "status": "fallida",
+          "text": "Hay dos Ana Torres: 52345678 y 1019876543.",
+          "data": {}
+        },
+        "log": "C:\\Users\\jltav\\AppData\\Local\\Temp\\tmpdg4t3ep7\\eval-after\\fail-homonym-01-155a64.jsonl",
+        "check": null
+      },
+      "metrics": {},
+      "attributes": {},
+      "scores": {
+        "steps": {
+          "name": "steps",
+          "value": 4,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "click_hit_rate": {
+          "name": "click_hit_rate",
+          "value": 0.75,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "fastpath_hit": {
+          "name": "fastpath_hit",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "fastpath_moved": {
+          "name": "fastpath_moved",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "probe_changelog_miss": {
+          "name": "probe_changelog_miss",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "probe_entity_hit": {
+          "name": "probe_entity_hit",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "drift_detected": {
+          "name": "drift_detected",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "drift_recovered": {
+          "name": "drift_recovered",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "jev_decisions": {
+          "name": "jev_decisions",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "escalation_rate": {
+          "name": "escalation_rate",
+          "value": 0.5,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "epoch_s": {
+          "name": "epoch_s",
+          "value": 2.0,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "nodes_inherited": {
+          "name": "nodes_inherited",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "nodes_reidentified": {
+          "name": "nodes_reidentified",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "columns_aligned": {
+          "name": "columns_aligned",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "columns_total": {
+          "name": "columns_total",
+          "value": 3,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        }
+      },
+      "labels": {},
+      "assertions": {
+        "StatusMatches": {
+          "name": "StatusMatches",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "StatusMatches",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "ReasonKeysNamed": {
+          "name": "ReasonKeysNamed",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "ReasonKeysNamed",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "MaxDuration": {
+          "name": "MaxDuration",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "MaxDuration",
+            "arguments": [
+              300
+            ]
+          },
+          "evaluator_version": null
+        }
+      },
+      "task_duration": 0.005445200004032813,
+      "total_duration": 0.014827251434326172,
+      "source_case_name": null,
+      "trace_id": null,
+      "span_id": null,
+      "evaluator_failures": []
+    },
+    {
+      "name": "lookup-count-01",
+      "inputs": {
+        "id": "lookup-count-01",
+        "text": "¿Cuántas facturas vencidas tiene ACME?",
+        "practice": {
+          "id": "lookup-count-01",
+          "nivel": "facil",
+          "instruccion": "¿Cuántas facturas vencidas tiene ACME?",
+          "estado_esperado": "terminada",
+          "respuesta_esperada": "12",
+          "diff_esperado": [],
+          "lista_blanca": []
+        }
+      },
+      "metadata": {
+        "category": "lookup",
+        "nivel": "facil"
+      },
+      "expected_output": {
+        "estado": "terminada",
+        "respuesta": "12",
+        "claves_razon": []
+      },
+      "output": {
+        "summary": {
+          "status": "terminada",
+          "text": "respuesta: 13",
+          "data": {}
+        },
+        "log": "C:\\Users\\jltav\\AppData\\Local\\Temp\\tmpdg4t3ep7\\eval-after\\lookup-count-01-ad1c26.jsonl",
+        "check": null
+      },
+      "metrics": {},
+      "attributes": {},
+      "scores": {
+        "steps": {
+          "name": "steps",
+          "value": 4,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "click_hit_rate": {
+          "name": "click_hit_rate",
+          "value": 0.75,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "fastpath_hit": {
+          "name": "fastpath_hit",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "fastpath_moved": {
+          "name": "fastpath_moved",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "probe_changelog_miss": {
+          "name": "probe_changelog_miss",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "probe_entity_hit": {
+          "name": "probe_entity_hit",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "drift_detected": {
+          "name": "drift_detected",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "drift_recovered": {
+          "name": "drift_recovered",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "jev_decisions": {
+          "name": "jev_decisions",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "escalation_rate": {
+          "name": "escalation_rate",
+          "value": 0.5,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "epoch_s": {
+          "name": "epoch_s",
+          "value": 2.0,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "nodes_inherited": {
+          "name": "nodes_inherited",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "nodes_reidentified": {
+          "name": "nodes_reidentified",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "columns_aligned": {
+          "name": "columns_aligned",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "columns_total": {
+          "name": "columns_total",
+          "value": 3,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        }
+      },
+      "labels": {},
+      "assertions": {
+        "StatusMatches": {
+          "name": "StatusMatches",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "StatusMatches",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "AnswerMatches": {
+          "name": "AnswerMatches",
+          "value": false,
+          "reason": null,
+          "source": {
+            "name": "AnswerMatches",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "MaxDuration": {
+          "name": "MaxDuration",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "MaxDuration",
+            "arguments": [
+              300
+            ]
+          },
+          "evaluator_version": null
+        }
+      },
+      "task_duration": 0.0035021000003325753,
+      "total_duration": 0.012857437133789062,
+      "source_case_name": null,
+      "trace_id": null,
+      "span_id": null,
+      "evaluator_failures": []
+    },
+    {
+      "name": "update-field-01",
+      "inputs": {
+        "id": "update-field-01",
+        "text": "Cambia la ciudad de ACME a Cali.",
+        "practice": {
+          "id": "update-field-01",
+          "nivel": "regular",
+          "instruccion": "Cambia la ciudad de ACME a Cali.",
+          "estado_esperado": "terminada",
+          "diff_esperado": [],
+          "lista_blanca": []
+        }
+      },
+      "metadata": {
+        "category": "update",
+        "nivel": "regular"
+      },
+      "expected_output": {
+        "estado": "terminada",
+        "respuesta": null,
+        "claves_razon": []
+      },
+      "output": {
+        "summary": {
+          "status": "terminada",
+          "text": "Ciudad actualizada.",
+          "data": {}
+        },
+        "log": "C:\\Users\\jltav\\AppData\\Local\\Temp\\tmpdg4t3ep7\\eval-after\\update-field-01-a2619c.jsonl",
+        "check": null
+      },
+      "metrics": {},
+      "attributes": {},
+      "scores": {
+        "steps": {
+          "name": "steps",
+          "value": 4,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "click_hit_rate": {
+          "name": "click_hit_rate",
+          "value": 0.75,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "fastpath_hit": {
+          "name": "fastpath_hit",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "fastpath_moved": {
+          "name": "fastpath_moved",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "probe_changelog_miss": {
+          "name": "probe_changelog_miss",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "probe_entity_hit": {
+          "name": "probe_entity_hit",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "drift_detected": {
+          "name": "drift_detected",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "drift_recovered": {
+          "name": "drift_recovered",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "jev_decisions": {
+          "name": "jev_decisions",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "escalation_rate": {
+          "name": "escalation_rate",
+          "value": 0.5,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "epoch_s": {
+          "name": "epoch_s",
+          "value": 2.0,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "nodes_inherited": {
+          "name": "nodes_inherited",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "nodes_reidentified": {
+          "name": "nodes_reidentified",
+          "value": 1,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "columns_aligned": {
+          "name": "columns_aligned",
+          "value": 2,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "columns_total": {
+          "name": "columns_total",
+          "value": 3,
+          "reason": null,
+          "source": {
+            "name": "LogMetrics",
+            "arguments": null
+          },
+          "evaluator_version": null
+        }
+      },
+      "labels": {},
+      "assertions": {
+        "StatusMatches": {
+          "name": "StatusMatches",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "StatusMatches",
+            "arguments": null
+          },
+          "evaluator_version": null
+        },
+        "MaxDuration": {
+          "name": "MaxDuration",
+          "value": true,
+          "reason": null,
+          "source": {
+            "name": "MaxDuration",
+            "arguments": [
+              300
+            ]
+          },
+          "evaluator_version": null
+        }
+      },
+      "task_duration": 0.005553299997700378,
+      "total_duration": 0.015042304992675781,
+      "source_case_name": null,
+      "trace_id": null,
+      "span_id": null,
+      "evaluator_failures": []
+    }
+  ],
+  "failures": [],
+  "analyses": [],
+  "report_evaluator_failures": [],
+  "experiment_metadata": null,
+  "trace_id": null,
+  "span_id": null
+}
