@@ -256,6 +256,14 @@ Nothing measured yet. Probe cost and the ladder's success rate are measured in t
 - Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.
 - Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.
 - Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.
+- **Answered by the explorer session (2026-10-10, SIGECOM v4.2, `Hoy: 14/10/2026`, operador2):**
+  - Bitácora columns are Hora, Usuario, Pantalla (`clientes/CL-0031`), Registro, Campo, Antes, Después, Acción, plus a Revertir button. It sorts newest first, pages with Anterior/Siguiente, and has filters for Registro, Usuario, Pantalla and Desde/Hasta. It held 2 rows, so the entity column v2 needs exists.
+  - Every entity has a visible unique code (`CL-0121`, `PD-0143`, `FV-10047`), so the natural key is the code.
+  - No grid shows a total count. Grids show 20 rows per page with Anterior/Página N/Siguiente.
+  - Default sort: Pedidos by Fecha descending, Facturas by Fecha ascending, Clientes by name.
+  - Reportes generados has ID, Nombre, Filtros, Fecha and Usuario, and says "Las descargas se habilitan desde el puesto del supervisor", so operador2 can't read an `Exportar` output. The export is checked by its Reportes generados row only. `Exportar` itself was not pressed.
+  - Search filters match substrings, ignore case and respect accents. "Ferretería Ruiz" also returns "Ferretería Ruiz e Hijos", and "Ferreteria Ruiz" returns nothing.
+  - The browser path (agent-browser over noVNC) can't type `/` or any modified key. `Control+a` arrives as `a`. The RFB path sends keysyms directly and is not affected.
 - Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.
 - Whether the natural-key column survives the 15:30 change. If it doesn't, the value-match rung of §4.3.4 is off, the leftovers go to the LLM rung, and the entity simply restarts.
 

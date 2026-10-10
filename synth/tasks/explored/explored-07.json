@@ -1,0 +1,12 @@
+{
+  "id": "explored-07",
+  "nivel": "dificil",
+  "instruccion": "Cámbiale el teléfono a Abarrotes Moreno, el nuevo es 3001234567.",
+  "estado_esperado": "fallida",
+  "claves_razon": [
+    "810446941",
+    "892727471"
+  ],
+  "diff_esperado": [],
+  "lista_blanca": []
+}

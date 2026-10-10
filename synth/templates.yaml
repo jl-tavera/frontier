@@ -3,9 +3,9 @@
 
 # Entity view name -> headers its rows must carry (header-set match; the cache's entity ids are app-map node ids).
 entities:
-  clientes: [NIT, Nombre]
+  clientes: [NIT, "Razón social o nombre"]
   facturas: [Vence, Valor, Estado]
-  pedidos: [Número, Total, Estado]
+  pedidos: [Código, Total, Estado]
 
 templates:
   # number first
@@ -15,8 +15,8 @@ templates:
     params:
       - [{estado_txt: vencidas, estado: Vencida}, {estado_txt: pagadas, estado: Pagada}]
       - >-
-        SELECT Nombre AS cliente FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1
-        AND Nombre IN (SELECT Cliente FROM facturas WHERE Estado = :estado)
+        SELECT "Razón social o nombre" AS cliente FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1
+        AND "Razón social o nombre" IN (SELECT Cliente FROM facturas WHERE Estado = :estado)
     estado: terminada
     respuesta: SELECT COUNT(*) FROM facturas WHERE Cliente = :cliente AND Estado = :estado
 
@@ -27,10 +27,10 @@ templates:
     params:
       - [{campo_txt: la ciudad, col: Ciudad}, {campo_txt: el teléfono, col: Teléfono}]
       - >-
-        SELECT Nombre AS cliente FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1
+        SELECT "Razón social o nombre" AS cliente FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1
         AND MAX("{col}") IS NOT NULL
     estado: terminada
-    respuesta: SELECT "{col}" FROM clientes WHERE Nombre = :cliente
+    respuesta: SELECT "{col}" FROM clientes WHERE "Razón social o nombre" = :cliente
 
   # number first, a plain integer with no separators
   - id: lookup-sum
@@ -38,23 +38,23 @@ templates:
     instruccion: "¿Cuánto suman las facturas vencidas de {cliente}?"
     params:
       - >-
-        SELECT Nombre AS cliente FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1
-        AND Nombre IN (SELECT Cliente FROM facturas WHERE Estado = 'Vencida')
+        SELECT "Razón social o nombre" AS cliente FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1
+        AND "Razón social o nombre" IN (SELECT Cliente FROM facturas WHERE Estado = 'Vencida')
     estado: terminada
     respuesta: SELECT SUM(Valor) FROM facturas WHERE Cliente = :cliente AND Estado = 'Vencida'
 
   # two values, in the order asked, separated by ;
   - id: lookup-two
     nivel: regular
-    instruccion: "¿Cuántos pedidos abiertos y cuántas facturas vencidas tiene {cliente}?"
+    instruccion: "¿Cuántos pedidos confirmados y cuántas facturas vencidas tiene {cliente}?"
     params:
       - >-
-        SELECT Nombre AS cliente FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1
-        AND (Nombre IN (SELECT Cliente FROM pedidos WHERE Estado = 'Abierto')
-          OR Nombre IN (SELECT Cliente FROM facturas WHERE Estado = 'Vencida'))
+        SELECT "Razón social o nombre" AS cliente FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1
+        AND ("Razón social o nombre" IN (SELECT Cliente FROM pedidos WHERE Estado = 'Confirmado')
+          OR "Razón social o nombre" IN (SELECT Cliente FROM facturas WHERE Estado = 'Vencida'))
     estado: terminada
     respuesta: >-
-      SELECT (SELECT COUNT(*) FROM pedidos WHERE Cliente = :cliente AND Estado = 'Abierto'),
+      SELECT (SELECT COUNT(*) FROM pedidos WHERE Cliente = :cliente AND Estado = 'Confirmado'),
              (SELECT COUNT(*) FROM facturas WHERE Cliente = :cliente AND Estado = 'Vencida')
 
   # "today" is the date the app shows (--today)
@@ -75,8 +75,8 @@ templates:
     params:
       - [{cuantos: "¿Cuántos pedidos", lista: pedidos}, {cuantos: "¿Cuántas facturas", lista: facturas}]
       - >-
-        SELECT Nombre AS cliente FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1
-        AND Nombre NOT IN (SELECT Cliente FROM {lista} WHERE Cliente IS NOT NULL)
+        SELECT "Razón social o nombre" AS cliente FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1
+        AND "Razón social o nombre" NOT IN (SELECT Cliente FROM {lista} WHERE Cliente IS NOT NULL)
     estado: terminada
     respuesta: SELECT COUNT(*) FROM {lista} WHERE Cliente = :cliente
 
@@ -87,10 +87,10 @@ templates:
     params:
       - >-
         SELECT CAST(NIT AS TEXT) AS nit FROM clientes
-        WHERE Nombre IN (SELECT Nombre FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1)
-        AND Nombre IN (SELECT Cliente FROM pedidos)
+        WHERE "Razón social o nombre" IN (SELECT "Razón social o nombre" FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1)
+        AND "Razón social o nombre" IN (SELECT Cliente FROM pedidos)
     estado: terminada
-    respuesta: SELECT COUNT(*) FROM pedidos WHERE Cliente = (SELECT Nombre FROM clientes WHERE CAST(NIT AS TEXT) = :nit)
+    respuesta: SELECT COUNT(*) FROM pedidos WHERE Cliente = (SELECT "Razón social o nombre" FROM clientes WHERE CAST(NIT AS TEXT) = :nit)
 
   # expected changes: one new record
   - id: create-cliente
@@ -99,9 +99,9 @@ templates:
     params:
       - - {nombre: Papelería La Esquina, nit: "901555222", tel: "3168889900", ciudad: Pereira}
         - {nombre: Droguería San Jorge, nit: "900987654", tel: "3045556677", ciudad: Bucaramanga}
-        - {nombre: Miscelánea El Sol, nit: "1032456789", tel: "3112223344", ciudad: Ibagué}
+        - {nombre: Miscelánea El Sol, nit: "1032456789", tel: "3112223344", ciudad: Barranquilla}
       - >-
-        SELECT 1 AS nuevo WHERE :nombre NOT IN (SELECT Nombre FROM clientes WHERE Nombre IS NOT NULL)
+        SELECT 1 AS nuevo WHERE :nombre NOT IN (SELECT "Razón social o nombre" FROM clientes WHERE "Razón social o nombre" IS NOT NULL)
         AND :nit NOT IN (SELECT CAST(NIT AS TEXT) FROM clientes WHERE NIT IS NOT NULL)
     estado: terminada
     diff:
@@ -110,19 +110,19 @@ templates:
       - {entidad: clientes, id: nuevo, campo: telefono, accion: create, valor: "{tel}"}
       - {entidad: clientes, id: nuevo, campo: ciudad, accion: create, valor: "{ciudad}"}
 
-  # expected changes, no duplicates: one update; the id is the NIT (the grid shows no code)
+  # expected changes, no duplicates: one update; the id is the visible Código (CL-0121)
   - id: update-field
     nivel: regular
     instruccion: "Corrige {campo_txt} de {cliente}: ahora es {valor}."
     params:
       - - {campo_txt: el teléfono, campo: telefono, col: Teléfono, nuevos: '["3001112233", "3209990011"]'}
-        - {campo_txt: la ciudad, campo: ciudad, col: Ciudad, nuevos: '["Neiva", "Cúcuta"]'}
+        - {campo_txt: la ciudad, campo: ciudad, col: Ciudad, nuevos: '["Barranquilla", "Medellín"]'}
       - >-
-        SELECT Nombre AS cliente, CAST(NIT AS TEXT) AS rid FROM clientes
-        WHERE Nombre IN (SELECT Nombre FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1)
+        SELECT "Razón social o nombre" AS cliente, "Código" AS rid FROM clientes
+        WHERE "Razón social o nombre" IN (SELECT "Razón social o nombre" FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1)
       - >-
         SELECT value AS valor FROM json_each(:nuevos)
-        WHERE value IS NOT (SELECT CAST("{col}" AS TEXT) FROM clientes WHERE Nombre = :cliente)
+        WHERE value IS NOT (SELECT CAST("{col}" AS TEXT) FROM clientes WHERE "Razón social o nombre" = :cliente)
     estado: terminada
     diff:
       - {entidad: clientes, id: "{rid}", campo: "{campo}", accion: update, valor: "{valor}"}
@@ -133,8 +133,8 @@ templates:
     instruccion: "Cambia la ciudad de {cliente} a {ciudad}."
     params:
       - >-
-        SELECT Nombre AS cliente, Ciudad AS ciudad FROM clientes
-        WHERE Nombre IN (SELECT Nombre FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1) AND Ciudad IS NOT NULL
+        SELECT "Razón social o nombre" AS cliente, Ciudad AS ciudad FROM clientes
+        WHERE "Razón social o nombre" IN (SELECT "Razón social o nombre" FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1) AND Ciudad IS NOT NULL
     estado: terminada
 
   # export (pedidos only: the Facturas screen filters by Cliente and Estado, no dates)
@@ -143,7 +143,7 @@ templates:
     instruccion: "Exporta el reporte de {lista} {estado_txt} en {mes} de {anio}."
     params:
       - - {lista: pedidos, estado_txt: entregados, estado: Entregado}
-        - {lista: pedidos, estado_txt: abiertos, estado: Abierto}
+        - {lista: pedidos, estado_txt: confirmados, estado: Confirmado}
       - >-
         SELECT DISTINCT substr(Fecha, 1, 4) AS anio, substr(Fecha, 6, 2) AS m FROM {lista}
         WHERE Estado = :estado AND Fecha IS NOT NULL
@@ -164,10 +164,10 @@ templates:
     nivel: dificil
     instruccion: "Cambia el teléfono de {nombre} a {tel}."
     params:
-      - SELECT Nombre AS nombre FROM clientes GROUP BY Nombre HAVING COUNT(*) >= 2
+      - SELECT "Razón social o nombre" AS nombre FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) >= 2
       - [{tel: "3017778899"}, {tel: "3150001122"}]
     estado: fallida
-    claves: SELECT CAST(NIT AS TEXT) FROM clientes WHERE Nombre = :nombre ORDER BY 1
+    claves: SELECT CAST(NIT AS TEXT) FROM clientes WHERE "Razón social o nombre" = :nombre ORDER BY 1
 
   # unanswerable: no respuesta, names the missing record
   - id: fail-missing
@@ -176,7 +176,7 @@ templates:
     params:
       - >-
         SELECT value AS nombre FROM json_each('["Ferretería Los Pinos", "Distribuciones La Cumbre", "Almacén El Roble"]')
-        WHERE value NOT IN (SELECT Nombre FROM clientes WHERE Nombre IS NOT NULL)
+        WHERE value NOT IN (SELECT "Razón social o nombre" FROM clientes WHERE "Razón social o nombre" IS NOT NULL)
       - [{direccion: "Carrera 15 # 45-20"}]
     estado: fallida
     claves: SELECT :nombre
@@ -187,8 +187,8 @@ templates:
     instruccion: "Registra al cliente {nombre}, NIT {nit}, teléfono {tel}, ciudad {ciudad}."
     params:
       - >-
-        SELECT Nombre AS nombre, CAST(NIT AS TEXT) AS nit, "Teléfono" AS tel, Ciudad AS ciudad FROM clientes
-        WHERE Nombre IN (SELECT Nombre FROM clientes GROUP BY Nombre HAVING COUNT(*) = 1)
+        SELECT "Razón social o nombre" AS nombre, CAST(NIT AS TEXT) AS nit, "Teléfono" AS tel, Ciudad AS ciudad FROM clientes
+        WHERE "Razón social o nombre" IN (SELECT "Razón social o nombre" FROM clientes GROUP BY "Razón social o nombre" HAVING COUNT(*) = 1)
         AND NIT IS NOT NULL AND "Teléfono" IS NOT NULL AND Ciudad IS NOT NULL
     estado: fallida
     claves: SELECT :nit

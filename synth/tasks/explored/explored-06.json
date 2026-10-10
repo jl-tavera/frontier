@@ -1,0 +1,9 @@
+{
+  "id": "explored-06",
+  "nivel": "facil",
+  "instruccion": "¿Cuántas facturas pagadas tiene Ferretería Ruiz e Hijos?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "0",
+  "diff_esperado": [],
+  "lista_blanca": []
+}

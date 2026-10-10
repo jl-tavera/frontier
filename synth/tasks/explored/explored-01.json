@@ -1,0 +1,9 @@
+{
+  "id": "explored-01",
+  "nivel": "dificil",
+  "instruccion": "¿Cuál es la factura vencida más antigua de Ferretería Ruiz?",
+  "estado_esperado": "terminada",
+  "respuesta_esperada": "FV-10047",
+  "diff_esperado": [],
+  "lista_blanca": []
+}
