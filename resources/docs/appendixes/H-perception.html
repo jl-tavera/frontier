@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix H — Screen perception</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix H</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered">3. Options considered</a><ul>
+<li><a href="#31-ocr-text-box">3.1 OCR — text + box</a></li>
+<li><a href="#32-non-text-widgets-fields-buttons-grid-lines-icons">3.2 Non-text widgets — fields, buttons, grid lines, icons</a></li>
+<li><a href="#33-semantics-which-element-is-the-one-the-task-means">3.3 Semantics — which element is the one the task means</a></li>
+<li><a href="#34-building-the-tree-the-two-routes-in-the-literature">3.4 Building the tree — the two routes in the literature</a></li>
+</ul>
+</li>
+<li><a href="#4-chosen-design">4. Chosen design</a><ul>
+<li><a href="#41-building-the-tree-detect-then-group-with-heuristics">4.1 Building the tree: detect, then group with heuristics</a></li>
+<li><a href="#42-fingerprint-and-change-detection">4.2 Fingerprint and change detection</a></li>
+<li><a href="#43-recommended-pipeline">4.3 Recommended pipeline</a></li>
+</ul>
+</li>
+<li><a href="#5-trade-offs-we-accept">5. Trade-offs we accept</a></li>
+<li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions">7. Open questions</a></li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix H of I</span><a href="../solution.html#appendix-h">inline version</a><a href="G-data-sync.html">← Appendix G</a><a href="I-poc-reference.html">Appendix I →</a></div><h1 id="screen-perception-pixels-elements-ui-tree-track-7">Screen perception — pixels → elements → UI tree (track 7)<a class="headerlink" href="#screen-perception-pixels-elements-ui-tree-track-7" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix H of <a href="../solution.html">solution.md</a> · Status: adopted as component [E] (solution.md §3.2, §5 Track 7) · Links checked 2026-10-10.</p>
+</blockquote>
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p><strong>Decision:</strong> a hybrid, CPU-only pipeline.
+- <strong>OCR</strong> (RapidOCR with a Latin model) gives exact text and boxes.
+- <strong>Classic CV</strong> (OpenCV) gives widget boxes: fields, buttons, grid lines.
+- <strong>Heuristics</strong> turn those into a <strong>UI tree</strong>: containment, grouping, label↔field pairing, grids.
+- <strong>Claude</strong> sees an element list, plus a Set-of-Mark image only when the screen is new, and answers with an <strong>element id</strong>, never x,y.
+- <strong>Raw coordinates from Claude</strong> are a last-resort fallback.</p>
+<p>The whole pipeline is built around caching, because measurement (§6) shows that recognizing every line is the expensive part, not finding them.</p>
+<hr />
+<h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
+<pre><code>framebuffer (numpy, 1280×800, lossless)
+   → elements  [{id, text, bbox, kind, conf}]          kind: menu, button, field, label, link, cell, title
+   → UI tree   (window → panels → forms/grids → widgets)
+   → used by:  grounding (3.2) · fingerprint (2.3) · app map (2.4) · drift detection (2.6) · read_grid (4.2)
+</code></pre>
+<p>There's no DOM and no accessibility tree; the transport only gives us pixels (<a href="C-transport-rfb.html">Appendix C</a>). Perception <strong>rebuilds the accessibility tree a normal app would expose</strong>. That's exactly the problem Apple's <em>Screen Recognition</em> paper solves for mobile apps.</p>
+<p><strong>What makes our case easier than the papers:</strong>
+- Pixels are lossless (Raw encoding): no JPEG noise. Identical text renders to <strong>identical pixels</strong>, which makes caching exact.
+- Fonts are fixed and the UI is flat, light-themed and web-styled, with standard widgets (see <code>poc/out/before.png</code>).
+- Text is Spanish/Latin script, printed horizontally.</p>
+<p><strong>What makes it harder:</strong>
+- The evaluation app is unseen, so there's no training or labels for it.
+- The deploy is CPU-only (Railway).
+- 5 minutes per task, and the UI changes at 15:30.</p>
+<hr />
+<h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
+<h3 id="31-ocr-text-box">3.1 OCR — text + box<a class="headerlink" href="#31-ocr-text-box" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Engine</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RapidOCR</strong> (PaddleOCR PP-OCR models on ONNX Runtime)</td>
+<td>PaddleOCR accuracy without the Paddle framework. Pip install, CPU-friendly. Separate det/rec stages we can call independently (§6). Measured: numbers, dates and codes read near-perfectly</td>
+<td>Default model is Chinese+English, so it <strong>drops accents</strong> (Gómez → Gomez). Line-level boxes, not word-level</td>
+<td><strong>Primary.</strong> Swap in the Latin rec model (PP-OCRv5 <code>latin_PP-OCRv5_mobile_rec</code> lists Spanish)</td>
+</tr>
+<tr>
+<td>PaddleOCR 3.x (PP-OCRv5/v6)</td>
+<td>Best open-source accuracy; Latin models; v6 is one model for about 50 languages</td>
+<td>Heavy framework install, bigger image, slower on CPU</td>
+<td>Discarded for deploy weight: RapidOCR runs the same model family</td>
+</tr>
+<tr>
+<td>Tesseract 5 (<code>spa</code>)</td>
+<td>Tiny; word-level boxes + confidence; Spanish pack</td>
+<td>Weak on small UI text unless upscaled 2–3× and binarized; weak on text over colored buttons</td>
+<td><strong>Cross-check / fallback</strong> for low-confidence lines</td>
+</tr>
+<tr>
+<td>EasyOCR</td>
+<td>Simple API</td>
+<td>Pulls in PyTorch; slow on CPU</td>
+<td>Discarded</td>
+</tr>
+<tr>
+<td>docTR, Surya</td>
+<td>Strong document OCR + layout</td>
+<td>Tuned for documents; want a GPU</td>
+<td>Discarded</td>
+</tr>
+<tr>
+<td>Cloud OCR (Google Vision, Azure Read)</td>
+<td>Very accurate</td>
+<td>Network round trip per screen, cost, a key to manage</td>
+<td>Discarded: latency inside the 5-minute budget</td>
+</tr>
+<tr>
+<td>VLM as OCR (Claude reading the image)</td>
+<td>Understands context</td>
+<td>Imprecise boxes, seconds per call, tokens</td>
+<td>Semantics only (§3.3), never as the source of boxes</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-non-text-widgets-fields-buttons-grid-lines-icons">3.2 Non-text widgets — fields, buttons, grid lines, icons<a class="headerlink" href="#32-non-text-widgets-fields-buttons-grid-lines-icons" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Classic CV (OpenCV)</strong>: edges/contours → rectangles; projection profiles / Hough lines → grid rows and columns</td>
+<td>Deterministic, about ms per screen, no model. Flat web-style UIs have crisp 1-px borders</td>
+<td>Struggles with borderless or icon-only controls</td>
+<td><strong>Chosen</strong></td>
+</tr>
+<tr>
+<td>Learned detector: OmniParser's YOLO detector, UIED's CNN</td>
+<td>Finds icons and unusual widgets</td>
+<td>OmniParser V2 publishes GPU numbers only (0.6 s/frame on A100); its Florence-2 icon captioner is impractical on CPU</td>
+<td>Optional, only if the unseen app is icon-heavy</td>
+</tr>
+</tbody>
+</table></div>
+<p>Chen et al. (2020) asked exactly this question: old-fashioned CV, deep learning, or a mix? Their answer was <strong>a mix</strong>: CV for non-text widget boxes and a dedicated detector for text. That's our split.</p>
+<h3 id="33-semantics-which-element-is-the-one-the-task-means">3.3 Semantics — which element is the one the task means<a class="headerlink" href="#33-semantics-which-element-is-the-one-the-task-means" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Claude + element list (text) + Set-of-Mark image on new screens</strong>: numbered boxes drawn on the screenshot; the model answers <code>click #12</code></td>
+<td>The model never predicts pixels. SoM and OmniParser show that marks plus a parsed element list greatly improve grounding for general-purpose VLMs. Text-only on known screens keeps it cheap</td>
+<td>Only as good as the element list (§3.1/§3.2)</td>
+<td><strong>Chosen</strong></td>
+</tr>
+<tr>
+<td>Claude computer-use with direct x,y</td>
+<td>Nothing to build</td>
+<td>Pixel guesses; no element tree to feed the map or drift detection; can't tell why a click missed</td>
+<td><strong>Last-resort fallback</strong> for targets with no text and no box</td>
+</tr>
+<tr>
+<td>Specialist grounding models (UI-TARS, OS-Atlas, UGround, ShowUI, SeeClick)</td>
+<td>State of the art on ScreenSpot / ScreenSpot-Pro</td>
+<td>Need a GPU and model serving; another service to deploy</td>
+<td>Discarded for the hackathon; listed as next step</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="34-building-the-tree-the-two-routes-in-the-literature">3.4 Building the tree — the two routes in the literature<a class="headerlink" href="#34-building-the-tree-the-two-routes-in-the-literature" title="Permanent link">¶</a></h3>
+<p>The literature takes two routes:
+- <strong>Learned end-to-end:</strong> a model outputs the structure directly. pix2code (2017) produces a DSL; Pix2Struct (2022) parses screenshots into simplified HTML; ScreenAI (2024) produces a "screen schema" of type + box + text. These need training data and a GPU.
+- <strong>Detect, then group with heuristics:</strong> REMAUI (2015) uses OCR + CV and then merges into a view hierarchy; UIED (2020) is a hybrid detector; Xie et al. (2022) add Gestalt grouping; Apple's Screen Recognition (2021) uses a detector + grouping + reading order to produce an accessibility tree.</p>
+<hr />
+<h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
+<h3 id="41-building-the-tree-detect-then-group-with-heuristics">4.1 Building the tree: detect, then group with heuristics<a class="headerlink" href="#41-building-the-tree-detect-then-group-with-heuristics" title="Permanent link">¶</a></h3>
+<p><strong>We take the second route</strong>, because it works on an unseen app with no training. The steps:
+1. <strong>Containment.</strong> If box A lies inside box B, A is B's child. That gives window → panel/dialog → widgets.
+2. <strong>Perceptual grouping (Gestalt, Xie 2022).</strong> Widgets that are aligned, close together and similarly styled become one group: a menu bar, a filter row, a form, a toolbar.
+3. <strong>Label ↔ field pairing.</strong> An input box takes as its label the nearest text <strong>above</strong> or <strong>to the left</strong> of it. On SIGECOM, "Cliente" sits above the text box and "Estado" above the select. That's what makes <code>fill_field("Cliente", "Ruiz")</code> possible.
+4. <strong>Grids.</strong> A header row of text aligned with columns of repeated rows becomes a table with named columns. On SIGECOM that's Código, Cliente, Fecha, Vence, Valor, Estado. That feeds <code>read_grid()</code> (4.2).
+5. <strong>Kind classification by rules:</strong>
+   - Text inside a bordered box with a fill → button.
+   - Empty bordered box → field.
+   - Bordered box with ▾ → select.
+   - Blue underlined text → link.
+   - Text in the top band → menu.
+   - Text in the header row → column header.</p>
+<p><strong>Above the tree: the app map.</strong> The literature treats each screen tree as a node and each action as an edge:
+- GUI Ripping (Memon 2003) builds a "GUI forest" plus an event-flow graph.
+- DroidBot (2017) builds a UI transition graph.
+- AppAgent (2023) has an LLM explore the app and write per-app docs.</p>
+<p>That's our tracks 2.2 and 2.4. Perception only has to deliver a stable tree and fingerprint for each node.</p>
+<h3 id="42-fingerprint-and-change-detection">4.2 Fingerprint and change detection<a class="headerlink" href="#42-fingerprint-and-change-detection" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Fingerprint:</strong> the sorted set of <em>stable</em> texts (title, menu, labels, column headers), plus a coarse layout hash of the tree. Values are excluded: grid cells, dates, the "Hoy:" clock. It doesn't depend on resolution, because it uses text and relative structure, not pixels.</li>
+<li><strong>Drift (15:30):</strong></li>
+<li>Same fingerprint but a known element is missing or has moved means a <strong>changed screen</strong>.</li>
+<li>An unknown fingerprint after a known action means a <strong>changed navigation</strong>.</li>
+<li>Either way, it's reported to 2.6.</li>
+</ul>
+<h3 id="43-recommended-pipeline">4.3 Recommended pipeline<a class="headerlink" href="#43-recommended-pipeline" title="Permanent link">¶</a></h3>
+<pre><code>action → settle → changed_bbox (poc/rfb_poc.py:149)
+              │
+              ▼
+  ┌── text DETECTION on changed region (or full screen if new) ── ~0.7 s full screen
+  │      each line box → hash its pixels → line cache hit? ── yes → text (≈0 ms)
+  │                                                    └── no → RECOGNITION (~50 ms/line) → cache
+  ├── CV boxes (OpenCV contours + grid lines) ── ms
+  ▼
+merge → elements → tree (containment · grouping · label↔field · grids · kinds)
+  │
+  ├─► fingerprint → screen cache: known screen = reuse whole tree, re-read only changed region
+  ├─► app map (2.4) / drift (2.6)
+  └─► Claude: element list as text; + SoM image only on new or unexpected screens
+fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box → Claude raw x,y
+</code></pre>
+<p><strong>Two caches make this fast:</strong>
+- <strong>Line cache:</strong> key = hash of the line's pixels, value = text. Because frames are lossless and fonts are fixed, the same label always renders to the same bytes.
+- <strong>Screen cache:</strong> key = fingerprint, value = tree. It also lets <strong>lazy grid reading</strong> work: recognize only the columns or rows the task asks about.</p>
+<hr />
+<h2 id="5-trade-offs-we-accept">5. Trade-offs we accept<a class="headerlink" href="#5-trade-offs-we-accept" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Icons with no text aren't understood.</strong> They fall back to Claude raw coordinates, or to the optional detector.</li>
+<li><strong>Heuristic grouping can mis-pair labels</strong> on dense forms. Action verification (3.3) catches it: "typed into a field, the wrong area changed."</li>
+<li><strong>CPU only:</strong> no specialist grounding models and no learned tree models. They're next steps if we get a GPU.</li>
+<li><strong>Latin-script, horizontal text</strong> is an assumption already stated in the design.</li>
+</ul>
+<hr />
+<h2 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h2>
+<p>Setup: RapidOCR (<code>rapidocr_onnxruntime</code>, default models) on <code>poc/out/before.png</code> (Facturas, 1280×800). Laptop CPU with 16 threads; Railway will be slower, so re-measure there.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Time</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full pipeline (det + angle cls + rec), full screen</td>
+<td><strong>7.95 s</strong></td>
+<td>145 lines; far too slow per step</td>
+</tr>
+<tr>
+<td>Full pipeline without the angle classifier</td>
+<td>7.82 s</td>
+<td>the classifier isn't the cost</td>
+</tr>
+<tr>
+<td><strong>Detection only</strong>, full screen</td>
+<td><strong>0.72 s</strong></td>
+<td>finding the boxes is cheap</td>
+</tr>
+<tr>
+<td><strong>Recognition only</strong>, one 520×35 crop</td>
+<td><strong>52 ms</strong></td>
+<td>so about 145 × 50 ms ≈ 7 s is all recognition</td>
+</tr>
+<tr>
+<td>Full pipeline on the 520×35 crop</td>
+<td>2.5–2.7 s</td>
+<td>det upscales tiny inputs; for diffs, run det on a padded region or reuse last boxes</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Accuracy observations:</strong>
+- Menus, buttons, labels, codes (<code>FV-10159</code>), dates and amounts (<code>1.810.000</code>) were read correctly at 0.97–1.00 confidence.
+- <strong>Accents were dropped</strong> (Gómez → Gomez, Ferretería → Ferreteria, Díaz → Diaz). That's the default Chinese+English model, so we need the Latin rec model.
+- <strong>The angle classifier flipped "Todos" into "sopol"</strong> inside the select. UI text is never rotated, so turn the classifier off (<code>use_cls=False</code>), which fixed it.
+- Header "Código" was read as "oo" with <strong>0.52 confidence</strong>. A confidence threshold should trigger re-OCR (upscale or Tesseract).
+- Small casing errors appeared in the title ("SIGEcoM"), so title text needs case-insensitive matching.</p>
+<p><strong>Conclusion:</strong> detect once, recognize lazily and cache by line pixels. A known screen then costs about 0.7 s (detection) plus near-zero recognition, and a diff region costs a few hundred ms. Full recognition of a 20-row grid stays a deliberate <code>read_grid()</code> cost (about 5–7 s) and is a candidate for the clipboard/export path (4.1, 4.4).</p>
+<hr />
+<h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
+<p><strong>Still to measure</strong> (each one is the "Done when" of a 7.x unit):
+- Latin model accuracy on accents.
+- CV box recall for inputs and buttons.
+- Label↔field pairing on Facturas plus one form.
+- Grid JSON vs the screen.
+- Click hit rate via <code>click_text</code>.
+- Timings on Railway.</p>
+<hr />
+<h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
+<p><strong>OCR engines</strong>
+- RapidOCR — https://github.com/RapidAI/RapidOCR
+- PaddleOCR (PP-OCRv5 Latin rec model; PP-OCRv6 in 3.x) — https://github.com/PaddlePaddle/PaddleOCR
+- Tesseract — https://github.com/tesseract-ocr/tesseract</p>
+<p><strong>Detecting elements and building the tree</strong>
+- REMAUI: <em>Reverse Engineering Mobile Application User Interfaces with REMAUI</em> (Nguyen &amp; Csallner, ASE 2015) — https://doi.org/10.1109/ASE.2015.32
+- Screen Recognition: <em>Creating Accessibility Metadata for Mobile Applications from Pixels</em> (Zhang et al., CHI 2021) — https://arxiv.org/abs/2101.04893
+- <em>Object Detection for Graphical User Interface: Old Fashioned or Deep Learning or a Combination?</em> (Chen et al., ESEC/FSE 2020) — https://arxiv.org/abs/2008.05132
+- UIED (the hybrid tool behind Chen et al.) — https://github.com/MulongXie/UIED
+- <em>Psychologically-Inspired, Unsupervised Inference of Perceptual Groups of GUI Widgets from GUI Images</em> (Xie et al., ESEC/FSE 2022) — https://arxiv.org/abs/2206.10352
+- pix2code (Beltramelli, 2017) — https://arxiv.org/abs/1705.07962
+- Pix2Struct (Lee et al., ICML 2023) — https://arxiv.org/abs/2210.03347
+- ScreenAI (Baechler et al., IJCAI 2024) — https://arxiv.org/abs/2402.04615</p>
+<p><strong>Elements for LLM agents and grounding</strong>
+- OmniParser (Lu et al., 2024) — https://arxiv.org/abs/2408.00203 · V2 model card — https://huggingface.co/microsoft/OmniParser-v2.0
+- Set-of-Mark prompting (Yang et al., 2023) — https://arxiv.org/abs/2310.11441
+- SeeClick + ScreenSpot (Cheng et al., ACL 2024) — https://arxiv.org/abs/2401.10935
+- ScreenSpot-Pro (Li et al., 2025) — https://arxiv.org/abs/2504.07981
+- UGround (Gou et al., ICLR 2025) — https://arxiv.org/abs/2410.05243
+- OS-Atlas (Wu et al., 2024) — https://arxiv.org/abs/2410.23218
+- UI-TARS (Qin et al., 2025) — https://arxiv.org/abs/2501.12326
+- ShowUI (Lin et al., CVPR 2025) — https://arxiv.org/abs/2411.17465
+- Ferret-UI (You et al., ECCV 2024) — https://arxiv.org/abs/2404.05719</p>
+<p><strong>Exploration graph above the tree</strong>
+- GUI Ripping: <em>Reverse Engineering of Graphical User Interfaces for Testing</em> (Memon, Banerjee &amp; Nagarajan, WCRE 2003) — https://doi.org/10.1109/WCRE.2003.1287256
+- DroidBot (Li et al., ICSE 2017) — https://github.com/honeynet/droidbot
+- AppAgent (Zhang et al., 2023) — https://arxiv.org/abs/2312.13771</p>
+<p><em>All links in this section were checked online on 2026-10-10 (the five that had been cited from memory included). The GUI Ripping entry now points at the DOI because the author's page was unreachable.</em></p></main>
+</div></body></html>

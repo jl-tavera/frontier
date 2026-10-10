@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix D — Platform mapping: paper comparison</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix D</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered">3. Options considered</a></li>
+<li><a href="#4-chosen-design">4. Chosen design</a><ul>
+<li><a href="#41-repair-ladder-for-26">4.1 Repair ladder for 2.6</a></li>
+</ul>
+</li>
+<li><a href="#5-trade-offs">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions">7. Open questions</a></li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix D of I</span><a href="../solution.html#appendix-d">inline version</a><a href="C-transport-rfb.html">← Appendix C</a><a href="E-mapping-methodology.html">Appendix E →</a></div><h1 id="platform-mapping-as-a-graph-paper-comparison-track-2">Platform mapping as a graph — paper comparison (track 2)<a class="headerlink" href="#platform-mapping-as-a-graph-paper-comparison-track-2" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix D of <a href="../solution.html">solution.md</a> · Status: research input for track 2, refined by <a href="E-mapping-methodology.html">Appendix E</a>; where they differ, E wins (4-rung repair ladder instead of 5, ≤45 s pre-warm instead of ≤60 s) · Links checked 2026-10-10.</p>
+</blockquote>
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p>Question: how do published GUI agents build an <strong>initial map</strong> of an app as a graph (screens = nodes, actions = edges), and how do they <strong>remap</strong> when the app changes?</p>
+<p>Research for track 2 of <a href="../solution.html">solution.md §5</a> (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).</p>
+<hr />
+<h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
+<p>Our constraints, which every "steal" below is filtered through:
+- The app is unseen.
+- We see pixels only, over VNC/RFB. There is no DOM, a11y tree or view hierarchy.
+- It is a desktop app.
+- Each task has <strong>5 min</strong>.
+- The app changes at 15:30.</p>
+<p>PDFs are in <code>../references/papers/</code>. Every fact here comes from reading the paper; "n/s" means the paper does not say.</p>
+<hr />
+<h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
+<p>The twelve papers, compared on what we need from them:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Paper</th>
+<th>Platform / input</th>
+<th>Node =</th>
+<th>Edge =</th>
+<th>Screen dedup</th>
+<th>Initial mapping (cost)</th>
+<th>Remap / drift</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>AutoDroid</strong> (<a href="https://arxiv.org/abs/2308.15272">2308.15272</a>, MobiCom'24)</td>
+<td>Android / view tree</td>
+<td>UI state</td>
+<td>UI action</td>
+<td>n/s for screens; elements merged if same edge endpoints</td>
+<td>Random clicking, 0.5–1 h/app + 5–10 min LLM task synthesis</td>
+<td>None. LLM "can identify issues" if a shortcut misleads</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>MobileGPT</strong> (<a href="https://arxiv.org/abs/2312.03003">2312.03003</a>, MobiCom'24)</td>
+<td>Android / a11y tree</td>
+<td>"App page" = <strong>the set of sub-tasks available</strong> on it</td>
+<td>Sub-task (parametrised function)</td>
+<td>Check for the key UI elements of known sub-tasks, then cosine on the sub-task list. 3 FP / 0 FN on 269 screens, vs 38/14 for Screen2Vec and 57/28 for a vision-based method</td>
+<td>Random explorer + LLM lists sub-tasks. 10–15 min, ~50 pages, $10.78 for all apps; unseen screens are explored on demand</td>
+<td><strong>Partial.</strong> If replay fails ("UIs may change… with app updates"), the LLM re-derives the action with the old action as a few-shot example (16% of actions, 100% acc). Detects "no change in screen" and loops. Nodes updated in place</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>AppAgentX</strong> (<a href="https://arxiv.org/abs/2503.02268">2503.02268</a>, 2025)</td>
+<td>Android / <strong>pixels</strong> (OmniParser)</td>
+<td>Page + Element + <strong>Shortcut</strong> nodes (Neo4j)</td>
+<td>HAS_ELEMENT, LEADS_TO, COMPOSED_OF</td>
+<td>ResNet-50 element embeddings; LLM merges page descriptions</td>
+<td>No separate exploration; built from its own task runs</td>
+<td>Fallback only: if a shortcut fails, revert to atomic actions. Shortcuts store raw x,y</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>GUI-Xplore</strong> (<a href="https://arxiv.org/abs/2503.17709">2503.17709</a>, 2025)</td>
+<td>Android / <strong>video (pixels)</strong></td>
+<td>Cluster of screens + functional description</td>
+<td>Action between clusters</td>
+<td>Luminance-diff keyframes (≈116/app, vs 629 at 1 FPS), then GPT assigns each to a functional cluster</td>
+<td>~22 min of exploration video, ~200 pages/app</td>
+<td>n/s</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>LLM-Explorer</strong> (<a href="https://arxiv.org/abs/2505.10593">2505.10593</a>, MobiCom'25)</td>
+<td>Android / view tree</td>
+<td>Abstract state = concrete states with the same function set</td>
+<td>Abstract action (type, covered elements, explored/ineffective flag, LLM function label)</td>
+<td><strong>Rules beat the LLM.</strong> Strip dynamic properties (text, selection, scroll) and compare element sets</td>
+<td>Random over <strong>unexplored</strong> actions; shortest path to the next one. LLM only to group actions and write input text. 2 h/app, <strong>$0.11/app</strong> vs $16.31 for DroidAgent</td>
+<td><strong>Prune ladder:</strong> if a path fails, try alternatives, then restart the app and retry from home, then <strong>remove the edge</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>PG-Agent</strong> (<a href="https://arxiv.org/abs/2509.03536">2509.03536</a>, ACM MM'25)</td>
+<td>Android + web / <strong>pixels only</strong></td>
+<td>MLLM page summary + screenshot pointer</td>
+<td>Queue of action summaries + the task served; same-page actions folded into one edge</td>
+<td>MLLM "did the page jump?", then BGE-M3 + FAISS top-4, then MLLM picks one, then MLLM visual yes/no</td>
+<td>None; built offline from demos (231 episodes → 700 nodes / 940 edges)</td>
+<td>n/s</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>GraphPilot</strong> (<a href="https://arxiv.org/abs/2601.17418">2601.17418</a>, JICN'26)</td>
+<td>Android / HTML from view tree</td>
+<td>Page + LLM function description</td>
+<td>(page, element, next page) triple</td>
+<td><code>PAGEID(HTML)</code>, method n/s</td>
+<td>Offline exploration, method n/s</td>
+<td>None: "relies on the integrity of the KG". Each plan step is validated against the triples before running</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>MAGNET</strong> (<a href="https://arxiv.org/abs/2601.19199">2601.19199</a>, 2026)</td>
+<td>Android / pixels (OmniParserV2)</td>
+<td>No screen graph. Two memories: <strong>workflows</strong> + <strong>element function → list of icon images</strong></td>
+<td>—</td>
+<td>Retrieval; duplicates dropped, and new looks of a known function appended</td>
+<td>Demos/datasets or the agent's own runs</td>
+<td><strong>Only paper built around app updates.</strong> Names "appearance drift" (redesign, same function) and "workflow drift" (steps reorganised). No explicit detection: stale entries fade via a recency×use score</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>ActionEngine</strong> (<a href="https://arxiv.org/abs/2602.20502">2602.20502</a>, 2026)</td>
+<td>Web / DOM + a11y</td>
+<td>Page <strong>template</strong> of "atoms" (static vs dynamic regions)</td>
+<td>Operation (≥1 actions); data reads are self-loops with an output schema</td>
+<td><strong>Structural signature</strong> of atoms; dynamic content does not change identity</td>
+<td>Task-independent DFS crawler (Claude Code + Playwright), 36–260 min, $11.6–37.2/app, 57–219 states</td>
+<td><strong>Yes, the only one that writes repairs back.</strong> The failure is localized to one node; a Patcher re-grounds it and "commits the repair back to the SMG" (91.2% WebArena; 73.1% before patching)</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Executable Agentic Memory</strong> (<a href="https://arxiv.org/abs/2605.12294">2605.12294</a>, 2026)</td>
+<td>Android / SoM screenshots from a11y boxes</td>
+<td>Alternating state / action nodes (DAG) + BPE-mined <strong>macro actions</strong></td>
+<td>—</td>
+<td>Embedding retrieval, then VLM verify; element IoU</td>
+<td>Task-oriented DFS with an MLLM (CONTINUE / BACKTRACK / COMPLETE); budget n/s</td>
+<td>None. "KG may become outdated" is listed as a limitation</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>ScreenSearch</strong> (<a href="https://arxiv.org/abs/2605.16024">2605.16024</a>, Microsoft 2026)</td>
+<td><strong>Windows desktop</strong> / UIA tree (OCR works offline: F1 0.646 vs 0.740)</td>
+<td>Merged screen state</td>
+<td>(s, <strong>action signature</strong>, s′); clicks quantized to a 30×30 grid</td>
+<td>BM25 on spatial cell×role/text atoms + dense embedding → RRF top-200 → <strong>Jaccard ≥ 0.93 is the only thing that can merge</strong></td>
+<td>PUCT graph-bandit; reward = new state + new edge + ambiguity drop. 5,524 VM-hours (huge)</td>
+<td>Flags screens where the same action has <strong>different outcomes</strong> (successor entropy) as unreliable, but does not repair</td>
+</tr>
+<tr>
+<td>12</td>
+<td><strong>UI-KOBE</strong> (<a href="https://arxiv.org/abs/2605.29534">2605.29534</a>, 2026)</td>
+<td>Android / <strong>pixels</strong></td>
+<td>Semantic state (role + layout, dynamic content allowed) + reference screenshot</td>
+<td>Single action (JSON) + NL instruction; self-loops for in-page changes</td>
+<td>Description embedding &gt; threshold, then screenshot check; at runtime visual top-k, then the LLM picks or <strong>rejects all</strong></td>
+<td>LLM-guided, one action per step, aimed at unexplored elements. 300 steps, ~54 nodes / 226 edges, $6.2, 3.2–6.4 h/app (paper contradicts itself)</td>
+<td>Detects "graph-unmatched" screens, <strong>falls back to a free planner and rejoins the graph</strong> at a known screen. Re-exploration is offline only</td>
+</tr>
+</tbody>
+</table></div>
+<p>Code available: AutoDroid, MobileGPT, GUI-Xplore, LLM-Explorer and UI-KOBE (GitHub). PG-Agent and AppAgentX are "will be released". GraphPilot is "on request". The rest are n/s.</p>
+<hr />
+<h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
+<p>What we take for each sub-problem:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Sub-problem</th>
+<th>Technique to take</th>
+<th>From</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2.2 Exploration → nav graph</strong></td>
+<td>Pick <strong>unexplored</strong> actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one <code>open row</code> action"). Denylist destructive labels. One action per step so every edge is clean.</td>
+<td>LLM-Explorer, UI-KOBE</td>
+</tr>
+<tr>
+<td><strong>2.3 Screen fingerprint</strong></td>
+<td><code>fingerprint = title-bar text + set of static OCR labels binned to a coarse grid</code> (drop numbers, dates, grid-cell contents). Merge on Jaccard ≥ ~0.9. If ambiguous, use a VLM yes/no against a reference screenshot. Coarse grid + text makes it independent of resolution.</td>
+<td>ScreenSearch, ActionEngine (static vs dynamic atoms), UI-KOBE</td>
+</tr>
+<tr>
+<td><strong>2.4 Map storage</strong></td>
+<td>One JSON per app (keyed by title bar). Nodes: <code>{id, fingerprint, description, ref_screenshot, affordances[]}</code>. Edges: <code>{from, action:{kind, target_label, target_role}, to, desc, success, fail, last_ok}</code>. Data-reading actions as self-loops. No x,y stored. Neo4j (AppAgentX, EAM) is overkill.</td>
+<td>MobileGPT, UI-KOBE, ActionEngine</td>
+</tr>
+<tr>
+<td><strong>2.5 Pre-warm vs cold</strong></td>
+<td><strong>Cold + incremental by default.</strong> At most a ~30–60 s shallow BFS of the top menu bar on first contact (one level, read-only items), then learn on demand. Every task's trace is written back as edges, so the next task on the same app is warm (MobileGPT: warm 98.75% vs cold 82.7%, latency −62.5%).</td>
+<td>MobileGPT, AppAgentX</td>
+</tr>
+<tr>
+<td><strong>2.6 Change detection (15:30)</strong></td>
+<td>The <strong>expected-edge check</strong>: each edge stores the fingerprint it should lead to. A mismatch is drift. Signals: (a) the target label is not found on the screen, (b) the action caused no screen change, (c) it landed on an unexpected or unmatched fingerprint, (d) the same action now has different outcomes. Repair ladder below.</td>
+<td>MobileGPT (no-change), ActionEngine (localize), ScreenSearch (outcome dispersion), UI-KOBE (unmatched)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="41-repair-ladder-for-26">4.1 Repair ladder for 2.6<a class="headerlink" href="#41-repair-ladder-for-26" title="Permanent link">¶</a></h3>
+<p>Each rung is cheap, and the next one runs only if it fails. Every rung writes to the JSONL log for the Challenge 2 spec.
+1. <strong>Re-ground in place.</strong> Find the same function under a new label or position (OCR fuzzy match, then the LLM with the old action as a few-shot example). If found, <strong>patch the edge</strong> and keep the node. (MobileGPT re-derive, ActionEngine Patcher, MAGNET "appearance drift".)
+2. <strong>Alternative path.</strong> Search the graph for another route to the target node. (LLM-Explorer.)
+3. <strong>Local re-explore.</strong> Mark the node <code>stale</code> and explore one hop from it, unexplored actions only, within a budget of about 20 s. (UI-KOBE frontier re-exploration, done online.)
+4. <strong>Free-plan fallback.</strong> The LLM acts without the graph and rejoins it once a known fingerprint appears. (UI-KOBE.)
+5. <strong>Prune.</strong> If an edge fails N times, delete it. Edges whose success has decayed are ranked down rather than deleted. (LLM-Explorer prune, MAGNET recency×use score.)</p>
+<hr />
+<h2 id="5-trade-offs">5. Trade-offs<a class="headerlink" href="#5-trade-offs" title="Permanent link">¶</a></h2>
+<p>Recommendation, with the discarded alternative:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Chosen</th>
+<th>Discarded, and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Initial mapping</td>
+<td><strong>Task-driven incremental graph</strong> plus a ≤60 s shallow menu pre-warm; traces written back after each task</td>
+<td>Full up-front exploration (AutoDroid, LLM-Explorer, UI-KOBE, ActionEngine): 10 min–hours per app, impossible inside a 5 min task on an unseen app</td>
+</tr>
+<tr>
+<td>Node identity</td>
+<td><strong>OCR static-label set on a coarse grid + Jaccard</strong>, with a VLM verify only when ambiguous</td>
+<td>Pure embedding or VLM matching (PG-Agent): ~3 MLLM calls per check and unstable across models (UI-KOBE A.1). Pixel hash: breaks on any data change</td>
+</tr>
+<tr>
+<td>Edge target</td>
+<td><strong>Semantic target (label + role)</strong>, grounded to pixels at run time</td>
+<td>Stored x,y (AppAgentX shortcuts): breaks the moment a button moves, which is exactly the 15:30 scenario</td>
+</tr>
+<tr>
+<td>Task-time use</td>
+<td>Plan a path over the graph in one call, then verify each step against the expected fingerprint</td>
+<td>Per-step reactive LLM without a graph: 3–5× more LLM calls (GraphPilot, ActionEngine numbers)</td>
+</tr>
+<tr>
+<td>Remap</td>
+<td><strong>Online, localized repair</strong> (ladder above), written back into the graph</td>
+<td>Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): it fails at exactly the moment we are graded. Passive memory decay alone (MAGNET): too slow to react within one task</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h2>
+<p>What the literature tells us:</p>
+<ol>
+<li><strong>Nobody does online remapping after an app update.</strong>
+   - EAM and UI-KOBE name it as future work.
+   - MAGNET handles drift only through slow memory evolution.
+   - ActionEngine's Patcher is the closest: it localizes the failure to one node and writes the fix back into the graph.
+   - Our 2.6 is therefore a real contribution, and the doc should say so.</li>
+<li><strong>Exploring the whole app is too slow for us.</strong>
+   - Every full-exploration paper spends 10 min to hours per app; MobileGPT's 10–15 min is the cheapest.
+   - Our 5 min task budget rules out exploring the whole app first. Mapping has to be <strong>task-driven and incremental</strong>, as in MobileGPT (on demand) and AppAgentX (memory from its own runs), with only a shallow pre-warm.</li>
+<li><strong>Identify a screen by function, not pixels.</strong>
+   - MobileGPT (the sub-task set), LLM-Explorer (the function set), ActionEngine (static atoms) and UI-KOBE (role + layout) all strip dynamic content before comparing.
+   - LLM-Explorer and MobileGPT both found that <strong>rules or structure beat pure LLM or vision matching</strong> for dedup.</li>
+<li><strong>Pixels-only dedup is solved well enough.</strong> The pattern is cheap retrieval followed by a strict verify step:
+   - UI-KOBE and PG-Agent: embedding top-k, then VLM yes/no or "reject all".
+   - ScreenSearch: spatially binned OCR text + Jaccard ≥ 0.93.</li>
+<li><strong>Store targets as function + label, never coordinates.</strong>
+   - AppAgentX shortcuts store raw x,y and are fragile.
+   - MobileGPT stores attribute-based actions (<code>click(text:"[contact_name]")</code>), and MAGNET stores the function plus several appearances. These survive a moved button.</li>
+<li><strong>Plan over the graph in one LLM call, then verify each step.</strong> GraphPilot (1.03 queries/task) and ActionEngine (1.5–3.5 calls/task, 27 s) show that a graph cuts LLM calls drastically, which suits our 5 min budget.</li>
+</ol>
+<hr />
+<h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
+<p>None recorded in this document. The measurements for track 2 are defined in <a href="E-mapping-methodology.html">Appendix E §6</a>.</p>
+<hr />
+<h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
+<p>Papers, and what to read first:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Read first if you work on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>2312.03003-mobilegpt.pdf</code></td>
+<td>2.3, 2.4, 2.5: function-based page identity, on-demand exploration, in-context repair</td>
+</tr>
+<tr>
+<td><code>2602.20502-actionengine.pdf</code></td>
+<td>2.4, 2.6: template states, plan-compile, Patcher that writes back</td>
+</tr>
+<tr>
+<td><code>2605.29534-ui-kobe.pdf</code></td>
+<td>2.2, 2.3: pixels-only node ID, unmatched → fallback → rejoin</td>
+</tr>
+<tr>
+<td><code>2605.16024-screensearch.pdf</code></td>
+<td>2.2, 2.3: the only desktop paper; action signatures, strict merge, ambiguity signal</td>
+</tr>
+<tr>
+<td><code>2505.10593-llm-explorer.pdf</code></td>
+<td>2.2, 2.6: cheap rule-based exploration, prune ladder</td>
+</tr>
+<tr>
+<td><code>2601.19199-magnet.pdf</code></td>
+<td>2.6: drift taxonomy (appearance vs workflow), function → many appearances</td>
+</tr>
+<tr>
+<td><code>2503.02268-appagentx.pdf</code></td>
+<td>2.4: pixels-only Page/Element/Shortcut schema (anti-pattern: stored x,y)</td>
+</tr>
+<tr>
+<td><code>2601.17418-graphpilot.pdf</code></td>
+<td>Task-time: one-shot planning over the graph + per-step validation</td>
+</tr>
+<tr>
+<td><code>2509.03536-pg-agent.pdf</code></td>
+<td>2.3: pixels-only dedup recipe</td>
+</tr>
+<tr>
+<td><code>2503.17709-gui-xplore.pdf</code></td>
+<td>2.3: frame-difference keyframes as a "screen changed" signal</td>
+</tr>
+<tr>
+<td><code>2605.12294-executable-agentic-memory.pdf</code></td>
+<td>Macro actions mined BPE-style from frequent action pairs</td>
+</tr>
+<tr>
+<td><code>2308.15272-autodroid.pdf</code></td>
+<td>Baseline UTG + "this click leads to X" hints</td>
+</tr>
+</tbody>
+</table></div></main>
+</div></body></html>

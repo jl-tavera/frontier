@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix F — Agent loop</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix F</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered">3. Options considered</a></li>
+<li><a href="#4-chosen-design">4. Chosen design</a><ul>
+<li><a href="#41-recommendation-and-order">4.1 Recommendation and order</a></li>
+<li><a href="#42-cross-cutting-accelerators-apply-to-every-option">4.2 Cross-cutting accelerators (apply to every option)</a></li>
+<li><a href="#43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)</a></li>
+</ul>
+</li>
+<li><a href="#5-trade-offs">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions">7. Open questions</a></li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix F of I</span><a href="../solution.html#appendix-f">inline version</a><a href="E-mapping-methodology.html">← Appendix E</a><a href="G-data-sync.html">Appendix G →</a></div><h1 id="agent-loop-fast-plan-act-verify-track-3">Agent loop — fast plan → act → verify (track 3)<a class="headerlink" href="#agent-loop-fast-plan-act-verify-track-3" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix F of <a href="../solution.html">solution.md</a> · Status: adopted as component [C] (solution.md §3.2); Jev stays a gated 1 h spike · Links checked 2026-10-10.</p>
+</blockquote>
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p><strong>Decision:</strong> Claude runs the loop <strong>in-process</strong> with plain Python tool functions, with no MCP. We build it in three steps, and each one has to earn its place on the 3.6 harness:
+1. A tool-use loop with <strong>batched actions</strong> (L1+L2). This is the first end-to-end path.
+2. <strong>Plan-then-execute</strong> with replan when a check fails (L3). This cuts the number of LLM calls.
+3. A one-hour spike of <strong>Jev</strong> as the System 1 for per-step decisions, with a confidence gate that escalates to Claude (L4). We keep it only if the numbers prove it.</p>
+<blockquote>
+<p><strong>Terminology.</strong> <em>System 2</em> is the slow, deliberate planner (Claude). <em>System 1</em> is a fast decision function that answers narrow, typed questions in about 100 ms (Jev). Jev is TypeSafe AI's "System One" model. It does <strong>not</strong> generate text: it returns typed choices or scores, each with a calibrated probability.</p>
+</blockquote>
+<hr />
+<h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
+<p>The time budget. Each task gets 300 s. The guard stops at <strong>270 s</strong> and writes a partial summary.</p>
+<p><code>step cost = LLM latency + act + settle</code></p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Typical</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude call (text state, cached prefix)</td>
+<td>2–5 s</td>
+<td>grows with image tokens and output length</td>
+</tr>
+<tr>
+<td>Jev call</td>
+<td>0.07–0.5 s</td>
+<td>vendor numbers; users report a median of about 76 ms and 200–300 ms on Reddit</td>
+</tr>
+<tr>
+<td>Act (RFB click/type)</td>
+<td>&lt; 0.1 s</td>
+<td>local socket write</td>
+</tr>
+<tr>
+<td>Settle (quiet-time)</td>
+<td>0.5–1 s</td>
+<td><a href="../solution.html#appendix-i"><code>poc/rfb_poc.py</code></a> <code>settle</code></td>
+</tr>
+</tbody>
+</table></div>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Loop style</th>
+<th>s per action</th>
+<th>Actions in 270 s</th>
+<th>Typical task need</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1: 1 Claude call per action</td>
+<td>3–6</td>
+<td>45–90</td>
+<td>10–30: fits, with little room for recovery</td>
+</tr>
+<tr>
+<td>L2: about 3 actions per Claude call</td>
+<td>1.5–2.5</td>
+<td>110–180</td>
+<td>comfortable</td>
+</tr>
+<tr>
+<td>L3: 1 plan + replans</td>
+<td>~1 + replans</td>
+<td>200+</td>
+<td>comfortable if replans stay rare</td>
+</tr>
+<tr>
+<td>L4: Jev per step + Claude on escalation</td>
+<td>~0.7–1.5</td>
+<td>180–380</td>
+<td>settle becomes the bottleneck</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Where the time goes:</strong> LLM round trips first, then settle, then image tokens. Every option below attacks round trips.</p>
+<hr />
+<h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>How it works</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L1. Plain tool-use loop</strong></td>
+<td>Each Claude call returns one tool call → execute → result → next call</td>
+<td><ul><li>Simplest; the Anthropic SDK does it natively.</li><li>Easy to log and debug.</li></ul></td>
+<td><ul><li>Slowest: one round trip per click.</li><li>Little time left for recovery.</li></ul></td>
+<td><strong>Baseline.</strong> Build first</td>
+</tr>
+<tr>
+<td><strong>L2. Batched tool calls</strong></td>
+<td>Claude returns several <code>tool_use</code> blocks in one turn (fill 4 fields + click Guardar). We run them in order and stop at the first failed check</td>
+<td><ul><li>2–4× fewer round trips.</li><li>Same code as L1.</li></ul></td>
+<td><ul><li>A mid-batch failure wastes the rest.</li><li>Needs a verify after each action.</li></ul></td>
+<td><strong>Adopt</strong> together with L1</td>
+</tr>
+<tr>
+<td><strong>L3. Plan-then-execute</strong></td>
+<td>Claude writes a step list once (<code>navigate_to Clientes; fill_field RUT=…; click_text Buscar; read_grid</code>). A deterministic executor runs it with per-step checks, and Claude is called again only when a check fails</td>
+<td><ul><li>The fewest LLM calls.</li><li>The plan doubles as the summary skeleton.</li><li>Pairs with App Memory shortcuts.</li></ul></td>
+<td><ul><li>On an unseen app the first plan is a guess.</li><li>It only works if replanning is cheap and checks are strict.</li></ul></td>
+<td><strong>Adopt</strong> after L1+L2 work</td>
+</tr>
+<tr>
+<td><strong>L4. System 1 / System 2 with Jev</strong></td>
+<td>Claude plans (as in L3). For each step, Jev answers typed questions over the text state: which element is the target, did it work, is the task done, is there drift. Below the confidence threshold, escalate to Claude</td>
+<td><ul><li>~100 ms per decision.</li><li>Calibrated probabilities give a principled escalation gate.</li><li>Cheap: $0.042/M input, output free.</li><li>Text-only fits our OCR-first perception.</li></ul></td>
+<td><ul><li>Early access with a waitlist.</li><li>No image input.</li><li>Can't write values.</li><li>Unreliable at counting, arithmetic and dates.</li><li>32k context.</li><li>Unknown out-of-distribution behaviour on an unseen app.</li><li>Benchmarks are vendor-run.</li><li>A second vendor dependency.</li></ul></td>
+<td><strong>Spike</strong> (1 h), gated by the harness</td>
+</tr>
+<tr>
+<td><strong>L5. Code-as-action</strong></td>
+<td>Each turn Claude writes a short Python snippet calling the tool functions (loops, ifs)</td>
+<td><ul><li>Flexible batching.</li><li>Handles repetition (pagination) in one turn.</li></ul></td>
+<td><ul><li>Needs a sandbox for model-written code.</li><li>Failures happen inside opaque code and are harder to verify and log.</li></ul></td>
+<td>Discarded: L2+L3 give most of the gain without running generated code</td>
+</tr>
+<tr>
+<td><strong>L6. Claude computer-use (raw x,y)</strong></td>
+<td>A screenshot every step; the model outputs pixel coordinates</td>
+<td><ul><li>Works out of the box.</li></ul></td>
+<td><ul><li>An image every step is slow.</li><li>Coordinate misses.</li><li>Breaks when layout shifts.</li></ul></td>
+<td>Discarded (Clicking row in <a href="../solution.html">solution.md §4</a>)</td>
+</tr>
+<tr>
+<td><strong>L7. Agent frameworks</strong> (LangGraph, OpenAI/Claude Agent SDKs)</td>
+<td>Orchestration layer over the same calls</td>
+<td><ul><li>Ready-made state and retries.</li></ul></td>
+<td><ul><li>No latency gain.</li><li>More deps and abstraction to explain in the debrief.</li></ul></td>
+<td>Discarded: the loop is about 100 LOC</td>
+</tr>
+<tr>
+<td><strong>MCP</strong> (as tool transport)</td>
+<td>Tools served over stdio/HTTP to the loop</td>
+<td><ul><li>Claude Code could drive the tools.</li></ul></td>
+<td><ul><li>Extra process and hop on every action.</li><li>Nothing outside the service needs it.</li></ul></td>
+<td>Discarded</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
+<h3 id="41-recommendation-and-order">4.1 Recommendation and order<a class="headerlink" href="#41-recommendation-and-order" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>L1+L2.</strong> A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.</li>
+<li><strong>L3.</strong> Add plan-then-execute with strict checks; replan on failure.</li>
+<li><strong>L4 spike (~1 h).</strong> Put Jev behind the <code>effect_ok</code> and <code>target</code> checks and run the harness. Keep it or drop it based on the criteria in §5.</li>
+<li>Throughout, apply the accelerators from §4.2.</li>
+</ol>
+<h3 id="42-cross-cutting-accelerators-apply-to-every-option">4.2 Cross-cutting accelerators (apply to every option)<a class="headerlink" href="#42-cross-cutting-accelerators-apply-to-every-option" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Text over images.</strong> Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.</li>
+<li><strong>Prompt caching</strong> on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.</li>
+<li><strong>Model tiering.</strong> Sonnet-class for routine steps; Opus-class only for recovery and replan. Add this only if measurements show we need it.</li>
+<li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="D-mapping-papers.html">Appendix D</a> and <a href="E-mapping-methodology.html">Appendix E §4.4</a>).</li>
+<li><strong>Settle.</strong> Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.</li>
+</ul>
+<h3 id="43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)<a class="headerlink" href="#43-jev-as-system-1-l4" title="Permanent link">¶</a></h3>
+<p><strong>Fit.</strong> Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in Claude or in code.</p>
+<p><strong>Proposed call per step</strong> (state as text or JSON, a single parallel pass):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Type</th>
+<th>Options</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>target</code></td>
+<td>Choice</td>
+<td>ids of the visible elements (≤255)</td>
+<td>ground the plan step ("click Buscar") to an element</td>
+</tr>
+<tr>
+<td><code>effect_ok</code></td>
+<td>Choice</td>
+<td>yes / no</td>
+<td>verify after act + settle</td>
+</tr>
+<tr>
+<td><code>done</code></td>
+<td>Choice</td>
+<td>yes / no</td>
+<td>stop condition</td>
+</tr>
+<tr>
+<td><code>drift</code></td>
+<td>Score</td>
+<td>0–1</td>
+<td>screen unlike the map → mark stale (the 15:30 path)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to Claude. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.</p>
+<hr />
+<h2 id="5-trade-offs">5. Trade-offs<a class="headerlink" href="#5-trade-offs" title="Permanent link">¶</a></h2>
+<p><strong>Adoption criteria</strong> for Jev. On the 3.6 harness, with Jev in place compared to Claude-only:
+- success % no more than 5 points lower;
+- at least 5× faster per decision;
+- escalation rate under 30%.</p>
+<p>If it fails any of these, drop it. L3 stays intact because Jev only replaces the per-step checks.</p>
+<hr />
+<h2 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h2>
+<p>All from the JSONL log [H], for every option:
+- seconds per step;
+- LLM calls per task;
+- steps per task;
+- success %;
+- recoveries;
+- escalation rate (Jev → Claude).</p>
+<p>Run the baseline before 15:30 and again after.</p>
+<hr />
+<h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
+<p><strong>Risks</strong> of the Jev spike.
+1. <strong>Access.</strong> It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
+2. <strong>Out-of-distribution behaviour.</strong> The evaluation app is unseen. The confidence gate is the mitigation.
+3. <strong>Unverified claims.</strong> The vendor states 40–200× speedups; users report a median of about 7×.
+4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.</p>
+<hr />
+<h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
+<ul>
+<li>TypeSafe AI, "Introducing System One Models &amp; Jev": https://typesafe.ai/blog/introducing-system-one-models-and-jev (local: <a href="../references/jev/typesafe-blog-introducing-jev.html">../references/jev/typesafe-blog-introducing-jev.html</a>)</li>
+<li>InfoQ, "TypeSafe AI Releases Jev" (Oct 2026): https://www.infoq.com/news/2026/10/typesafe-ai-jev-released/ (local: <a href="../references/jev/infoq-typesafe-jev-released.html">../references/jev/infoq-typesafe-jev-released.html</a>)</li>
+<li>Flavio Copes, "A deep dive into Jev": https://flaviocopes.com/jev/ (local: <a href="../references/jev/flaviocopes-jev.html">../references/jev/flaviocopes-jev.html</a>)</li>
+<li>"Jev in the Wild" (arXiv 2609.30216): https://arxiv.org/pdf/2609.30216 (local: <a href="../references/jev/2609.30216-jev-in-the-wild.pdf">../references/jev/2609.30216-jev-in-the-wild.pdf</a>)</li>
+</ul></main>
+</div></body></html>

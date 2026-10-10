@@ -1,14 +1,28 @@
-# Platform Mapping Methodology — initial map + remap, as a graph (Track 2)
+# Platform mapping methodology — initial map + remap, as a graph (track 2)
 
 > Appendix E of [solution.md](../solution.md) · Status: adopted as the track 2 spec (solution.md §5 Track 2, §6) · Links checked 2026-10-10.
 
-Distilled from the 12 papers in [Appendix D](D-platform-mapping-papers.md) (PDFs in `../references/papers/`) and filtered through our constraints: an **unseen desktop app**, **pixels only** over VNC/RFB, **5 min per task**, and a **change at 15:30**. Covers sub-problems 2.2–2.6 of [solution.md §5 Track 2](../solution.md); it is the spec for boxes [E] fingerprint and [F] App Memory, and it feeds [C] the agent loop.
+## 1. Summary
 
-Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`, `click/type/key`; title-bar text for app identity ([Appendix B](B-page-technical-analysis.md) §5); perception `elements()` from track 7.
+Distilled from the 12 papers in [Appendix D](D-mapping-papers.md) (PDFs in `../references/papers/`) and filtered through our constraints: an **unseen desktop app**, **pixels only** over VNC/RFB, **5 min per task**, and a **change at 15:30**. Covers sub-problems 2.2–2.6 of [solution.md §5 Track 2](../solution.md); it is the spec for boxes [E] fingerprint and [F] App Memory, and it feeds [C] the agent loop.
+
+Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`, `click/type/key`; title-bar text for app identity ([Appendix B](B-target-recon.md) §5); perception `elements()` from track 7.
 
 ---
 
-## 1. The ten ideas we keep
+## 2. Problem and constraints
+
+### 2.1 Interfaces assumed (M0)
+
+- `elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]` from track 7. Timing: known screen < 1 s (7.6 cache), **first sight of a dense screen ≈ 8 s** — budgeted below.
+- `settle()`, `changed_bbox(before, after)`, `click/type/key` from `poc/rfb_poc.py`.
+- App identity = title-bar text with the version split off: `app_id = "SIGECOM · Distribuidora Andina"`, `version = "v3.9"`. A version change is itself a drift hint (S5).
+
+---
+
+## 3. Options considered
+
+### 3.1 The ten ideas we keep
 
 | # | Idea | Why it matters for us | Source |
 |---|---|---|---|
@@ -27,15 +41,9 @@ Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`,
 
 ---
 
-## 2. Interfaces assumed (M0)
+## 4. Chosen design
 
-- `elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]` from track 7. Timing: known screen < 1 s (7.6 cache), **first sight of a dense screen ≈ 8 s** — budgeted below.
-- `settle()`, `changed_bbox(before, after)`, `click/type/key` from `poc/rfb_poc.py`.
-- App identity = title-bar text with the version split off: `app_id = "SIGECOM · Distribuidora Andina"`, `version = "v3.9"`. A version change is itself a drift hint (S5).
-
----
-
-## 3. Screen fingerprint (M1 → sub-problem 2.3)
+### 4.1 Screen fingerprint (M1 → sub-problem 2.3)
 
 1. **Keep static elements only:** kind ∈ {title, menu, button, field label, link label, header}. Drop numbers, dates, codes (`FV-#####`), currency, grid body cells, and anything inside a region track 7 flags as data.
 2. **Bin each kept label** to a 12×8 grid on **normalized** coordinates → atom `cell|text`. Resolution-independent by construction.
@@ -49,9 +57,7 @@ Reuses what exists: `poc/rfb_poc.py` → `RFB.fb`, `settle()`, `changed_bbox()`,
 
 **Done when:** the same screen at two resolutions → one id; 10 distinct SIGECOM screens → 10 ids; a dropdown open/closed → same node.
 
----
-
-## 4. Map schema (M2 → sub-problem 2.4)
+### 4.2 Map schema (M2 → sub-problem 2.4)
 
 One JSON per app: `memory/<app_id>.json`. No database.
 
@@ -69,14 +75,12 @@ denylist  = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Envia
 - `data: true` when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the **find procedure** (search field → type → Enter → `Siguiente` ≤ N pages), never the repair ladder. We store the procedure, not the row click.
 - `scroll: true` when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.
 - `outcomes` is the histogram of where this action actually led. More than one node with real mass = an unreliable edge (S6).
-- Edge rank = `ok / (ok + fail)` × recency decay. The planner sees edges with their `ok/fail`; nothing is deleted (see §7, rung 4).
+- Edge rank = `ok / (ok + fail)` × recency decay. The planner sees edges with their `ok/fail`; nothing is deleted (see §4.5, rung 4).
 - Denylist labels are never clicked unless the task names them.
 
 **Done when:** a second task on the same app loads the map and finishes faster than the first.
 
----
-
-## 5. Initial mapping (M3 → sub-problems 2.2 and 2.5)
+### 4.3 Initial mapping (M3 → sub-problems 2.2 and 2.5)
 
 Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide exploration ever.
 
@@ -89,19 +93,15 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 
 **Done when:** the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.
 
----
-
-## 6. Task-time use (M4 → feeds 3.5)
+### 4.4 Task-time use (M4 → feeds 3.5)
 
 1. **Plan: one LLM call.** Input: task + compact graph (node titles + descriptions; edges as `Inicio —[click "Cartera › Facturas"]→ Facturas`; procedures whose `task_text` is similar). Output: ordered steps, each an edge, a self-loop with params, or `explore`.
-2. **Execute a step.** Ground `target.label` on the current `elements` (exact → fuzzy → same role in the same cell) → act → `settle` → fingerprint → **compare with `edge.to`**. Match: `ok++`, next step. Mismatch: §7.
+2. **Execute a step.** Ground `target.label` on the current `elements` (exact → fuzzy → same role in the same cell) → act → `settle` → fingerprint → **compare with `edge.to`**. Match: `ok++`, next step. Mismatch: §4.5.
    - `fill_field`: click the **paired input box** (7.3), confirm a caret or text appeared inside that bbox, else `Tab`. Keyboard focus is invisible to the fingerprint.
 3. **Verify completion** against the last screen's elements; write the summary in the README format.
 4. **Targets per step:** act + settle ≤ 2 s, OCR ≤ 1 s, fingerprint in ms. **LLM calls per task ≤ 3 on a warm map.**
 
----
-
-## 7. Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)
+### 4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)
 
 **Signals** (any one triggers):
 
@@ -121,7 +121,7 @@ Decision for 2.5: **cold + incremental**, with one bounded pre-warm. No app-wide
 | Rung | What | Budget | When it fires |
 |---|---|---|---|
 | 1 | **Re-ground in place.** Fuzzy label → same role + cell → VLM "which element does what the old one did", with the old action as a few-shot example. Patch `edge.action.target`, keep the node. | ≤ 5 s | Most of 15:30: a renamed label, a moved item, a new field or confirm dialog. |
-| 2 | **Local re-explore.** Mark the node `stale`, run §5.4 on this node only, write the new edges. It is the pre-warm function applied to one node: no new code. | ≤ 30 s | An item moved to another menu. |
+| 2 | **Local re-explore.** Mark the node `stale`, run §4.3 step 4 on this node only, write the new edges. It is the pre-warm function applied to one node: no new code. | ≤ 30 s | An item moved to another menu. |
 | 3 | **Re-plan with the edge marked `broken`.** One LLM call: the planner takes another graph route if one exists, otherwise plans freely. Every step still fingerprints, so the moment a known node appears we **rejoin the graph.** | ≤ 15 s | Workflow drift. |
 | 4 | **Rank down, never delete.** `fail++`; the planner prompt shows the edge with its `ok/fail`. | 0 | Always, after any failure. |
 
@@ -129,11 +129,9 @@ Entry rung depends on the signal: **S1 → 1 → 2 → 3. S3/S4 → `Esc`/back t
 
 Why four and not five: a task-driven graph of 10–20 nodes almost never has an alternative route, so the papers' "alternative path" rung would not fire; it is folded into rung 3. Deletion risks losing a good edge to three unlucky failures, so pruning is replaced by ranking. `lazy:` add pruning when the map grows past what fits in the prompt.
 
-**Done when:** every mutation in §9 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.
+**Done when:** every mutation in §6.1 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.
 
----
-
-## 8. Time budget per task (M6)
+### 4.6 Time budget per task (M6)
 
 300 s total, hard stop at 270 s.
 
@@ -141,7 +139,7 @@ Why four and not five: a task-driven graph of 10–20 nodes almost never has an 
 |---|---|---|
 | 0–2 | connect + first frame | every task |
 | 2–10 | OCR, fingerprint, title → load map or cold (8 s on first sight of a dense screen) | every task |
-| → 45 | pre-warm (§5.2) | first task on an app only; cap 45 s |
+| → 45 | pre-warm (§4.3 step 2) | first task on an app only; cap 45 s |
 | + 15 | plan: one LLM call | every task |
 | → 230 | execute: ground + act + settle + incremental OCR ≈ 3–4 s per step → ~45 steps; + 3 s only when a VLM verify fires | every task |
 | 230–270 | reserve: one re-plan (15 s) + one local re-explore (20 s); execution flows into it if unused | on drift |
@@ -151,16 +149,34 @@ What the 4:30 guard drops, in order: an in-flight repair at rung ≥ 2; unverifi
 
 ---
 
-## 9. Measurement (M7 → feeds the 3.6 harness)
+## 5. Trade-offs
+
+Decisions for the design doc, with the discarded alternative:
+
+| Decision | Chosen | Discarded, and why |
+|---|---|---|
+| Initial mapping | Task-driven incremental graph + a ≤ 45 s menu pre-warm; traces written back after each task | Full up-front exploration (AutoDroid, LLM-Explorer, UI-KOBE, ActionEngine): 10 min–hours per app, impossible inside a 5 min task on an unseen app |
+| Node identity | Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous | Pure embedding/VLM matching (PG-Agent): ~3 MLLM calls per check, unstable across models (UI-KOBE A.1). Pixel hash: breaks on any data change |
+| Overlays and dialogs | Sub-states of the parent node; dialogs handled before drift | Every popup as a node: spurious nodes, dead `Esc` edges, false drift |
+| Edge target | Semantic target (label + role + cell), grounded to pixels at run time | Stored x,y (AppAgentX shortcuts): breaks the moment a button moves, which is exactly 15:30 |
+| Data targets | `data` edges → find procedure | Storing the row click: fails on any other data state, triggers the ladder for nothing |
+| Task-time use | One planning call over the graph, then per-step verification against `edge.to` | Reactive per-step LLM without a graph: 3–5× more calls (GraphPilot, ActionEngine) |
+| Remap | Online, localized, 4-rung ladder written back into the graph; rank down, never delete | Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): fails at the moment we are graded. Passive decay alone (MAGNET): too slow within one task. Pruning: loses good edges to unlucky failures |
+| Change test | Mutate the stored map + framebuffer transform hook | Waiting for the real 15:30 change: no baseline, nothing measurable in advance |
+| Storage | One JSON per app | Neo4j + vector DB (AppAgentX, EAM): two services for a graph of 10–20 nodes |
+
+---
+
+## 6. Evidence and measurement (M7 → feeds the 3.6 harness)
 
 | Unit | Check | Metric |
 |---|---|---|
-| §3 fingerprint | same screen at 2 resolutions → one id; 10 distinct SIGECOM screens → 10 ids; dropdown open/closed → same node | dedup FP / FN |
-| §5 mapping | first task on SIGECOM records the 9 menu screens | nodes found / 9; pre-warm seconds |
-| §6 warm start | the same task cold then warm | time, steps, LLM calls |
-| §7 remap | the mutation set below | detected (which signal), rung reached, seconds to repair, task success after repair |
+| §4.1 fingerprint | same screen at 2 resolutions → one id; 10 distinct SIGECOM screens → 10 ids; dropdown open/closed → same node | dedup FP / FN |
+| §4.3 mapping | first task on SIGECOM records the 9 menu screens | nodes found / 9; pre-warm seconds |
+| §4.4 warm start | the same task cold then warm | time, steps, LLM calls |
+| §4.5 remap | the mutation set below | detected (which signal), rung reached, seconds to repair, task success after repair |
 
-### Simulating the 15:30 change without touching SIGECOM
+### 6.1 Simulating the 15:30 change without touching SIGECOM
 
 Drift is a function of (stored map, live screen). We can't change the screen, so we mutate the map: the detect → repair → log code path is identical. Freeze a golden `map.json` once warm tasks pass. Per test: fresh copy → `--mutate <kind>` → run 3–4 tasks → assert the JSONL lines. The same flag is the demo script.
 
@@ -179,26 +195,24 @@ Real-pixel drift with no app change: a transform hook in [E] that downscales the
 
 ---
 
-## 10. Decisions for the design doc (with the discarded alternative)
+## 7. Open questions and build order
 
-| Decision | Chosen | Discarded, and why |
-|---|---|---|
-| Initial mapping | Task-driven incremental graph + a ≤ 45 s menu pre-warm; traces written back after each task | Full up-front exploration (AutoDroid, LLM-Explorer, UI-KOBE, ActionEngine): 10 min–hours per app, impossible inside a 5 min task on an unseen app |
-| Node identity | Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous | Pure embedding/VLM matching (PG-Agent): ~3 MLLM calls per check, unstable across models (UI-KOBE A.1). Pixel hash: breaks on any data change |
-| Overlays and dialogs | Sub-states of the parent node; dialogs handled before drift | Every popup as a node: spurious nodes, dead `Esc` edges, false drift |
-| Edge target | Semantic target (label + role + cell), grounded to pixels at run time | Stored x,y (AppAgentX shortcuts): breaks the moment a button moves, which is exactly 15:30 |
-| Data targets | `data` edges → find procedure | Storing the row click: fails on any other data state, triggers the ladder for nothing |
-| Task-time use | One planning call over the graph, then per-step verification against `edge.to` | Reactive per-step LLM without a graph: 3–5× more calls (GraphPilot, ActionEngine) |
-| Remap | Online, localized, 4-rung ladder written back into the graph; rank down, never delete | Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): fails at the moment we are graded. Passive decay alone (MAGNET): too slow within one task. Pruning: loses good edges to unlucky failures |
-| Change test | Mutate the stored map + framebuffer transform hook | Waiting for the real 15:30 change: no baseline, nothing measurable in advance |
-| Storage | One JSON per app | Neo4j + vector DB (AppAgentX, EAM): two services for a graph of 10–20 nodes |
+### 7.1 Build order inside track 2
+
+1. §4.1 fingerprint + §4.2 schema (one module, pure functions over `elements()` output; the one runnable check is the 10-screen dedup test).
+2. §4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.
+3. §4.4 planner prompt with the compact graph.
+4. §4.5 signals + rung 1, then rungs 2–3; `--mutate` flag and the §6.1 table.
+5. Baseline numbers before 15:30; re-run after.
+
+### 7.2 Deferred (`lazy:` notes)
+
+- Background frontier exploration between tasks, only if a spare session exists (§4.3, step 6).
+- Pruning, once the map grows past what fits in the prompt (§4.5).
+- The techniques skipped on purpose for a one-day build (§3.1, "Deliberately skipped").
 
 ---
 
-## 11. Build order inside track 2
+## 8. Sources
 
-1. §3 fingerprint + §4 schema (one module, pure functions over `elements()` output; the one runnable check is the 10-screen dedup test).
-2. §5.3 task-driven write-back inside the agent loop; §5.2 pre-warm.
-3. §6 planner prompt with the compact graph.
-4. §7 signals + rung 1, then rungs 2–3; `--mutate` flag and the §9 table.
-5. Baseline numbers before 15:30; re-run after.
+The twelve papers compared in [Appendix D](D-mapping-papers.md); PDFs in `../references/papers/`.

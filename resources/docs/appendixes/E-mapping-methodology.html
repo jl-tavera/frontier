@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix E — Platform mapping: methodology</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix E</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a><ul>
+<li><a href="#21-interfaces-assumed-m0">2.1 Interfaces assumed (M0)</a></li>
+</ul>
+</li>
+<li><a href="#3-options-considered">3. Options considered</a><ul>
+<li><a href="#31-the-ten-ideas-we-keep">3.1 The ten ideas we keep</a></li>
+</ul>
+</li>
+<li><a href="#4-chosen-design">4. Chosen design</a><ul>
+<li><a href="#41-screen-fingerprint-m1-sub-problem-23">4.1 Screen fingerprint (M1 → sub-problem 2.3)</a></li>
+<li><a href="#42-map-schema-m2-sub-problem-24">4.2 Map schema (M2 → sub-problem 2.4)</a></li>
+<li><a href="#43-initial-mapping-m3-sub-problems-22-and-25">4.3 Initial mapping (M3 → sub-problems 2.2 and 2.5)</a></li>
+<li><a href="#44-task-time-use-m4-feeds-35">4.4 Task-time use (M4 → feeds 3.5)</a></li>
+<li><a href="#45-change-detection-and-repair-m5-sub-problem-26-the-1530-path">4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)</a></li>
+<li><a href="#46-time-budget-per-task-m6">4.6 Time budget per task (M6)</a></li>
+</ul>
+</li>
+<li><a href="#5-trade-offs">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement-m7-feeds-the-36-harness">6. Evidence and measurement (M7 → feeds the 3.6 harness)</a><ul>
+<li><a href="#61-simulating-the-1530-change-without-touching-sigecom">6.1 Simulating the 15:30 change without touching SIGECOM</a></li>
+</ul>
+</li>
+<li><a href="#7-open-questions-and-build-order">7. Open questions and build order</a><ul>
+<li><a href="#71-build-order-inside-track-2">7.1 Build order inside track 2</a></li>
+<li><a href="#72-deferred-lazy-notes">7.2 Deferred (lazy: notes)</a></li>
+</ul>
+</li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix E of I</span><a href="../solution.html#appendix-e">inline version</a><a href="D-mapping-papers.html">← Appendix D</a><a href="F-agent-loop.html">Appendix F →</a></div><h1 id="platform-mapping-methodology-initial-map-remap-as-a-graph-track-2">Platform mapping methodology — initial map + remap, as a graph (track 2)<a class="headerlink" href="#platform-mapping-methodology-initial-map-remap-as-a-graph-track-2" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix E of <a href="../solution.html">solution.md</a> · Status: adopted as the track 2 spec (solution.md §5 Track 2, §6) · Links checked 2026-10-10.</p>
+</blockquote>
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p>Distilled from the 12 papers in <a href="D-mapping-papers.html">Appendix D</a> (PDFs in <code>../references/papers/</code>) and filtered through our constraints: an <strong>unseen desktop app</strong>, <strong>pixels only</strong> over VNC/RFB, <strong>5 min per task</strong>, and a <strong>change at 15:30</strong>. Covers sub-problems 2.2–2.6 of <a href="../solution.html">solution.md §5 Track 2</a>; it is the spec for boxes [E] fingerprint and [F] App Memory, and it feeds [C] the agent loop.</p>
+<p>Reuses what exists: <a href="../solution.html#appendix-i"><code>poc/rfb_poc.py</code></a> → <code>RFB.fb</code>, <code>settle()</code>, <code>changed_bbox()</code>, <code>click/type/key</code>; title-bar text for app identity (<a href="B-target-recon.html">Appendix B</a> §5); perception <code>elements()</code> from track 7.</p>
+<hr />
+<h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
+<h3 id="21-interfaces-assumed-m0">2.1 Interfaces assumed (M0)<a class="headerlink" href="#21-interfaces-assumed-m0" title="Permanent link">¶</a></h3>
+<ul>
+<li><code>elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]</code> from track 7. Timing: known screen &lt; 1 s (7.6 cache), <strong>first sight of a dense screen ≈ 8 s</strong> — budgeted below.</li>
+<li><code>settle()</code>, <code>changed_bbox(before, after)</code>, <code>click/type/key</code> from <a href="../solution.html#appendix-i"><code>poc/rfb_poc.py</code></a>.</li>
+<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. A version change is itself a drift hint (S5).</li>
+</ul>
+<hr />
+<h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
+<h3 id="31-the-ten-ideas-we-keep">3.1 The ten ideas we keep<a class="headerlink" href="#31-the-ten-ideas-we-keep" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Idea</th>
+<th>Why it matters for us</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Identify a screen by what it offers, not by its pixels.</strong> Strip dynamic content before comparing. Rules beat LLM/vision matching for this.</td>
+<td>A grid full of data changes every second; the labels around it don't.</td>
+<td>MobileGPT (3 FP / 0 FN vs 57/28 vision), LLM-Explorer, ActionEngine, UI-KOBE</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Two-stage node matching: cheap retrieval, strict verify.</strong> Only a structural overlap score may merge two screens; a VLM yes/no runs only when ambiguous and may reject all.</td>
+<td>Zero LLM calls on the common path; no false merges.</td>
+<td>ScreenSearch (Jaccard ≥ 0.93), UI-KOBE, PG-Agent</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Deterministic action signatures. Never store x,y.</strong> <code>kind + target label + role + coarse grid cell</code>.</td>
+<td>Raw coordinates are what breaks when a button moves at 15:30.</td>
+<td>ScreenSearch, MobileGPT <code>click(text:…)</code>; AppAgentX shortcuts as the counter-example</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Every edge stores the screen it should lead to.</strong></td>
+<td>Execution becomes per-step validation; drift is detected for free.</td>
+<td>GraphPilot validator, ActionEngine</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Frontier-driven exploration; the LLM only labels.</strong> Pick unexplored actions, shortest known path to them, one action per step.</td>
+<td>$0.11/app vs $16.31 with an LLM choosing actions.</td>
+<td>LLM-Explorer, UI-KOBE</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>Map incrementally from tasks, write back after every task.</strong></td>
+<td>Full exploration costs 10 min–hours; we have 5. Warm start is where the speed comes from: 98.75% vs 82.7%, −62.5% latency.</td>
+<td>MobileGPT, AppAgentX</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Plan once over the compact graph, then execute with verification.</strong> Show "this click leads to X" next to candidates.</td>
+<td>1.03 LLM calls/task vs 4.5; 27 s vs 87 s per task.</td>
+<td>GraphPilot, ActionEngine, AutoDroid</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Localize a failure to one edge and patch it back into the graph.</strong> Re-derive with the old action as a few-shot example.</td>
+<td>The only repair pattern in the literature that writes back; 100% accurate on 16% of actions in MobileGPT.</td>
+<td>ActionEngine Patcher, MobileGPT</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>Drift has two kinds: appearance (same function, new look/label/place) and workflow (steps reorganised).</strong> Store function → many appearances.</td>
+<td>A redesign adds an appearance instead of breaking the memory.</td>
+<td>MAGNET</td>
+</tr>
+<tr>
+<td>10</td>
+<td><strong>Degrade gracefully and rank edges by recency × success.</strong> Cheap signals: no screen change, loops, one action with several outcomes.</td>
+<td>Each rung is bounded, so the 5-min budget survives a failure.</td>
+<td>LLM-Explorer, UI-KOBE, MAGNET, MobileGPT, ScreenSearch</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Deliberately skipped</strong> (none fits a one-day build; <code>lazy:</code> notes say when to revisit): macro/shortcut mining (EAM, AppAgentX), embeddings + vector DB, Neo4j, offline crawls, trained Q-model/MCTS (EAM), distributed exploration (ScreenSearch).</p>
+<hr />
+<h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
+<h3 id="41-screen-fingerprint-m1-sub-problem-23">4.1 Screen fingerprint (M1 → sub-problem 2.3)<a class="headerlink" href="#41-screen-fingerprint-m1-sub-problem-23" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Keep static elements only:</strong> kind ∈ {title, menu, button, field label, link label, header}. Drop numbers, dates, codes (<code>FV-#####</code>), currency, grid body cells, and anything inside a region track 7 flags as data.</li>
+<li><strong>Bin each kept label</strong> to a 12×8 grid on <strong>normalized</strong> coordinates → atom <code>cell|text</code>. Resolution-independent by construction.</li>
+<li><strong><code>fingerprint = (title_band, atoms)</code>.</strong>
+   - The title band (top ~15 %) is a <strong>hard key</strong>: it must match before anything else, so Clientes and Proveedores with identical toolbars never merge.
+   - Then <code>sim = Jaccard(atoms)</code>: <strong>≥ 0.90 same node · 0.60–0.90 ambiguous · &lt; 0.60 new node.</strong>
+   - Ambiguous: tie-break by the inbound edge label first; only then pay for one VLM yes/no against the node's reference screenshot, with "none of them" allowed.</li>
+<li><strong>Overlays are sub-states, not nodes.</strong> If <code>changed_bbox</code> covers &lt; ~25 % of the screen and the parent's labels are still visible (dropdown, combo list, tooltip): <code>overlay = parent_id + overlay labels</code>. Close with <code>Esc</code>, re-verify the parent. Prevents spurious nodes, <code>Esc</code> edges to nowhere, and VLM calls at 0.7–0.9.</li>
+<li><strong>Blocking dialogs are checked before drift.</strong> Small centered rectangle with ≤ 3 buttons → OCR its text into the log → <code>Esc</code> or the non-destructive button → re-fingerprint. A dialog never counts as drift and never starts the ladder.</li>
+<li><strong>In-page state does not change the node.</strong> Filter text, pagination, selected row, scroll are <strong>self-loop edges</strong> with an <code>effect</code> field.</li>
+</ol>
+<p><strong>Done when:</strong> the same screen at two resolutions → one id; 10 distinct SIGECOM screens → 10 ids; a dropdown open/closed → same node.</p>
+<h3 id="42-map-schema-m2-sub-problem-24">4.2 Map schema (M2 → sub-problem 2.4)<a class="headerlink" href="#42-map-schema-m2-sub-problem-24" title="Permanent link">¶</a></h3>
+<p>One JSON per app: <code>memory/&lt;app_id&gt;.json</code>. No database.</p>
+<pre><code class="language-jsonc">node      = {id, title, atoms[], description, ref_png, elements_snapshot,
+             transient, stale, seen, last_seen}
+edge      = {from, action: {kind, target: {label, role, cell}, params},
+             to, effect, data?, scroll?, ok, fail, last_ok, outcomes: {node_id: count}}
+procedure = {task_text, steps: [edge_id | self_loop + params], ok, last_ok}
+unexplored[node_id] = [action signatures not yet tried]       // the frontier
+denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;, &quot;Borrar&quot;, &quot;Guardar*&quot;, &quot;Enviar&quot;, &quot;Configuración&quot;]
+</code></pre>
+<ul>
+<li><code>description</code> is written by the LLM <strong>lazily</strong>, in one batched call at write-back, never per node.</li>
+<li><code>data: true</code> when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the <strong>find procedure</strong> (search field → type → Enter → <code>Siguiente</code> ≤ N pages), never the repair ladder. We store the procedure, not the row click.</li>
+<li><code>scroll: true</code> when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.</li>
+<li><code>outcomes</code> is the histogram of where this action actually led. More than one node with real mass = an unreliable edge (S6).</li>
+<li>Edge rank = <code>ok / (ok + fail)</code> × recency decay. The planner sees edges with their <code>ok/fail</code>; nothing is deleted (see §4.5, rung 4).</li>
+<li>Denylist labels are never clicked unless the task names them.</li>
+</ul>
+<p><strong>Done when:</strong> a second task on the same app loads the map and finishes faster than the first.</p>
+<h3 id="43-initial-mapping-m3-sub-problems-22-and-25">4.3 Initial mapping (M3 → sub-problems 2.2 and 2.5)<a class="headerlink" href="#43-initial-mapping-m3-sub-problems-22-and-25" title="Permanent link">¶</a></h3>
+<p>Decision for 2.5: <strong>cold + incremental</strong>, with one bounded pre-warm. No app-wide exploration ever.</p>
+<ol>
+<li><strong>Connect → identify app → load map or start cold.</strong> ~5 s.</li>
+<li><strong>Pre-warm, first task on an app only, ≤ 45 s.</strong> Open each top menu: click → <code>settle</code> → OCR → <code>Esc</code> ≈ 4 s × ≤ 8 menus. Menus whose label matches a task keyword go first. <strong>Open menus only, never click items.</strong> Record <code>menu → item</code> edges with <code>to = unknown</code>. Skip entirely when the first screen already shows a task keyword. Denylist applied. Result: the planner sees the whole menu tree without visiting a single screen.</li>
+<li><strong>Task-driven mapping.</strong> Every action during a task: act → <code>settle</code> → <code>elements</code> → fingerprint → create/match node → upsert edge with the observed <code>to</code>. <strong>An edge is persisted only once its landing fingerprint is confirmed.</strong> Nothing is learned off the task path unless the planner is stuck.</li>
+<li><strong>Frontier mode (planner stuck).</strong> Take the unexplored actions on the current node, ranked by label similarity to the task text; one action per step; back out via <code>Esc</code> or the recorded return edge. ≤ 40 s per episode.</li>
+<li><strong>Write-back at task end.</strong> Nodes, edges, procedure persisted; new nodes described in one batched LLM call.</li>
+<li><code>lazy:</code> background frontier exploration between tasks, only if a spare session exists. Shared session risk: <code>operador</code>/<code>operador2</code> collisions.</li>
+</ol>
+<p><strong>Done when:</strong> the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.</p>
+<h3 id="44-task-time-use-m4-feeds-35">4.4 Task-time use (M4 → feeds 3.5)<a class="headerlink" href="#44-task-time-use-m4-feeds-35" title="Permanent link">¶</a></h3>
+<ol>
+<li><strong>Plan: one LLM call.</strong> Input: task + compact graph (node titles + descriptions; edges as <code>Inicio —[click "Cartera › Facturas"]→ Facturas</code>; procedures whose <code>task_text</code> is similar). Output: ordered steps, each an edge, a self-loop with params, or <code>explore</code>.</li>
+<li><strong>Execute a step.</strong> Ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell) → act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §4.5.
+   - <code>fill_field</code>: click the <strong>paired input box</strong> (7.3), confirm a caret or text appeared inside that bbox, else <code>Tab</code>. Keyboard focus is invisible to the fingerprint.</li>
+<li><strong>Verify completion</strong> against the last screen's elements; write the summary in the README format.</li>
+<li><strong>Targets per step:</strong> act + settle ≤ 2 s, OCR ≤ 1 s, fingerprint in ms. <strong>LLM calls per task ≤ 3 on a warm map.</strong></li>
+</ol>
+<h3 id="45-change-detection-and-repair-m5-sub-problem-26-the-1530-path">4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)<a class="headerlink" href="#45-change-detection-and-repair-m5-sub-problem-26-the-1530-path" title="Permanent link">¶</a></h3>
+<p><strong>Signals</strong> (any one triggers):</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th></th>
+<th>Signal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>target label not found on the screen</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>no change after the action (<code>changed_bbox is None</code>, or the same fingerprint on a non-self-loop edge)</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>landed on a different known node</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>landed on an unmatched screen</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>app version string changed</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>the edge's <code>outcomes</code> histogram has &gt; 1 node with real mass</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Order of checks on every step: blocker dialog? → overlay? → data edge? → only then drift.</strong> Each of the first three is a cheap false-positive filter.</p>
+<p><strong>Ladder</strong> — four rungs, each bounded, next rung only on failure. Every rung logs <code>{signal, rung, before, after, cost_ms}</code> to the JSONL (this is the evidence the Challenge 2 spec cites).</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Rung</th>
+<th>What</th>
+<th>Budget</th>
+<th>When it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Re-ground in place.</strong> Fuzzy label → same role + cell → VLM "which element does what the old one did", with the old action as a few-shot example. Patch <code>edge.action.target</code>, keep the node.</td>
+<td>≤ 5 s</td>
+<td>Most of 15:30: a renamed label, a moved item, a new field or confirm dialog.</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Local re-explore.</strong> Mark the node <code>stale</code>, run §4.3 step 4 on this node only, write the new edges. It is the pre-warm function applied to one node: no new code.</td>
+<td>≤ 30 s</td>
+<td>An item moved to another menu.</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Re-plan with the edge marked <code>broken</code>.</strong> One LLM call: the planner takes another graph route if one exists, otherwise plans freely. Every step still fingerprints, so the moment a known node appears we <strong>rejoin the graph.</strong></td>
+<td>≤ 15 s</td>
+<td>Workflow drift.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Rank down, never delete.</strong> <code>fail++</code>; the planner prompt shows the edge with its <code>ok/fail</code>.</td>
+<td>0</td>
+<td>Always, after any failure.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Entry rung depends on the signal: <strong>S1 → 1 → 2 → 3. S3/S4 → <code>Esc</code>/back to the previous node (2 s) → 3.</strong></p>
+<p>Why four and not five: a task-driven graph of 10–20 nodes almost never has an alternative route, so the papers' "alternative path" rung would not fire; it is folded into rung 3. Deletion risks losing a good edge to three unlucky failures, so pruning is replaced by ranking. <code>lazy:</code> add pruning when the map grows past what fits in the prompt.</p>
+<p><strong>Done when:</strong> every mutation in §6.1 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.</p>
+<h3 id="46-time-budget-per-task-m6">4.6 Time budget per task (M6)<a class="headerlink" href="#46-time-budget-per-task-m6" title="Permanent link">¶</a></h3>
+<p>300 s total, hard stop at 270 s.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>t (s)</th>
+<th>Step</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–2</td>
+<td>connect + first frame</td>
+<td>every task</td>
+</tr>
+<tr>
+<td>2–10</td>
+<td>OCR, fingerprint, title → load map or cold (8 s on first sight of a dense screen)</td>
+<td>every task</td>
+</tr>
+<tr>
+<td>→ 45</td>
+<td>pre-warm (§4.3 step 2)</td>
+<td>first task on an app only; cap 45 s</td>
+</tr>
+<tr>
+<td>+ 15</td>
+<td>plan: one LLM call</td>
+<td>every task</td>
+</tr>
+<tr>
+<td>→ 230</td>
+<td>execute: ground + act + settle + incremental OCR ≈ 3–4 s per step → ~45 steps; + 3 s only when a VLM verify fires</td>
+<td>every task</td>
+</tr>
+<tr>
+<td>230–270</td>
+<td>reserve: one re-plan (15 s) + one local re-explore (20 s); execution flows into it if unused</td>
+<td>on drift</td>
+</tr>
+<tr>
+<td>270</td>
+<td>summary call (~10 s) → persist map → status</td>
+<td>never dropped</td>
+</tr>
+</tbody>
+</table></div>
+<p>What the 4:30 guard drops, in order: an in-flight repair at rung ≥ 2; unverified edges (never persisted anyway); VLM verifies (ambiguous → new node). The summary, the persist and the JSONL always run.</p>
+<hr />
+<h2 id="5-trade-offs">5. Trade-offs<a class="headerlink" href="#5-trade-offs" title="Permanent link">¶</a></h2>
+<p>Decisions for the design doc, with the discarded alternative:</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Chosen</th>
+<th>Discarded, and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Initial mapping</td>
+<td>Task-driven incremental graph + a ≤ 45 s menu pre-warm; traces written back after each task</td>
+<td>Full up-front exploration (AutoDroid, LLM-Explorer, UI-KOBE, ActionEngine): 10 min–hours per app, impossible inside a 5 min task on an unseen app</td>
+</tr>
+<tr>
+<td>Node identity</td>
+<td>Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous</td>
+<td>Pure embedding/VLM matching (PG-Agent): ~3 MLLM calls per check, unstable across models (UI-KOBE A.1). Pixel hash: breaks on any data change</td>
+</tr>
+<tr>
+<td>Overlays and dialogs</td>
+<td>Sub-states of the parent node; dialogs handled before drift</td>
+<td>Every popup as a node: spurious nodes, dead <code>Esc</code> edges, false drift</td>
+</tr>
+<tr>
+<td>Edge target</td>
+<td>Semantic target (label + role + cell), grounded to pixels at run time</td>
+<td>Stored x,y (AppAgentX shortcuts): breaks the moment a button moves, which is exactly 15:30</td>
+</tr>
+<tr>
+<td>Data targets</td>
+<td><code>data</code> edges → find procedure</td>
+<td>Storing the row click: fails on any other data state, triggers the ladder for nothing</td>
+</tr>
+<tr>
+<td>Task-time use</td>
+<td>One planning call over the graph, then per-step verification against <code>edge.to</code></td>
+<td>Reactive per-step LLM without a graph: 3–5× more calls (GraphPilot, ActionEngine)</td>
+</tr>
+<tr>
+<td>Remap</td>
+<td>Online, localized, 4-rung ladder written back into the graph; rank down, never delete</td>
+<td>Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): fails at the moment we are graded. Passive decay alone (MAGNET): too slow within one task. Pruning: loses good edges to unlucky failures</td>
+</tr>
+<tr>
+<td>Change test</td>
+<td>Mutate the stored map + framebuffer transform hook</td>
+<td>Waiting for the real 15:30 change: no baseline, nothing measurable in advance</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>One JSON per app</td>
+<td>Neo4j + vector DB (AppAgentX, EAM): two services for a graph of 10–20 nodes</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6-evidence-and-measurement-m7-feeds-the-36-harness">6. Evidence and measurement (M7 → feeds the 3.6 harness)<a class="headerlink" href="#6-evidence-and-measurement-m7-feeds-the-36-harness" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>Check</th>
+<th>Metric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1 fingerprint</td>
+<td>same screen at 2 resolutions → one id; 10 distinct SIGECOM screens → 10 ids; dropdown open/closed → same node</td>
+<td>dedup FP / FN</td>
+</tr>
+<tr>
+<td>§4.3 mapping</td>
+<td>first task on SIGECOM records the 9 menu screens</td>
+<td>nodes found / 9; pre-warm seconds</td>
+</tr>
+<tr>
+<td>§4.4 warm start</td>
+<td>the same task cold then warm</td>
+<td>time, steps, LLM calls</td>
+</tr>
+<tr>
+<td>§4.5 remap</td>
+<td>the mutation set below</td>
+<td>detected (which signal), rung reached, seconds to repair, task success after repair</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="61-simulating-the-1530-change-without-touching-sigecom">6.1 Simulating the 15:30 change without touching SIGECOM<a class="headerlink" href="#61-simulating-the-1530-change-without-touching-sigecom" title="Permanent link">¶</a></h3>
+<p>Drift is a function of (stored map, live screen). We can't change the screen, so we mutate the map: the detect → repair → log code path is identical. Freeze a golden <code>map.json</code> once warm tasks pass. Per test: fresh copy → <code>--mutate &lt;kind&gt;</code> → run 3–4 tasks → assert the JSONL lines. The same flag is the demo script.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Mutation</th>
+<th>Simulates</th>
+<th>Expected log</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>target.label</code> Facturas → Facturación</td>
+<td>renamed label</td>
+<td>S1 → rung 1 fuzzy match patches the edge</td>
+</tr>
+<tr>
+<td><code>target.label</code> → "Zzzz"</td>
+<td>control removed</td>
+<td>rung 1 fails → rung 2 re-explore finds the real item</td>
+</tr>
+<tr>
+<td><code>edge.to</code> → another node's fingerprint</td>
+<td>landing mismatch</td>
+<td>S3 → rung 1 retargets</td>
+</tr>
+<tr>
+<td>delete all edges into a node</td>
+<td>menu item moved</td>
+<td>rung 2 re-adds it</td>
+</tr>
+<tr>
+<td>node atoms → junk</td>
+<td>unknown screen</td>
+<td>S4 → rung 3 → <code>rejoin</code> line</td>
+</tr>
+<tr>
+<td>"Zzzz" repeated across 3 tasks</td>
+<td>persistent break</td>
+<td>rank-down line</td>
+</tr>
+<tr>
+<td>grid cell shifted by 3</td>
+<td>moved button</td>
+<td><strong>negative control: 0 drift lines</strong></td>
+</tr>
+<tr>
+<td>page 2 · filter applied · <code>operador2</code></td>
+<td>data state, not drift</td>
+<td><strong>negative control: 0 drift lines</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Real-pixel drift with no app change: a transform hook in [E] that downscales the framebuffer 0.8× or translates it +40/+25 px before OCR (coordinates mapped back) proves resolution independence and that nothing uses raw x,y. If the SIGECOM window isn't locked maximized, un-maximizing it is a genuine layout shift. Run the set before 15:30, re-run on the real change, show the delta.</p>
+<hr />
+<h2 id="7-open-questions-and-build-order">7. Open questions and build order<a class="headerlink" href="#7-open-questions-and-build-order" title="Permanent link">¶</a></h2>
+<h3 id="71-build-order-inside-track-2">7.1 Build order inside track 2<a class="headerlink" href="#71-build-order-inside-track-2" title="Permanent link">¶</a></h3>
+<ol>
+<li>§4.1 fingerprint + §4.2 schema (one module, pure functions over <code>elements()</code> output; the one runnable check is the 10-screen dedup test).</li>
+<li>§4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.</li>
+<li>§4.4 planner prompt with the compact graph.</li>
+<li>§4.5 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §6.1 table.</li>
+<li>Baseline numbers before 15:30; re-run after.</li>
+</ol>
+<h3 id="72-deferred-lazy-notes">7.2 Deferred (<code>lazy:</code> notes)<a class="headerlink" href="#72-deferred-lazy-notes" title="Permanent link">¶</a></h3>
+<ul>
+<li>Background frontier exploration between tasks, only if a spare session exists (§4.3, step 6).</li>
+<li>Pruning, once the map grows past what fits in the prompt (§4.5).</li>
+<li>The techniques skipped on purpose for a one-day build (§3.1, "Deliberately skipped").</li>
+</ul>
+<hr />
+<h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
+<p>The twelve papers compared in <a href="D-mapping-papers.html">Appendix D</a>; PDFs in <code>../references/papers/</code>.</p></main>
+</div></body></html>

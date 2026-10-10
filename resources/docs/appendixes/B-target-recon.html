@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix B — Target recon (SIGECOM over noVNC)</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix B</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-delivery-hosting-layer">2. Delivery / hosting layer</a><ul>
+<li><a href="#observed-behavior">Observed behavior</a></li>
+<li><a href="#paths-probed">Paths probed</a></li>
+</ul>
+</li>
+<li><a href="#3-novnc-client-what-the-browser-actually-runs">3. noVNC client (what the browser actually runs)</a><ul>
+<li><a href="#canvas-framebuffer">Canvas / framebuffer</a></li>
+</ul>
+</li>
+<li><a href="#4-vnc-transport-remote-server">4. VNC transport &amp; remote server</a></li>
+<li><a href="#5-inner-application-sigecom-distribuidora-andina-v39">5. Inner application — SIGECOM · Distribuidora Andina v3.9</a><ul>
+<li><a href="#identity-chrome">Identity / chrome</a></li>
+<li><a href="#menu-structure-fully-enumerated">Menu structure (fully enumerated)</a></li>
+<li><a href="#screens-observed">Screens observed</a></li>
+</ul>
+</li>
+<li><a href="#6-automation-relevant-characteristics-observations-not-a-plan">6. Automation-relevant characteristics (observations, not a plan)</a></li>
+<li><a href="#7-known-unknowns-not-yet-determined">7. Known unknowns / not yet determined</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix B of I</span><a href="../solution.html#appendix-b">inline version</a><a href="A-challenge-brief.html">← Appendix A</a><a href="C-transport-rfb.html">Appendix C →</a></div><h1 id="technical-diagnosis-frontier-sigecom-legacy-system">Technical Diagnosis — Frontier / SIGECOM Legacy System<a class="headerlink" href="#technical-diagnosis-frontier-sigecom-legacy-system" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix B of <a href="../solution.html">solution.md</a> · Status: read-only recon of the development target, facts only; digested in solution.md §2 · Links checked 2026-10-10.</p>
+</blockquote>
+<p><strong>Target:</strong> <code>https://frontier-r1-tm77-production.up.railway.app</code>
+<strong>Date of analysis:</strong> 2026-10-10
+<strong>Method:</strong> read-only recon — HTTP requests (curl) + noVNC session inspection (agent-browser). No writes, no changes to the system.
+<strong>Scope:</strong> diagnosis only. No solution proposed.</p>
+<hr />
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p>The URL does <strong>not</strong> serve a web application. It serves the <strong>noVNC</strong> web client, which bridges the browser to a <strong>remote VNC desktop</strong> over a WebSocket. The actual business system — <strong>SIGECOM · Distribuidora Andina v3.9</strong> — runs <em>inside</em> that remote desktop and is only ever transmitted to the browser as <strong>pixels</strong> (framebuffer images). There is no HTML DOM, no REST/JSON API, and no HTTP endpoint for the business data. Everything the user sees is a screenshot stream; everything the user does is mouse/keyboard events sent back over the VNC protocol.</p>
+<hr />
+<h2 id="2-delivery-hosting-layer">2. Delivery / hosting layer<a class="headerlink" href="#2-delivery-hosting-layer" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Platform</td>
+<td>Railway (PaaS)</td>
+</tr>
+<tr>
+<td>Edge server banner</td>
+<td><code>Server: railway-hikari</code></td>
+</tr>
+<tr>
+<td>Edge region</td>
+<td><code>x-railway-edge: atl1</code> (Atlanta)</td>
+</tr>
+<tr>
+<td>Trace header</td>
+<td><code>x-hikari-trace: atl1.*</code></td>
+</tr>
+<tr>
+<td>Request ID header</td>
+<td><code>x-railway-request-id: &lt;uuid&gt;</code></td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>HTTP/1.1 over HTTPS (TLS)</td>
+</tr>
+<tr>
+<td>Transfer</td>
+<td><code>Transfer-Encoding: chunked</code>, <code>Connection: keep-alive</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="observed-behavior">Observed behavior<a class="headerlink" href="#observed-behavior" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong><code>GET /</code></strong> → <code>200</code>, <code>Content-Type: text/html; charset=utf-8</code> — the noVNC page.</li>
+<li><strong><code>GET /health</code></strong> → <code>200</code>, <code>Content-Type: application/json</code>, body <code>{"ok":true}</code>, <code>Cache-Control: no-store</code>.</li>
+<li><strong>Unknown paths</strong> → <code>404</code>, <code>Content-Type: application/json</code>, body <code>{"error":"no encontrado"}</code> (Spanish "not found").
+  → The 404 is produced by a <strong>custom application server</strong>, not a dumb static file host. The Spanish error message indicates a bespoke backend.</li>
+<li><strong>Methods:</strong> <code>OPTIONS /</code> → <code>404</code>, <code>POST /</code> → <code>404</code>. Only <code>GET</code> (and the WebSocket upgrade) is served.</li>
+<li><strong>Security headers:</strong> none observed on HTML or JS assets — no <code>Content-Security-Policy</code>, <code>X-Frame-Options</code>, <code>Strict-Transport-Security</code>, CORS, or <code>Set-Cookie</code>. Authentication is <strong>not</strong> cookie/session based at the HTTP layer.</li>
+</ul>
+<h3 id="paths-probed">Paths probed<a class="headerlink" href="#paths-probed" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code></td>
+<td>200 (noVNC HTML)</td>
+</tr>
+<tr>
+<td><code>/vnc.html</code></td>
+<td>200 (noVNC HTML)</td>
+</tr>
+<tr>
+<td><code>/app/ui.js</code></td>
+<td>200 (<code>text/javascript</code>)</td>
+</tr>
+<tr>
+<td><code>/core/rfb.js</code></td>
+<td>200 (<code>text/javascript</code>)</td>
+</tr>
+<tr>
+<td><code>/health</code></td>
+<td>200 (<code>{"ok":true}</code>)</td>
+</tr>
+<tr>
+<td><code>/websockify</code></td>
+<td><strong>WebSocket upgrade</strong> (101) with Upgrade headers; plain <code>GET</code> → 404</td>
+</tr>
+<tr>
+<td><code>/api</code>, <code>/api/docs</code>, <code>/docs</code>, <code>/openapi.json</code>, <code>/swagger</code></td>
+<td>404</td>
+</tr>
+<tr>
+<td><code>/robots.txt</code>, <code>/favicon.ico</code>, <code>/package.json</code></td>
+<td>404</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>No business API exists on this host.</strong> The only non-static endpoints are <code>/health</code> and the <code>/websockify</code> WebSocket.</p>
+<hr />
+<h2 id="3-novnc-client-what-the-browser-actually-runs">3. noVNC client (what the browser actually runs)<a class="headerlink" href="#3-novnc-client-what-the-browser-actually-runs" title="Permanent link">¶</a></h2>
+<ul>
+<li>Source: the <strong>noVNC "simple example / default UI"</strong>, header comment <em>"Copyright (C) 2019 The noVNC Authors … MPL 2.0"</em>.</li>
+<li>Page <code>&lt;title&gt;noVNC&lt;/title&gt;</code>, <code>&lt;html class="noVNC_loading"&gt;</code>.</li>
+<li>Entry script: <code>&lt;script type="module" crossorigin="anonymous" src="app/ui.js"&gt;</code> + <code>app/error-handler.js</code>.</li>
+<li>Stylesheet <code>app/styles/base.css</code>; font <strong>Orbitron 700</strong> (<code>app/styles/Orbitron700.woff</code>); audio <code>app/sounds/bell.oga</code>.</li>
+<li>Full noVNC module tree is served under <code>/core/</code> (<code>rfb.js</code>, <code>display.js</code>, <code>input/*</code>, <code>util/*</code>, <code>encodings</code>, etc.) and <code>/app/</code>.</li>
+<li>Standard noVNC control bar present: Fullscreen, Settings, Clipboard, Ctrl, Alt, Tab, Esc, Ctrl-Alt-Del, Power, Connect/Disconnect, plus the drag/extra-keys toolbar (SVG icons under <code>app/images/</code>).</li>
+<li>Connect parameters accepted via query string or URL fragment: <code>host</code>, <code>port</code>, <code>encrypt</code>, <code>path</code>, <code>password</code>, <code>autoconnect</code>, <code>resize</code> (standard noVNC). Confirmed working: <code>?autoconnect=1&amp;password=…</code>.</li>
+</ul>
+<h3 id="canvas-framebuffer">Canvas / framebuffer<a class="headerlink" href="#canvas-framebuffer" title="Permanent link">¶</a></h3>
+<ul>
+<li>Rendered into a single <code>&lt;canvas&gt;</code>; observed size <strong>1258 × 566</strong> (CSS size identical → not downscaled in that session).</li>
+<li>Screen updates arrive as <strong>framebuffer rectangles encoded as JPEG</strong> — captured many <code>data:image/jpeg;base64,…</code> resources during a session (Tight/JPEG VNC encoding), plus one <code>data:image/png</code>. This is the raw proof the content is image data, not markup.</li>
+</ul>
+<hr />
+<h2 id="4-vnc-transport-remote-server">4. VNC transport &amp; remote server<a class="headerlink" href="#4-vnc-transport-remote-server" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Connection path:</strong> browser → <code>wss://…/websockify</code> → <strong>websockify proxy</strong> → raw RFB/VNC (TCP) on the backend.</li>
+<li>noVNC status line after connect: <strong><code>Connected (encrypted) to 86a79607eef2:0</code></strong></li>
+<li><em>encrypted</em> = the WebSocket is TLS (WSS).</li>
+<li>target host <code>86a79607eef2</code> — a <strong>12-hex-char string consistent with a Docker container ID/hostname</strong>.</li>
+<li><code>:0</code> = VNC display number 0.</li>
+<li><strong>RFB protocol:</strong> noVNC client advertises max version <strong>3.8</strong> (<code>core/rfb.js</code>: <code>_rfbMaxVersion = 3.8</code>). Server version is negotiated on the wire (client supports 3.3 / 3.7 / 3.8).</li>
+<li><strong>Authentication:</strong> VNC-level. On connect the client shows <em>"Credentials are required"</em> → a password field → <em>"Send Credentials"</em>. This is classic <strong>VNC Authentication</strong> (RFB security type, DES challenge-response). The password is supplied out-of-band (stored in the project <code>.env</code>). There is <strong>no HTTP login</strong>; auth happens entirely inside the VNC handshake.</li>
+<li><strong>Clipboard channel:</strong> noVNC exposes a clipboard control, implying the RFB <code>ServerCutText</code> / <code>ClientCutText</code> channel may be available for text transfer in/out of the remote session.</li>
+</ul>
+<hr />
+<h2 id="5-inner-application-sigecom-distribuidora-andina-v39">5. Inner application — SIGECOM · Distribuidora Andina v3.9<a class="headerlink" href="#5-inner-application-sigecom-distribuidora-andina-v39" title="Permanent link">¶</a></h2>
+<p>Everything below was read <strong>from pixels</strong> (screenshots). There is no inspectable markup for any of it.</p>
+<h3 id="identity-chrome">Identity / chrome<a class="headerlink" href="#identity-chrome" title="Permanent link">¶</a></h3>
+<ul>
+<li>Title bar: <strong>"SIGECOM · Distribuidora Andina   v3.9"</strong>.</li>
+<li>Right of title bar: <strong>"Hoy: 14/10/2026 · Usuario: operador"</strong>.</li>
+<li>The date shown inside the remote system is <strong>14/10/2026</strong> while the real analysis date was 10/10/2026 → the remote host clock is set in the future (or a fixed demo clock).</li>
+<li>The user label was observed as <strong><code>operador</code></strong> and in a later session as <strong><code>operador2</code></strong> → the VNC session/user is <strong>not pinned per client; it may be shared</strong> or round-robined.</li>
+<li>Visual style: a flat, light-theme, <strong>web-looking UI</strong> (hyperlinked record codes, form controls) presented full-screen — i.e. a kiosk/web-style front end running inside the remote desktop.</li>
+</ul>
+<h3 id="menu-structure-fully-enumerated">Menu structure (fully enumerated)<a class="headerlink" href="#menu-structure-fully-enumerated" title="Permanent link">¶</a></h3>
+<pre><code>Archivo
+  └─ Inicio
+Comercial
+  ├─ Maestros ▸ Clientes
+  └─ Ventas   ▸ Pedidos
+Cartera
+  └─ Facturas
+Herramientas
+  ├─ Bitácora de cambios
+  ├─ Reportes generados
+  └─ Configuración ▸ Integraciones
+Ayuda
+  └─ Acerca de
+</code></pre>
+<h3 id="screens-observed">Screens observed<a class="headerlink" href="#screens-observed" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Inicio / Bienvenida:</strong> welcome text ("Sistema de g… use el menú superior para acceder a los módulos") and <em>"Soporte: extensión 214 (fuera de servicio)."</em></li>
+<li><strong>Cartera ▸ Facturas</strong> (default landing grid):</li>
+<li>Filters: <code>Cliente</code> (text), <code>Estado</code> (dropdown, default <strong>Todos</strong>), buttons <strong>Buscar</strong> / <strong>Limpiar</strong>.</li>
+<li>Action button: <strong>Exportar</strong> (top-right of the grid) — a built-in bulk-export affordance.</li>
+<li>Grid columns: <strong>Código, Cliente, Fecha, Vence, Valor, Estado</strong>.</li>
+<li>Record code format: <code>FV-#####</code> (e.g. <code>FV-10159</code>). The code cells render as hyperlinks (underlined/blue).</li>
+<li><code>Estado</code> values seen: <strong>Vencida, Pendiente, Pagada, Anulada</strong>.</li>
+<li>Pagination footer: <strong>Anterior · Página 1 · Siguiente</strong>.</li>
+<li><strong>Comercial ▸ Maestros ▸ Clientes</strong> — client master data (submenu confirmed; screen not opened).</li>
+<li><strong>Comercial ▸ Ventas ▸ Pedidos</strong> — sales orders (submenu confirmed; screen not opened).</li>
+<li><strong>Herramientas ▸ Bitácora de cambios</strong> — change log / audit trail (menu item confirmed).</li>
+<li><strong>Herramientas ▸ Reportes generados</strong> — generated reports (menu item confirmed).</li>
+<li><strong>Herramientas ▸ Configuración ▸ Integraciones:</strong></li>
+<li>Text: <em>"Conector con el sistema contable."</em> (connector to the accounting system).</li>
+<li><em>"Clave de integración: <code>SGC-…</code> "</em> — an integration key is displayed (prefix <code>SGC-</code>, format <code>SGC-XXXX-XXXX</code>). The screen explicitly warns <strong>"No comparta esta clave."</strong> (do not share this key). <em>Full value intentionally omitted from this document; read it directly on that screen.</em></li>
+<li>Implication: a separate accounting-system connector/integration exists somewhere, but <strong>no endpoint, host, or documentation for it is exposed on this URL</strong>.</li>
+<li><strong>Ayuda ▸ Acerca de</strong> — about dialog (menu item confirmed).</li>
+</ul>
+<hr />
+<h2 id="6-automation-relevant-characteristics-observations-not-a-plan">6. Automation-relevant characteristics (observations, not a plan)<a class="headerlink" href="#6-automation-relevant-characteristics-observations-not-a-plan" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>No DOM for the business app.</strong> Only the noVNC page has a DOM; the SIGECOM UI is a canvas pixel stream. DOM scraping is impossible.</li>
+<li><strong>Input is coordinate-based.</strong> Interaction = mouse move/click + key events over RFB. There are no selectors, labels, or roles.</li>
+<li><strong>Coordinates are resolution-dependent.</strong> Changing the browser viewport shifted the entire remote image by a fixed offset (observed +160 x / +100 y). Any coordinate map is only valid for a fixed framebuffer size and a known anchor (e.g. the blue title bar).</li>
+<li><strong>Screen-change signal exists at the network layer.</strong> Framebuffer updates are discrete <code>data:image/jpeg</code> rects; their arrival marks that the screen changed (usable as a "page settled" signal instead of fixed sleeps).</li>
+<li><strong>Text I/O:</strong> reading values requires OCR of image regions; the RFB clipboard channel is a possible alternative path for text in/out.</li>
+<li><strong>Built-in bulk data path:</strong> the <strong>Exportar</strong> button and <strong>Reportes generados</strong> are the system's own export mechanisms (observed, not exercised).</li>
+<li><strong>Session sharing risk:</strong> the logged-in user varied between sessions (<code>operador</code> → <code>operador2</code>); concurrent automation could collide with a human or another client on the same display.</li>
+<li><strong>Integration key present but opaque:</strong> an accounting-connector key is shown in Integraciones, hinting at an external API that is <strong>not</strong> reachable from this host.</li>
+</ul>
+<hr />
+<h2 id="7-known-unknowns-not-yet-determined">7. Known unknowns / not yet determined<a class="headerlink" href="#7-known-unknowns-not-yet-determined" title="Permanent link">¶</a></h2>
+<ul>
+<li>Exact RFB <strong>server</strong> version string and the precise VNC security type (only client max 3.8 and "credentials required" confirmed).</li>
+<li>The VNC server implementation (e.g. x11vnc / TigerVNC / a bundled server) and what desktop/kiosk wraps SIGECOM.</li>
+<li>Whether SIGECOM itself is a web app in an embedded browser or a native GUI toolkit (visually web-styled; not confirmed at the process level).</li>
+<li>The true native framebuffer resolution (1258×566 was the delivered canvas; the remote desktop's own resolution/DPI not confirmed).</li>
+<li>Behavior and reachability of the <strong>accounting-system connector</strong> referenced by the integration key.</li>
+<li>Whether the backend applies any per-IP / rate / concurrency limits (not tested).</li>
+</ul></main>
+</div></body></html>

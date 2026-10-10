@@ -1,6 +1,8 @@
-# Research — Track 1: Screen-access transport (WebSocket / RFB)
+# Transport: raw RFB over WebSocket (track 1)
 
 > Appendix C of [solution.md](../solution.md) · Status: adopted as component [G] (solution.md §3.2, §4) · Links checked 2026-10-10.
+
+## 1. Summary
 
 **Decision:** our own Python process speaks **raw RFB (VNC) over WSS** to the target's `/websockify` endpoint, using the `websockets` library. No browser is involved. Implementation: `poc/rfb_poc.py`.
 
@@ -8,8 +10,9 @@
 
 ---
 
-## 1. What is actually on the wire
-Source: [Appendix B](B-page-technical-analysis.md).
+## 2. Problem and constraints
+
+Source: [Appendix B](B-target-recon.md).
 
 ```
 our process ──WSS /websockify──► websockify ──TCP──► VNC server (Docker 86a79607eef2:0) ──► SIGECOM
@@ -25,7 +28,9 @@ The decision therefore has two layers:
 
 ---
 
-## 2. Layer A — where the RFB client runs
+## 3. Options considered
+
+### 3.1 Layer A — where the RFB client runs
 
 | Option | How it works | Pros | Cons | Verdict |
 |---|---|---|---|---|
@@ -36,11 +41,7 @@ The decision therefore has two layers:
 | A5. Computer-use VM (Anthropic reference container with xdotool) | Run a desktop locally and open the noVNC page in it | <ul><li>Works with Claude's computer-use tool out of the box.</li></ul> | <ul><li>It's A2 with a full desktop on top: the heaviest option.</li></ul> | Discarded |
 | A6. Another protocol (RDP, SSH, an app API) | — | — | Not exposed: the host serves only `/health` and `/websockify`, and the unseen app is delivered the same way | N/A |
 
----
-
-## 3. Layer B — language and library
-
-### Language
+### 3.2 Layer B — language
 
 | | **Python (chosen)** | Node/TS | Go | Rust |
 |---|---|---|---|---|
@@ -50,9 +51,7 @@ The decision therefore has two layers:
 | Agent and service | Anthropic SDK, FastAPI, all in one process | good SDKs | OK | thin |
 | Team speed | POC already works | rewrite | rewrite | rewrite, slower iteration |
 
-**Why Python.** The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's `rfb.js`, is cancelled out by that code's DOM coupling.
-
-### WebSocket library within Python
+### 3.3 Layer B — WebSocket library within Python
 
 | Library | Model | Notes | Verdict |
 |---|---|---|---|
@@ -62,23 +61,34 @@ The decision therefore has two layers:
 | `wsproto` | sans-IO | We'd have to write our own IO loop | Discarded: more code |
 | websockify's `WebSocket` client class | sync | The maintainer mentions it can act as a client, but it has no asyncio API | Discarded |
 
-### Our own RFB code vs a VNC library
+### 3.4 Layer B — VNC libraries instead of our own RFB code
+
 - **asyncvnc / asyncvnc2:** asyncio-based, numpy frames, clipboard support. But they connect over TCP through asyncio streams, so we'd need A4's bridge or a patched stream. They also hide `FramebufferUpdate` timing (our settle signal) and the choice of encoding.
 - **vncdotool:** Twisted-based and CLI-oriented. It's TCP-only; the noVNC maintainer confirms it can't connect to a WebSocket-only endpoint.
+
+---
+
+## 4. Chosen design
+
+A raw RFB client in our own process (A1), in Python, on `websockets`, with our own protocol code. The verdict column in §3 gives the reason for each.
+
+**Why Python.** The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's `rfb.js`, is cancelled out by that code's DOM coupling.
+
 - **Our own code:** about 150 lines of protocol. We control the encodings (lossless) and see every update, so nothing hides inside the 5-minute budget.
   - Risk: the unseen app's server may use an encoding or auth type we don't handle.
   - Mitigation: we only *request* Raw and CopyRect, and every RFB server must support Raw. A4 stays as the fallback.
 
 ---
 
-## 4. Tradeoffs we accept (say these in the debrief)
+## 5. Trade-offs we accept (say these in the debrief)
+
 - **Bandwidth.** Raw is the most expensive encoding. SIGECOM's UI is mostly static, so this is fine for now. Measure it in 1.4. If it hurts, add Tight with JPEG turned off (lossless zlib) rather than JPEG.
 - **We own reconnect (1.2), settle (1.3) and clipboard send (1.6).** Each is a small, listed unit.
 - **Auth.** We support VNC auth (type 2). Adding type 1 (None) is trivial. VeNCrypt and RA2 are out of scope, and the design doc states that as an assumption.
 
 ---
 
-## 5. Evidence
+## 6. Evidence and measurement
 
 | # | Measurement | Command | Result |
 |---|---|---|---|
@@ -87,14 +97,23 @@ The decision therefore has two layers:
 | 3 | (optional) A2 baseline: Playwright time to first canvas and `page.screenshot()` latency | a ~20-line script against `/vnc.html?autoconnect=1&password=…` | _TODO_ |
 | 4 | (optional) Fidelity: an A1 PNG vs an A2 canvas capture of the same screen, counting differing pixels | numpy diff | _TODO_ |
 
----
+### 6.1 Reading the numbers
 
-## Sources
-- websockify direction; vncdotool has no WebSocket support: https://groups.google.com/g/novnc/c/r4UrX1ryOro
-- asyncvnc: https://asyncvnc.readthedocs.io/ · asyncvnc2: https://asyncvnc2.readthedocs.io
-- websocat (TCP↔WS bridge): https://github.com/vi/websocat
-
-### Reading the numbers
 - Connecting costs **about 4 s, up to 6 s** per task, which is 1–2% of the 5-minute budget. Open the connection once per task and reuse it; never reconnect per action.
 - About 2.2 s of that is the first **4.1 MB Raw full frame**. This is the bandwidth cost of lossless pixels. Incremental updates after that are small. If cold start matters, try Tight with JPEG off (lossless zlib) in 1.4.
 - The native resolution is **1280×800**, not the 1258×566 canvas noVNC showed. A2's browser view was scaled or cropped, which is one more argument for A1's exact coordinates.
+
+---
+
+## 7. Open questions
+
+- Still to measure (rows 2–4 of the table in §6): settle time after a click, the A2 Playwright baseline, and the A1 vs A2 fidelity diff.
+- Whether the unseen app's server offers an encoding or auth type our code lacks (§4). A4 is the fallback if it does.
+
+---
+
+## 8. Sources
+
+- websockify direction; vncdotool has no WebSocket support: https://groups.google.com/g/novnc/c/r4UrX1ryOro
+- asyncvnc: https://asyncvnc.readthedocs.io/ · asyncvnc2: https://asyncvnc2.readthedocs.io
+- websocat (TCP↔WS bridge): https://github.com/vi/websocat

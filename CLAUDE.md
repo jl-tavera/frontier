@@ -9,7 +9,7 @@ Hackathon project. Brief and rubric: `resources/docs/challenge.md`. Design doc: 
 ## Docs
 
 - "A doc" means a markdown file at `resources/docs/<name>.md`. Not a Claude Doc, not an artifact.
-- Appendixes (brief, recon, research) live in `resources/docs/appendixes/`, letter-prefixed in appendix order; `appendixes/archive/` keeps superseded docs. `uv run resources/docs/build_html.py` regenerates `solution.html` from `solution.md` plus the appendixes; commit the HTML.
+- Appendixes (brief, recon, research) live in `resources/docs/appendixes/`, letter-prefixed in appendix order; the research appendixes C–H share one skeleton (Summary, Problem, Options, Chosen design, Trade-offs, Evidence, Open questions, Sources). `uv run resources/docs/build_html.py` regenerates `solution.html` (main doc + all appendixes inline) and one standalone page per appendix (`appendixes/<stem>.html`); commit the HTML.
 - The glossary and ADRs the skills write live at `docs/glossary.md` and `docs/adr/`.
 
 ## Agent skills

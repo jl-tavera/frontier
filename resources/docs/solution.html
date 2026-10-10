@@ -8,14 +8,15 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
-nav{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
-nav .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav ul{list-style:none;margin:0;padding-left:0}nav ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
-nav li{margin:2px 0}nav a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav a:hover{background:var(--box);color:var(--accent)}
-nav details{margin-left:6px}nav summary{cursor:pointer;color:var(--muted);font-size:12px;padding:1px 6px}nav summary:hover{color:var(--accent)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
 main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
 h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
 h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
 a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
 .tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
 td ul{margin:0;padding-left:18px}td p{margin:0}
 pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
@@ -26,10 +27,11 @@ figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:bl
 .ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
 svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
 .edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
-@media (max-width:900px){.wrap{display:block}nav{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
-@media print{nav{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
 </style></head><body><div class="wrap">
-<nav><div class="brand">Frontier Challenge 1</div><div class="toc">
+<nav class="side"><div class="brand">Frontier Challenge 1</div><div class="toc">
 <ul>
 <li><a href="#0-one-page-summary">0. One-page summary</a></li>
 <li><a href="#1-problem-and-constraints">1. Problem and constraints</a></li>
@@ -59,78 +61,91 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <li><a href="#10-future-improvements">10. Future improvements</a></li>
 <li><a href="#11-known-unknowns-consolidated">11. Known unknowns (consolidated)</a></li>
 <li><a href="#appendixes">Appendixes</a></li>
-<li><a href="#appendix-a">Appendix A — Challenge brief</a><details><summary>sections</summary><ul>
-<li><a href="#brief">Brief</a></li>
-<li><a href="#timeline">Timeline</a></li>
-<li><a href="#deliverables">Deliverables</a></li>
-<li><a href="#entrypoint-contract">Entrypoint contract</a></li>
-<li><a href="#rubric">Rubric</a></li>
-<li><a href="#open-items">Open items</a></li>
-</ul></details></li>
-<li><a href="#appendix-b">Appendix B — Technical diagnosis of the target</a><details><summary>sections</summary><ul>
-<li><a href="#1-executive-summary">1. Executive summary</a></li>
+<li><a href="#appendix-a">Appendix A — Challenge brief</a><ul>
+<li><a href="#1-brief">1. Brief</a></li>
+<li><a href="#2-timeline">2. Timeline</a></li>
+<li><a href="#3-deliverables">3. Deliverables</a></li>
+<li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li>
+<li><a href="#5-rubric">5. Rubric</a></li>
+<li><a href="#6-open-items">6. Open items</a></li>
+</ul>
+</li>
+<li><a href="#appendix-b">Appendix B — Target recon (SIGECOM over noVNC)</a><ul>
+<li><a href="#1-summary">1. Summary</a></li>
 <li><a href="#2-delivery-hosting-layer">2. Delivery / hosting layer</a></li>
 <li><a href="#3-novnc-client-what-the-browser-actually-runs">3. noVNC client (what the browser actually runs)</a></li>
 <li><a href="#4-vnc-transport-remote-server">4. VNC transport &amp; remote server</a></li>
 <li><a href="#5-inner-application-sigecom-distribuidora-andina-v39">5. Inner application — SIGECOM · Distribuidora Andina v3.9</a></li>
 <li><a href="#6-automation-relevant-characteristics-observations-not-a-plan">6. Automation-relevant characteristics (observations, not a plan)</a></li>
 <li><a href="#7-known-unknowns-not-yet-determined">7. Known unknowns / not yet determined</a></li>
-</ul></details></li>
-<li><a href="#appendix-c">Appendix C — Track 1 research: transport</a><details><summary>sections</summary><ul>
-<li><a href="#1-what-is-actually-on-the-wire">1. What is actually on the wire</a></li>
-<li><a href="#2-layer-a-where-the-rfb-client-runs">2. Layer A — where the RFB client runs</a></li>
-<li><a href="#3-layer-b-language-and-library">3. Layer B — language and library</a></li>
-<li><a href="#4-tradeoffs-we-accept-say-these-in-the-debrief">4. Tradeoffs we accept (say these in the debrief)</a></li>
-<li><a href="#5-evidence">5. Evidence</a></li>
-<li><a href="#sources">Sources</a></li>
-</ul></details></li>
-<li><a href="#appendix-d">Appendix D — Track 2 research: platform mapping papers</a><details><summary>sections</summary><ul>
-<li><a href="#1-comparison-table">1. Comparison table</a></li>
-<li><a href="#2-what-the-literature-tells-us">2. What the literature tells us</a></li>
-<li><a href="#3-mapping-onto-our-sub-problems">3. Mapping onto our sub-problems</a></li>
-<li><a href="#4-recommendation-design-doc-ready">4. Recommendation (design-doc ready)</a></li>
-<li><a href="#5-papers">5. Papers</a></li>
-</ul></details></li>
-<li><a href="#appendix-e">Appendix E — Track 2 methodology: initial map + remap</a><details><summary>sections</summary><ul>
-<li><a href="#1-the-ten-ideas-we-keep">1. The ten ideas we keep</a></li>
-<li><a href="#2-interfaces-assumed-m0">2. Interfaces assumed (M0)</a></li>
-<li><a href="#3-screen-fingerprint-m1-sub-problem-23">3. Screen fingerprint (M1 → sub-problem 2.3)</a></li>
-<li><a href="#4-map-schema-m2-sub-problem-24">4. Map schema (M2 → sub-problem 2.4)</a></li>
-<li><a href="#5-initial-mapping-m3-sub-problems-22-and-25">5. Initial mapping (M3 → sub-problems 2.2 and 2.5)</a></li>
-<li><a href="#6-task-time-use-m4-feeds-35">6. Task-time use (M4 → feeds 3.5)</a></li>
-<li><a href="#7-change-detection-and-repair-m5-sub-problem-26-the-1530-path">7. Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)</a></li>
-<li><a href="#8-time-budget-per-task-m6">8. Time budget per task (M6)</a></li>
-<li><a href="#9-measurement-m7-feeds-the-36-harness">9. Measurement (M7 → feeds the 3.6 harness)</a></li>
-<li><a href="#10-decisions-for-the-design-doc-with-the-discarded-alternative">10. Decisions for the design doc (with the discarded alternative)</a></li>
-<li><a href="#11-build-order-inside-track-2">11. Build order inside track 2</a></li>
-</ul></details></li>
-<li><a href="#appendix-f">Appendix F — Track 3 research: agent loop</a><details><summary>sections</summary><ul>
-<li><a href="#1-time-budget">1. Time budget</a></li>
-<li><a href="#2-options">2. Options</a></li>
-<li><a href="#3-cross-cutting-accelerators-apply-to-every-option">3. Cross-cutting accelerators (apply to every option)</a></li>
-<li><a href="#4-jev-deep-dive">4. Jev deep dive</a></li>
-<li><a href="#5-recommendation-and-order">5. Recommendation and order</a></li>
-<li><a href="#6-what-to-measure">6. What to measure</a></li>
-<li><a href="#sources_1">Sources</a></li>
-</ul></details></li>
-<li><a href="#appendix-g">Appendix G — Track 4 design: data sync</a><details><summary>sections</summary><ul>
-<li><a href="#0-what-sync-means-here">0. What "sync" means here</a></li>
-<li><a href="#1-happy-path">1. Happy path</a></li>
-<li><a href="#2-keeping-it-in-sync">2. Keeping it in sync</a></li>
-<li><a href="#3-what-if-something-changes-before-or-during-a-sync">3. What if something changes before or during a sync?</a></li>
-<li><a href="#4-error-handling">4. Error handling</a></li>
-<li><a href="#5-database">5. Database</a></li>
-<li><a href="#6-trade-offs-summary">6. Trade-offs summary</a></li>
-<li><a href="#7-known-unknowns">7. Known unknowns</a></li>
-</ul></details></li>
-<li><a href="#appendix-h">Appendix H — Track 7 research: perception</a><details><summary>sections</summary><ul>
-<li><a href="#1-the-problem">1. The problem</a></li>
-<li><a href="#2-building-blocks-and-options">2. Building blocks and options</a></li>
-<li><a href="#3-recommended-pipeline">3. Recommended pipeline</a></li>
-<li><a href="#4-tradeoffs-we-accept">4. Tradeoffs we accept</a></li>
-<li><a href="#5-evidence-measured">5. Evidence (measured)</a></li>
-<li><a href="#6-references">6. References</a></li>
-</ul></details></li>
+</ul>
+</li>
+<li><a href="#appendix-c">Appendix C — Transport: raw RFB over WebSocket</a><ul>
+<li><a href="#1-summary_1">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered">3. Options considered</a></li>
+<li><a href="#4-chosen-design">4. Chosen design</a></li>
+<li><a href="#5-trade-offs-we-accept-say-these-in-the-debrief">5. Trade-offs we accept (say these in the debrief)</a></li>
+<li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions">7. Open questions</a></li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</li>
+<li><a href="#appendix-d">Appendix D — Platform mapping: paper comparison</a><ul>
+<li><a href="#1-summary_2">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints_1">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered_1">3. Options considered</a></li>
+<li><a href="#4-chosen-design_1">4. Chosen design</a></li>
+<li><a href="#5-trade-offs">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement_1">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions_1">7. Open questions</a></li>
+<li><a href="#8-sources_1">8. Sources</a></li>
+</ul>
+</li>
+<li><a href="#appendix-e">Appendix E — Platform mapping: methodology</a><ul>
+<li><a href="#1-summary_3">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints_2">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered_2">3. Options considered</a></li>
+<li><a href="#4-chosen-design_2">4. Chosen design</a></li>
+<li><a href="#5-trade-offs_1">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement-m7-feeds-the-36-harness">6. Evidence and measurement (M7 → feeds the 3.6 harness)</a></li>
+<li><a href="#7-open-questions-and-build-order">7. Open questions and build order</a></li>
+<li><a href="#8-sources_2">8. Sources</a></li>
+</ul>
+</li>
+<li><a href="#appendix-f">Appendix F — Agent loop</a><ul>
+<li><a href="#1-summary_4">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints_3">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered_3">3. Options considered</a></li>
+<li><a href="#4-chosen-design_3">4. Chosen design</a></li>
+<li><a href="#5-trade-offs_2">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement_2">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions_2">7. Open questions</a></li>
+<li><a href="#8-sources_3">8. Sources</a></li>
+</ul>
+</li>
+<li><a href="#appendix-g">Appendix G — Data sync and read cache</a><ul>
+<li><a href="#1-summary_5">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints_4">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered_4">3. Options considered</a></li>
+<li><a href="#4-chosen-design_4">4. Chosen design</a></li>
+<li><a href="#5-trade-offs_3">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement_3">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions_3">7. Open questions</a></li>
+<li><a href="#8-sources_4">8. Sources</a></li>
+</ul>
+</li>
+<li><a href="#appendix-h">Appendix H — Screen perception</a><ul>
+<li><a href="#1-summary_6">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints_5">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered_5">3. Options considered</a></li>
+<li><a href="#4-chosen-design_5">4. Chosen design</a></li>
+<li><a href="#5-trade-offs-we-accept">5. Trade-offs we accept</a></li>
+<li><a href="#6-evidence-and-measurement_4">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions_4">7. Open questions</a></li>
+<li><a href="#8-sources_5">8. Sources</a></li>
+</ul>
+</li>
 <li><a href="#appendix-i">Appendix I — POC reference: poc/rfb_poc.py</a></li>
 </ul>
 </div>
@@ -250,7 +265,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <tr>
 <td>Runtime</td>
 <td>Python 3.12, <code>uv</code> (PEP 723 inline deps + lockfile), one process</td>
-<td>One language for transport, vision and agent, no IPC. Node/Go/Rust rewrite discarded (Appendix C §3)</td>
+<td>One language for transport, vision and agent, no IPC. Node/Go/Rust rewrite discarded (Appendix C §3.2)</td>
 </tr>
 <tr>
 <td>[A] Entrypoint</td>
@@ -279,7 +294,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td>[F] App memory</td>
-<td>Nav graph: one JSON per app (<code>memory/&lt;app_id&gt;.json</code>, Appendix E §4): nodes, edges with semantic targets, procedures, frontier</td>
+<td>Nav graph: one JSON per app (<code>memory/&lt;app_id&gt;.json</code>, Appendix E §4.2): nodes, edges with semantic targets, procedures, frontier</td>
 <td>Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded</td>
 </tr>
 <tr>
@@ -295,7 +310,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <tr>
 <td>[G] RFB session</td>
 <td><code>websockets</code> ≥ 13 (asyncio client, <code>binary</code> subprotocol), <code>pycryptodome</code> (VNC DES auth), numpy framebuffer; Raw + CopyRect only; <code>shared=1</code>; <code>ClientCutText</code>/<code>ServerCutText</code> clipboard</td>
-<td>~200 LOC we own instead of a headless browser (+300 MB, lossy JPEG, canvas offsets) or a TCP-only VNC library (Appendix C §2)</td>
+<td>~200 LOC we own instead of a headless browser (+300 MB, lossy JPEG, canvas offsets) or a TCP-only VNC library (Appendix C §3.1)</td>
 </tr>
 <tr>
 <td>[H] Log</td>
@@ -313,7 +328,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 <ol>
 <li><code>POST /tasks {task, desktop:{url,password}}</code> → validate Bearer → store <code>en_curso</code> → return <code>task_id</code>.</li>
 <li>Runner opens an RFB session [G] with the given URL+password and takes the first screenshot.</li>
-<li>[E] fingerprints the screen and identifies the app (title bar) → [F] loads its map if one exists, otherwise starts cold (first task on an app: ≤ 45 s menu pre-warm, Appendix E §5).</li>
+<li>[E] fingerprints the screen and identifies the app (title bar) → [F] loads its map if one exists, otherwise starts cold (first task on an app: ≤ 45 s menu pre-warm, Appendix E §4.3).</li>
 <li>[C] gets the task + current screen elements + map summary and plans in one call. Every tool call: act → settle → [E] diff/fingerprint → compare with the edge's expected screen → return the observed effect.</li>
 <li>Unexpected screen / no effect → [E] flags drift → [F] marks the node stale → [C] runs the repair ladder (§6). This is the 15:30 path.</li>
 <li>Finish or 270 s guard → [C] writes the summary in the README format → status <code>terminada</code> / <code>fallida</code>. [F] persists anything new it learned.</li>
@@ -350,7 +365,7 @@ svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-siz
 </tr>
 <tr>
 <td>Storage</td>
-<td>No volume. The SQLite cache and the per-app JSON maps live on the container disk and are rebuilt after a redeploy; a stale cache surviving a deploy is worse than an empty one (Appendix G §5)</td>
+<td>No volume. The SQLite cache and the per-app JSON maps live on the container disk and are rebuilt after a redeploy; a stale cache surviving a deploy is worse than an empty one (Appendix G §3.3)</td>
 </tr>
 <tr>
 <td>Network</td>
@@ -406,7 +421,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 <tr>
 <td>Node identity</td>
-<td>Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous (Appendix E §3)</td>
+<td>Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous (Appendix E §4.1)</td>
 <td>Pure embedding/VLM matching: ~3 MLLM calls per check. Pixel hash: breaks on any data change</td>
 </tr>
 <tr>
@@ -456,7 +471,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<p>Per-track decision tables with more alternatives: transport Appendix C §2–3, mapping Appendix E §10, agent loop Appendix F §2, data sync Appendix G §1/§2/§5, perception Appendix H §2.</p>
+<p>Per-track decision tables with more alternatives: transport Appendix C §3, mapping Appendix E §5, agent loop Appendix F §3, data sync Appendix G §3, perception Appendix H §3.</p>
 <h2 id="5-work-breakdown">5. Work breakdown<a class="headerlink" href="#5-work-breakdown" title="Permanent link">¶</a></h2>
 <p>The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools + loop, 4. data sync. Each one is split into units that can be owned, built and tested on their own. Tracks 5–7 were added because nothing works end to end without them.</p>
 <h3 id="track-1-websocket-rfb-transport-owner-1-person-mostly-done-in-the-poc-appendix-c">Track 1 — WebSocket / RFB transport (owner: 1 person, mostly done in the POC; Appendix C)<a class="headerlink" href="#track-1-websocket-rfb-transport-owner-1-person-mostly-done-in-the-poc-appendix-c" title="Permanent link">¶</a></h3>
@@ -541,12 +556,12 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <tr>
 <td>2.5</td>
 <td><strong>Pre-warm vs cold start</strong>: is there time to explore inside 5 minutes, or only on demand? Decide what's explored up front and what's learned during the task</td>
-<td>decision written in the design doc, with timings (decided: cold + incremental, one ≤ 45 s menu pre-warm, Appendix E §5)</td>
+<td>decision written in the design doc, with timings (decided: cold + incremental, one ≤ 45 s menu pre-warm, Appendix E §4.3)</td>
 </tr>
 <tr>
 <td>2.6</td>
 <td><strong>Change detection (the 15:30 incident)</strong>: fingerprint mismatch, element missing, or an action with no effect → mark the map stale and re-explore that screen</td>
-<td>simulated change (moved button) gets detected and fixed in the log (mutation suite in Appendix E §9)</td>
+<td>simulated change (moved button) gets detected and fixed in the log (mutation suite in Appendix E §6.1)</td>
 </tr>
 </tbody>
 </table></div>
@@ -682,8 +697,8 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tbody>
 </table></div>
 <h2 id="6-incident-response-the-1530-change">6. Incident response: the 15:30 change<a class="headerlink" href="#6-incident-response-the-1530-change" title="Permanent link">¶</a></h2>
-<p>Full spec in Appendix E §7–§9. The short version:</p>
-<p><strong>Signals, any one triggers:</strong> S1 target label not found · S2 no change after the action · S3 landed on a different known node · S4 landed on an unmatched screen · S5 app version string changed · S6 the edge's outcome histogram has more than one node with real mass. On the data side, a changed <strong>header hash</strong> of an entity drops and re-acquires that entity (Appendix G §3.4).</p>
+<p>Full spec in Appendix E §4.5–§6. The short version:</p>
+<p><strong>Signals, any one triggers:</strong> S1 target label not found · S2 no change after the action · S3 landed on a different known node · S4 landed on an unmatched screen · S5 app version string changed · S6 the edge's outcome histogram has more than one node with real mass. On the data side, a changed <strong>header hash</strong> of an entity drops and re-acquires that entity (Appendix G §4.3.4).</p>
 <p><strong>Order of checks on every step:</strong> blocking dialog? → overlay? → data edge? → only then drift. Each of the first three is a cheap false-positive filter.</p>
 <p><strong>Repair ladder, each rung bounded, next rung only on failure:</strong></p>
 <div class="tw"><table>
@@ -721,7 +736,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <p><strong>Proving it before 15:30.</strong> Drift is a function of (stored map, live screen), so we mutate the stored map with a <code>--mutate &lt;kind&gt;</code> flag (renamed label, removed control, landing mismatch, moved menu item, unknown screen, persistent break) plus two negative controls, and assert the expected log lines. A framebuffer transform hook (0.8× downscale, +40/+25 px shift) proves nothing depends on raw x,y. Run the suite before 15:30, re-run on the real change, show the delta.</p>
 <h2 id="7-measurement-plan">7. Measurement plan<a class="headerlink" href="#7-measurement-plan" title="Permanent link">¶</a></h2>
 <p>Eval harness (3.6): about 15 NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.</p>
-<p>Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, LLM calls per task, steps per task, recoveries, escalation rate (Jev → Claude). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §9).</p>
+<p>Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, LLM calls per task, steps per task, recoveries, escalation rate (Jev → Claude). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §6).</p>
 <h2 id="8-assumptions-and-out-of-scope">8. Assumptions and out of scope<a class="headerlink" href="#8-assumptions-and-out-of-scope" title="Permanent link">¶</a></h2>
 <ul>
 <li>The unseen app is a GUI with readable text (Latin script, horizontal) and conventional widgets. Canvas-heavy, drawing-style apps are out of scope.</li>
@@ -730,13 +745,13 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <li>One task at a time per desktop. Parallel tasks on the same desktop aren't supported.</li>
 <li>VNC Authentication (type 2) only; type 1 (None) is trivial to add; VeNCrypt and RA2 are out of scope.</li>
 <li>Icons with no text fall back to Claude raw coordinates. CPU-only deploy, no specialist grounding models.</li>
-<li>The data cache has a known staleness window (an old row edited without changing the count); bounded by an expiry time and the targeted-read path (Appendix G §3.1).</li>
+<li>The data cache has a known staleness window (an old row edited without changing the count); bounded by an expiry time and the targeted-read path (Appendix G §4.3.1).</li>
 </ul>
 <h2 id="9-order-and-dependencies">9. Order and dependencies<a class="headerlink" href="#9-order-and-dependencies" title="Permanent link">¶</a></h2>
 <ol>
 <li><strong>Before 12:00</strong>: design doc + diagram (this document), track 5 stub deployed, 3.6 task list written.</li>
 <li><strong>Critical path</strong>: 1.1 → 7.1–7.3 → 3.2 → 3.5 → 5 (one task working end to end).</li>
-<li><strong>Parallel</strong>: 2.2–2.4 (mapping memory, build order in Appendix E §11), 4.x (quick wins for read tasks), 1.2–1.6 (hardening).</li>
+<li><strong>Parallel</strong>: 2.2–2.4 (mapping memory, build order in Appendix E §7.1), 4.x (quick wins for read tasks), 1.2–1.6 (hardening).</li>
 <li><strong>From 15:30</strong>: 2.6 + the eval harness, re-run to show detect → adapt → explain.</li>
 </ol>
 <p><strong>How to check the split itself.</strong> For each unit: one runnable check against SIGECOM (the "Done when" column). The 3.6 harness is the one number that combines them all.</p>
@@ -755,7 +770,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <tr>
 <td>Data cache</td>
 <td>Ephemeral SQLite file, generic JSON rows</td>
-<td>Postgres on Railway with JSONB (same generic schema, <code>-&gt;&gt;</code> instead of <code>json_extract</code>), persistent and shared across instances. Redis is <strong>not</strong> the cache replacement: no ad-hoc filters or aggregates (Appendix G §5)</td>
+<td>Postgres on Railway with JSONB (same generic schema, <code>-&gt;&gt;</code> instead of <code>json_extract</code>), persistent and shared across instances. Redis is <strong>not</strong> the cache replacement: no ad-hoc filters or aggregates (Appendix G §3.3)</td>
 <td>More than one service instance, or the cache must survive redeploys</td>
 </tr>
 <tr>
@@ -836,17 +851,18 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <p>From the brief (Appendix A): summary format and evaluation rules (material README), details of the 15:30 change, access to the test app, team token.</p>
 <p>From the recon (Appendix B): exact RFB server version and security type; VNC server implementation and what wraps SIGECOM; whether SIGECOM is a web app in an embedded browser or a native toolkit; the true native resolution/DPI (1280×800 measured by the POC); the accounting connector behind the Integraciones key; per-IP / rate / concurrency limits.</p>
 <p>From data sync (Appendix G §7): where <code>Exportar</code> output goes; whether select-all + copy works on grids; whether grids show a total count; whether entities have a visible unique id; whether grids can sort newest first; probe cost on the unseen app.</p>
-<p>From perception (Appendix H §5): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; <code>click_text</code> hit rate; timings on Railway.</p>
-<p>From the agent loop (Appendix F §4): Jev access (early access key), out-of-distribution behaviour on the unseen app, vendor-run benchmarks.</p>
+<p>From perception (Appendix H §7): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; <code>click_text</code> hit rate; timings on Railway.</p>
+<p>From the agent loop (Appendix F §7): Jev access (early access key), out-of-distribution behaviour on the unseen app, vendor-run benchmarks.</p>
 <hr />
 <h2 id="appendixes">Appendixes<a class="headerlink" href="#appendixes" title="Permanent link">¶</a></h2>
-<p>The source documents live in <code>resources/docs/appendixes/</code>, letter-prefixed in this order. Each one opens with a status line saying how the final design uses it. <code>solution.html</code> includes all of them in full after this section.</p>
+<p>The source documents live in <code>resources/docs/appendixes/</code>, letter-prefixed in this order. Every research appendix (C–H) follows the same structure: 1 Summary · 2 Problem and constraints · 3 Options considered · 4 Chosen design · 5 Trade-offs · 6 Evidence and measurement · 7 Open questions · 8 Sources. Each one opens with a status line saying how the final design uses it. <code>solution.html</code> includes all of them in full after this section, and each one is also published as its own page.</p>
 <div class="tw"><table>
 <thead>
 <tr>
 <th>Appendix</th>
 <th>Document</th>
-<th>Source file</th>
+<th>Source</th>
+<th>Page</th>
 <th>Covers</th>
 </tr>
 </thead>
@@ -854,77 +870,80 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <tr>
 <td>A</td>
 <td>Challenge brief</td>
-<td><a href="#appendix-a">A-challenge.md</a></td>
+<td><a href="#appendix-a">A-challenge-brief.md</a></td>
+<td><a href="appendixes/A-challenge-brief.html">open</a></td>
 <td>brief, timeline, deliverables, entrypoint contract, evaluation rules</td>
 </tr>
 <tr>
 <td>B</td>
-<td>Technical diagnosis of the target</td>
-<td><a href="#appendix-b">B-page-technical-analysis.md</a></td>
+<td>Target recon (SIGECOM over noVNC)</td>
+<td><a href="#appendix-b">B-target-recon.md</a></td>
+<td><a href="appendixes/B-target-recon.html">open</a></td>
 <td>hosting, noVNC, RFB transport, SIGECOM screens and menus</td>
 </tr>
 <tr>
 <td>C</td>
-<td>Track 1 research: transport</td>
-<td><a href="#appendix-c">C-research-1-transport.md</a></td>
+<td>Transport: raw RFB over WebSocket</td>
+<td><a href="#appendix-c">C-transport-rfb.md</a></td>
+<td><a href="appendixes/C-transport-rfb.html">open</a></td>
 <td>where the RFB client runs, language and library, measurements</td>
 </tr>
 <tr>
 <td>D</td>
-<td>Track 2 research: platform mapping papers</td>
-<td><a href="#appendix-d">D-platform-mapping-papers.md</a></td>
-<td>12 GUI-agent papers compared, what to steal</td>
+<td>Platform mapping: paper comparison</td>
+<td><a href="#appendix-d">D-mapping-papers.md</a></td>
+<td><a href="appendixes/D-mapping-papers.html">open</a></td>
+<td>12 GUI-agent papers compared, what to take from each</td>
 </tr>
 <tr>
 <td>E</td>
-<td>Track 2 methodology: initial map + remap</td>
-<td><a href="#appendix-e">E-platform-mapping-methodology.md</a></td>
+<td>Platform mapping: methodology</td>
+<td><a href="#appendix-e">E-mapping-methodology.md</a></td>
+<td><a href="appendixes/E-mapping-methodology.html">open</a></td>
 <td>fingerprint, map schema, pre-warm, planning, repair ladder, budget, tests</td>
 </tr>
 <tr>
 <td>F</td>
-<td>Track 3 research: agent loop</td>
-<td><a href="#appendix-f">F-research-3-agent-loop.md</a></td>
-<td>time budget, loop options L1–L7, Jev deep dive</td>
+<td>Agent loop</td>
+<td><a href="#appendix-f">F-agent-loop.md</a></td>
+<td><a href="appendixes/F-agent-loop.html">open</a></td>
+<td>time budget, loop options L1–L7, Jev System 1</td>
 </tr>
 <tr>
 <td>G</td>
-<td>Track 4 design: data sync</td>
-<td><a href="#appendix-g">G-data-sync-design.md</a></td>
+<td>Data sync and read cache</td>
+<td><a href="#appendix-g">G-data-sync.md</a></td>
+<td><a href="appendixes/G-data-sync.html">open</a></td>
 <td>cache, freshness probe, conflicts, errors, SQLite schema</td>
 </tr>
 <tr>
 <td>H</td>
-<td>Track 7 research: perception</td>
-<td><a href="#appendix-h">H-research-7-perception.md</a></td>
+<td>Screen perception</td>
+<td><a href="#appendix-h">H-perception.md</a></td>
+<td><a href="appendixes/H-perception.html">open</a></td>
 <td>OCR/CV options, UI tree, pipeline, measured timings</td>
 </tr>
 <tr>
 <td>I</td>
 <td>POC reference</td>
-<td><a href="#appendix-i">../../poc/rfb_poc.py</a></td>
+<td><a href="../../poc/rfb_poc.py">../../poc/rfb_poc.py</a></td>
+<td><a href="appendixes/I-poc-reference.html">open</a></td>
 <td>raw RFB over WSS: VNC auth, Raw+CopyRect, settle, click/type/key, clipboard receive, MCP stub</td>
-</tr>
-<tr>
-<td>Archive</td>
-<td>Original design breakdown</td>
-<td><a href="appendixes/archive/solution-design.md">archive/solution-design.md</a></td>
-<td>superseded by §1–§9 of this document; kept for history, not rendered</td>
 </tr>
 </tbody>
 </table></div>
 <p>Papers and saved articles the research cites are in <code>resources/docs/references/</code> (<code>papers/</code> for the 12 GUI-agent PDFs, <code>jev/</code> for the Jev sources).</p>
 <h2 id="appendix-a">Appendix A — Challenge brief<a class="headerlink" href="#appendix-a" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/A-challenge.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
+<p><em>Source: <code>resources/docs/appendixes/A-challenge-brief.md</code> · <a href="appendixes/A-challenge-brief.html">open as its own page</a></em></p>
 <p><strong>Challenge 1 — The agent that operates what has no API</strong></p>
 <blockquote>
 <p>Appendix A of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: the brief as received, verbatim · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/A-challenge-brief.html">open as its own page →</a><ol><li><a href="#1-brief">1. Brief</a></li><li><a href="#2-timeline">2. Timeline</a></li><li><a href="#3-deliverables">3. Deliverables</a></li><li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li><li><a href="#5-rubric">5. Rubric</a></li><li><a href="#6-open-items">6. Open items</a></li></ol></nav>
 <p>An agent that learns to operate systems with no API, through the screen, and executes natural-language tasks in apps it has never seen.</p>
-<h3 id="brief">Brief<a class="headerlink" href="#brief" title="Permanent link">¶</a></h3>
+<h3 id="1-brief">1. Brief<a class="headerlink" href="#1-brief" title="Permanent link">¶</a></h3>
 <p>We have a management system we've used for 15 years. It has no API, no documentation, and the vendor disappeared. Everything is done by hand: clicks, forms, pop-up windows, reports exported one by one.</p>
 <p>We want an agent that learns to use that system the way a new employee would, and that executes tasks we ask for in natural language, even if it has never done them before. We have 5 systems like this, so the agent must be able to adapt to any of them.</p>
-<h3 id="timeline">Timeline<a class="headerlink" href="#timeline" title="Permanent link">¶</a></h3>
+<h3 id="2-timeline">2. Timeline<a class="headerlink" href="#2-timeline" title="Permanent link">¶</a></h3>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -959,7 +978,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<h3 id="deliverables">Deliverables<a class="headerlink" href="#deliverables" title="Permanent link">¶</a></h3>
+<h3 id="3-deliverables">3. Deliverables<a class="headerlink" href="#3-deliverables" title="Permanent link">¶</a></h3>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1001,7 +1020,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<h3 id="entrypoint-contract">Entrypoint contract<a class="headerlink" href="#entrypoint-contract" title="Permanent link">¶</a></h3>
+<h3 id="4-entrypoint-contract">4. Entrypoint contract<a class="headerlink" href="#4-entrypoint-contract" title="Permanent link">¶</a></h3>
 <p>Deployed by your team (anywhere you want), reachable from the internet from 20:00 until demo day ends.</p>
 <ul>
 <li><strong>Auth</strong>: every call carries <code>Authorization: Bearer &lt;token&gt;</code> (team token).</li>
@@ -1012,7 +1031,7 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 <li>Evaluated on an app your agent has never seen, on a clean evaluation desktop.</li>
 <li>The summary format and evaluation rules are in the README of the provided material.</li>
 </ul>
-<h3 id="rubric">Rubric<a class="headerlink" href="#rubric" title="Permanent link">¶</a></h3>
+<h3 id="5-rubric">5. Rubric<a class="headerlink" href="#5-rubric" title="Permanent link">¶</a></h3>
 <p>Scale 1 to 4 per criterion. They evaluate what you deliver, deploy and explain; they don't collect sessions or transcripts from your tools.</p>
 <div class="tw"><table>
 <thead>
@@ -1163,25 +1182,25 @@ curl -s https://&lt;service&gt;.up.railway.app/tasks/&lt;task_id&gt; -H &quot;Au
 </tr>
 </tbody>
 </table></div>
-<h3 id="open-items">Open items<a class="headerlink" href="#open-items" title="Permanent link">¶</a></h3>
+<h3 id="6-open-items">6. Open items<a class="headerlink" href="#6-open-items" title="Permanent link">¶</a></h3>
 <ul>
 <li>Summary format and evaluation rules (material README).</li>
 <li>Details of the 15:30 change.</li>
 <li>Access to the test app.</li>
 <li>Team token.</li>
 </ul>
-<h2 id="appendix-b">Appendix B — Technical diagnosis of the target<a class="headerlink" href="#appendix-b" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/B-page-technical-analysis.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
+<h2 id="appendix-b">Appendix B — Target recon (SIGECOM over noVNC)<a class="headerlink" href="#appendix-b" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/B-target-recon.md</code> · <a href="appendixes/B-target-recon.html">open as its own page</a></em></p>
 <p><strong>Technical Diagnosis — Frontier / SIGECOM Legacy System</strong></p>
 <blockquote>
 <p>Appendix B of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: read-only recon of the development target, facts only; digested in solution.md §2 · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/B-target-recon.html">open as its own page →</a><ol><li><a href="#1-summary">1. Summary</a></li><li><a href="#2-delivery-hosting-layer">2. Delivery / hosting layer</a></li><li><a href="#3-novnc-client-what-the-browser-actually-runs">3. noVNC client (what the browser actually runs)</a></li><li><a href="#4-vnc-transport-remote-server">4. VNC transport &amp; remote server</a></li><li><a href="#5-inner-application-sigecom-distribuidora-andina-v39">5. Inner application — SIGECOM · Distribuidora Andina v3.9</a></li><li><a href="#6-automation-relevant-characteristics-observations-not-a-plan">6. Automation-relevant characteristics (observations, not a plan)</a></li><li><a href="#7-known-unknowns-not-yet-determined">7. Known unknowns / not yet determined</a></li></ol></nav>
 <p><strong>Target:</strong> <code>https://frontier-r1-tm77-production.up.railway.app</code>
 <strong>Date of analysis:</strong> 2026-10-10
 <strong>Method:</strong> read-only recon — HTTP requests (curl) + noVNC session inspection (agent-browser). No writes, no changes to the system.
 <strong>Scope:</strong> diagnosis only. No solution proposed.</p>
 <hr />
-<h3 id="1-executive-summary">1. Executive summary<a class="headerlink" href="#1-executive-summary" title="Permanent link">¶</a></h3>
+<h3 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h3>
 <p>The URL does <strong>not</strong> serve a web application. It serves the <strong>noVNC</strong> web client, which bridges the browser to a <strong>remote VNC desktop</strong> over a WebSocket. The actual business system — <strong>SIGECOM · Distribuidora Andina v3.9</strong> — runs <em>inside</em> that remote desktop and is only ever transmitted to the browser as <strong>pixels</strong> (framebuffer images). There is no HTML DOM, no REST/JSON API, and no HTTP endpoint for the business data. Everything the user sees is a screenshot stream; everything the user does is mouse/keyboard events sent back over the VNC protocol.</p>
 <hr />
 <h3 id="2-delivery-hosting-layer">2. Delivery / hosting layer<a class="headerlink" href="#2-delivery-hosting-layer" title="Permanent link">¶</a></h3>
@@ -1372,18 +1391,19 @@ Ayuda
 <li>Behavior and reachability of the <strong>accounting-system connector</strong> referenced by the integration key.</li>
 <li>Whether the backend applies any per-IP / rate / concurrency limits (not tested).</li>
 </ul>
-<h2 id="appendix-c">Appendix C — Track 1 research: transport<a class="headerlink" href="#appendix-c" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/C-research-1-transport.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
-<p><strong>Research — Track 1: Screen-access transport (WebSocket / RFB)</strong></p>
+<h2 id="appendix-c">Appendix C — Transport: raw RFB over WebSocket<a class="headerlink" href="#appendix-c" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/C-transport-rfb.md</code> · <a href="appendixes/C-transport-rfb.html">open as its own page</a></em></p>
+<p><strong>Transport: raw RFB over WebSocket (track 1)</strong></p>
 <blockquote>
 <p>Appendix C of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as component [G] (solution.md §3.2, §4) · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/C-transport-rfb.html">open as its own page →</a><ol><li><a href="#1-summary_1">1. Summary</a></li><li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li><li><a href="#3-options-considered">3. Options considered</a></li><li><a href="#4-chosen-design">4. Chosen design</a></li><li><a href="#5-trade-offs-we-accept-say-these-in-the-debrief">5. Trade-offs we accept (say these in the debrief)</a></li><li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a></li><li><a href="#7-open-questions">7. Open questions</a></li><li><a href="#8-sources">8. Sources</a></li></ol></nav>
+<h3 id="1-summary_1">1. Summary<a class="headerlink" href="#1-summary_1" title="Permanent link">¶</a></h3>
 <p><strong>Decision:</strong> our own Python process speaks <strong>raw RFB (VNC) over WSS</strong> to the target's <code>/websockify</code> endpoint, using the <code>websockets</code> library. No browser is involved. Implementation: <a href="#appendix-i"><code>poc/rfb_poc.py</code></a>.</p>
 <blockquote>
 <p><strong>Terminology.</strong> <em>websockify</em> is the <strong>server-side</strong> proxy the target already runs: it accepts a WebSocket and forwards the bytes over TCP to the VNC server. We didn't choose it and can't change it. On our side the client library is <strong><code>websockets</code></strong> (Python). People mix the two up, so expect the question in the debrief.</p>
 </blockquote>
 <hr />
-<h3 id="1-what-is-actually-on-the-wire">1. What is actually on the wire<a class="headerlink" href="#1-what-is-actually-on-the-wire" title="Permanent link">¶</a></h3>
+<h3 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h3>
 <p>Source: <a href="#appendix-b">Appendix B</a>.</p>
 <pre><code>our process ──WSS /websockify──► websockify ──TCP──► VNC server (Docker 86a79607eef2:0) ──► SIGECOM
 </code></pre>
@@ -1396,7 +1416,8 @@ Ayuda
 - <strong>A. Where the RFB client runs:</strong> inside a browser (noVNC) or inside our own process.
 - <strong>B. If it runs in our process:</strong> which language, which WebSocket library, and whether we write the RFB code ourselves or use a VNC library.</p>
 <hr />
-<h3 id="2-layer-a-where-the-rfb-client-runs">2. Layer A — where the RFB client runs<a class="headerlink" href="#2-layer-a-where-the-rfb-client-runs" title="Permanent link">¶</a></h3>
+<h3 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h3>
+<h4 id="31-layer-a-where-the-rfb-client-runs">3.1 Layer A — where the RFB client runs<a class="headerlink" href="#31-layer-a-where-the-rfb-client-runs" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1452,9 +1473,7 @@ Ayuda
 </tr>
 </tbody>
 </table></div>
-<hr />
-<h3 id="3-layer-b-language-and-library">3. Layer B — language and library<a class="headerlink" href="#3-layer-b-language-and-library" title="Permanent link">¶</a></h3>
-<h4 id="language">Language<a class="headerlink" href="#language" title="Permanent link">¶</a></h4>
+<h4 id="32-layer-b-language">3.2 Layer B — language<a class="headerlink" href="#32-layer-b-language" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1503,8 +1522,7 @@ Ayuda
 </tr>
 </tbody>
 </table></div>
-<p><strong>Why Python.</strong> The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's <code>rfb.js</code>, is cancelled out by that code's DOM coupling.</p>
-<h4 id="websocket-library-within-python">WebSocket library within Python<a class="headerlink" href="#websocket-library-within-python" title="Permanent link">¶</a></h4>
+<h4 id="33-layer-b-websocket-library-within-python">3.3 Layer B — WebSocket library within Python<a class="headerlink" href="#33-layer-b-websocket-library-within-python" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1547,23 +1565,29 @@ Ayuda
 </tr>
 </tbody>
 </table></div>
-<h4 id="our-own-rfb-code-vs-a-vnc-library">Our own RFB code vs a VNC library<a class="headerlink" href="#our-own-rfb-code-vs-a-vnc-library" title="Permanent link">¶</a></h4>
+<h4 id="34-layer-b-vnc-libraries-instead-of-our-own-rfb-code">3.4 Layer B — VNC libraries instead of our own RFB code<a class="headerlink" href="#34-layer-b-vnc-libraries-instead-of-our-own-rfb-code" title="Permanent link">¶</a></h4>
 <ul>
 <li><strong>asyncvnc / asyncvnc2:</strong> asyncio-based, numpy frames, clipboard support. But they connect over TCP through asyncio streams, so we'd need A4's bridge or a patched stream. They also hide <code>FramebufferUpdate</code> timing (our settle signal) and the choice of encoding.</li>
 <li><strong>vncdotool:</strong> Twisted-based and CLI-oriented. It's TCP-only; the noVNC maintainer confirms it can't connect to a WebSocket-only endpoint.</li>
+</ul>
+<hr />
+<h3 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h3>
+<p>A raw RFB client in our own process (A1), in Python, on <code>websockets</code>, with our own protocol code. The verdict column in §3 gives the reason for each.</p>
+<p><strong>Why Python.</strong> The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's <code>rfb.js</code>, is cancelled out by that code's DOM coupling.</p>
+<ul>
 <li><strong>Our own code:</strong> about 150 lines of protocol. We control the encodings (lossless) and see every update, so nothing hides inside the 5-minute budget.</li>
 <li>Risk: the unseen app's server may use an encoding or auth type we don't handle.</li>
 <li>Mitigation: we only <em>request</em> Raw and CopyRect, and every RFB server must support Raw. A4 stays as the fallback.</li>
 </ul>
 <hr />
-<h3 id="4-tradeoffs-we-accept-say-these-in-the-debrief">4. Tradeoffs we accept (say these in the debrief)<a class="headerlink" href="#4-tradeoffs-we-accept-say-these-in-the-debrief" title="Permanent link">¶</a></h3>
+<h3 id="5-trade-offs-we-accept-say-these-in-the-debrief">5. Trade-offs we accept (say these in the debrief)<a class="headerlink" href="#5-trade-offs-we-accept-say-these-in-the-debrief" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Bandwidth.</strong> Raw is the most expensive encoding. SIGECOM's UI is mostly static, so this is fine for now. Measure it in 1.4. If it hurts, add Tight with JPEG turned off (lossless zlib) rather than JPEG.</li>
 <li><strong>We own reconnect (1.2), settle (1.3) and clipboard send (1.6).</strong> Each is a small, listed unit.</li>
 <li><strong>Auth.</strong> We support VNC auth (type 2). Adding type 1 (None) is trivial. VeNCrypt and RA2 are out of scope, and the design doc states that as an assumption.</li>
 </ul>
 <hr />
-<h3 id="5-evidence">5. Evidence<a class="headerlink" href="#5-evidence" title="Permanent link">¶</a></h3>
+<h3 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h3>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1600,27 +1624,36 @@ Ayuda
 </tr>
 </tbody>
 </table></div>
-<hr />
-<h3 id="sources">Sources<a class="headerlink" href="#sources" title="Permanent link">¶</a></h3>
-<ul>
-<li>websockify direction; vncdotool has no WebSocket support: https://groups.google.com/g/novnc/c/r4UrX1ryOro</li>
-<li>asyncvnc: https://asyncvnc.readthedocs.io/ · asyncvnc2: https://asyncvnc2.readthedocs.io</li>
-<li>websocat (TCP↔WS bridge): https://github.com/vi/websocat</li>
-</ul>
-<h4 id="reading-the-numbers">Reading the numbers<a class="headerlink" href="#reading-the-numbers" title="Permanent link">¶</a></h4>
+<h4 id="61-reading-the-numbers">6.1 Reading the numbers<a class="headerlink" href="#61-reading-the-numbers" title="Permanent link">¶</a></h4>
 <ul>
 <li>Connecting costs <strong>about 4 s, up to 6 s</strong> per task, which is 1–2% of the 5-minute budget. Open the connection once per task and reuse it; never reconnect per action.</li>
 <li>About 2.2 s of that is the first <strong>4.1 MB Raw full frame</strong>. This is the bandwidth cost of lossless pixels. Incremental updates after that are small. If cold start matters, try Tight with JPEG off (lossless zlib) in 1.4.</li>
 <li>The native resolution is <strong>1280×800</strong>, not the 1258×566 canvas noVNC showed. A2's browser view was scaled or cropped, which is one more argument for A1's exact coordinates.</li>
 </ul>
-<h2 id="appendix-d">Appendix D — Track 2 research: platform mapping papers<a class="headerlink" href="#appendix-d" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/D-platform-mapping-papers.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
-<p><strong>Platform Mapping as a Graph — Paper Comparison (Track 2)</strong></p>
+<hr />
+<h3 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h3>
+<ul>
+<li>Still to measure (rows 2–4 of the table in §6): settle time after a click, the A2 Playwright baseline, and the A1 vs A2 fidelity diff.</li>
+<li>Whether the unseen app's server offers an encoding or auth type our code lacks (§4). A4 is the fallback if it does.</li>
+</ul>
+<hr />
+<h3 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h3>
+<ul>
+<li>websockify direction; vncdotool has no WebSocket support: https://groups.google.com/g/novnc/c/r4UrX1ryOro</li>
+<li>asyncvnc: https://asyncvnc.readthedocs.io/ · asyncvnc2: https://asyncvnc2.readthedocs.io</li>
+<li>websocat (TCP↔WS bridge): https://github.com/vi/websocat</li>
+</ul>
+<h2 id="appendix-d">Appendix D — Platform mapping: paper comparison<a class="headerlink" href="#appendix-d" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/D-mapping-papers.md</code> · <a href="appendixes/D-mapping-papers.html">open as its own page</a></em></p>
+<p><strong>Platform mapping as a graph — paper comparison (track 2)</strong></p>
 <blockquote>
 <p>Appendix D of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: research input for track 2, refined by <a href="#appendix-e">Appendix E</a>; where they differ, E wins (4-rung repair ladder instead of 5, ≤45 s pre-warm instead of ≤60 s) · Links checked 2026-10-10.</p>
-</blockquote>
-<p>Research for track 2 of <a href="#frontier-challenge-1-solution">solution.md §5</a> (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).
-Question: how do published GUI agents build an <strong>initial map</strong> of an app as a graph (screens = nodes, actions = edges), and how do they <strong>remap</strong> when the app changes?</p>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/D-mapping-papers.html">open as its own page →</a><ol><li><a href="#1-summary_2">1. Summary</a></li><li><a href="#2-problem-and-constraints_1">2. Problem and constraints</a></li><li><a href="#3-options-considered_1">3. Options considered</a></li><li><a href="#4-chosen-design_1">4. Chosen design</a></li><li><a href="#5-trade-offs">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_1">6. Evidence and measurement</a></li><li><a href="#7-open-questions_1">7. Open questions</a></li><li><a href="#8-sources_1">8. Sources</a></li></ol></nav>
+<h3 id="1-summary_2">1. Summary<a class="headerlink" href="#1-summary_2" title="Permanent link">¶</a></h3>
+<p>Question: how do published GUI agents build an <strong>initial map</strong> of an app as a graph (screens = nodes, actions = edges), and how do they <strong>remap</strong> when the app changes?</p>
+<p>Research for track 2 of <a href="#frontier-challenge-1-solution">solution.md §5</a> (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).</p>
+<hr />
+<h3 id="2-problem-and-constraints_1">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_1" title="Permanent link">¶</a></h3>
 <p>Our constraints, which every "steal" below is filtered through:
 - The app is unseen.
 - We see pixels only, over VNC/RFB. There is no DOM, a11y tree or view hierarchy.
@@ -1629,7 +1662,8 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 - The app changes at 15:30.</p>
 <p>PDFs are in <code>../references/papers/</code>. Every fact here comes from reading the paper; "n/s" means the paper does not say.</p>
 <hr />
-<h3 id="1-comparison-table">1. Comparison table<a class="headerlink" href="#1-comparison-table" title="Permanent link">¶</a></h3>
+<h3 id="3-options-considered_1">3. Options considered<a class="headerlink" href="#3-options-considered_1" title="Permanent link">¶</a></h3>
+<p>The twelve papers, compared on what we need from them:</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1768,29 +1802,8 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 </table></div>
 <p>Code available: AutoDroid, MobileGPT, GUI-Xplore, LLM-Explorer and UI-KOBE (GitHub). PG-Agent and AppAgentX are "will be released". GraphPilot is "on request". The rest are n/s.</p>
 <hr />
-<h3 id="2-what-the-literature-tells-us">2. What the literature tells us<a class="headerlink" href="#2-what-the-literature-tells-us" title="Permanent link">¶</a></h3>
-<ol>
-<li><strong>Nobody does online remapping after an app update.</strong>
-   - EAM and UI-KOBE name it as future work.
-   - MAGNET handles drift only through slow memory evolution.
-   - ActionEngine's Patcher is the closest: it localizes the failure to one node and writes the fix back into the graph.
-   - Our 2.6 is therefore a real contribution, and the doc should say so.</li>
-<li><strong>Exploring the whole app is too slow for us.</strong>
-   - Every full-exploration paper spends 10 min to hours per app; MobileGPT's 10–15 min is the cheapest.
-   - Our 5 min task budget rules out exploring the whole app first. Mapping has to be <strong>task-driven and incremental</strong>, as in MobileGPT (on demand) and AppAgentX (memory from its own runs), with only a shallow pre-warm.</li>
-<li><strong>Identify a screen by function, not pixels.</strong>
-   - MobileGPT (the sub-task set), LLM-Explorer (the function set), ActionEngine (static atoms) and UI-KOBE (role + layout) all strip dynamic content before comparing.
-   - LLM-Explorer and MobileGPT both found that <strong>rules or structure beat pure LLM or vision matching</strong> for dedup.</li>
-<li><strong>Pixels-only dedup is solved well enough.</strong> The pattern is cheap retrieval followed by a strict verify step:
-   - UI-KOBE and PG-Agent: embedding top-k, then VLM yes/no or "reject all".
-   - ScreenSearch: spatially binned OCR text + Jaccard ≥ 0.93.</li>
-<li><strong>Store targets as function + label, never coordinates.</strong>
-   - AppAgentX shortcuts store raw x,y and are fragile.
-   - MobileGPT stores attribute-based actions (<code>click(text:"[contact_name]")</code>), and MAGNET stores the function plus several appearances. These survive a moved button.</li>
-<li><strong>Plan over the graph in one LLM call, then verify each step.</strong> GraphPilot (1.03 queries/task) and ActionEngine (1.5–3.5 calls/task, 27 s) show that a graph cuts LLM calls drastically, which suits our 5 min budget.</li>
-</ol>
-<hr />
-<h3 id="3-mapping-onto-our-sub-problems">3. Mapping onto our sub-problems<a class="headerlink" href="#3-mapping-onto-our-sub-problems" title="Permanent link">¶</a></h3>
+<h3 id="4-chosen-design_1">4. Chosen design<a class="headerlink" href="#4-chosen-design_1" title="Permanent link">¶</a></h3>
+<p>What we take for each sub-problem:</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1827,7 +1840,7 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 </tr>
 </tbody>
 </table></div>
-<h4 id="repair-ladder-for-26">Repair ladder for 2.6<a class="headerlink" href="#repair-ladder-for-26" title="Permanent link">¶</a></h4>
+<h4 id="41-repair-ladder-for-26">4.1 Repair ladder for 2.6<a class="headerlink" href="#41-repair-ladder-for-26" title="Permanent link">¶</a></h4>
 <p>Each rung is cheap, and the next one runs only if it fails. Every rung writes to the JSONL log for the Challenge 2 spec.
 1. <strong>Re-ground in place.</strong> Find the same function under a new label or position (OCR fuzzy match, then the LLM with the old action as a few-shot example). If found, <strong>patch the edge</strong> and keep the node. (MobileGPT re-derive, ActionEngine Patcher, MAGNET "appearance drift".)
 2. <strong>Alternative path.</strong> Search the graph for another route to the target node. (LLM-Explorer.)
@@ -1835,7 +1848,8 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 4. <strong>Free-plan fallback.</strong> The LLM acts without the graph and rejoins it once a known fingerprint appears. (UI-KOBE.)
 5. <strong>Prune.</strong> If an edge fails N times, delete it. Edges whose success has decayed are ranked down rather than deleted. (LLM-Explorer prune, MAGNET recency×use score.)</p>
 <hr />
-<h3 id="4-recommendation-design-doc-ready">4. Recommendation (design-doc ready)<a class="headerlink" href="#4-recommendation-design-doc-ready" title="Permanent link">¶</a></h3>
+<h3 id="5-trade-offs">5. Trade-offs<a class="headerlink" href="#5-trade-offs" title="Permanent link">¶</a></h3>
+<p>Recommendation, with the discarded alternative:</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1873,7 +1887,34 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 </tbody>
 </table></div>
 <hr />
-<h3 id="5-papers">5. Papers<a class="headerlink" href="#5-papers" title="Permanent link">¶</a></h3>
+<h3 id="6-evidence-and-measurement_1">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement_1" title="Permanent link">¶</a></h3>
+<p>What the literature tells us:</p>
+<ol>
+<li><strong>Nobody does online remapping after an app update.</strong>
+   - EAM and UI-KOBE name it as future work.
+   - MAGNET handles drift only through slow memory evolution.
+   - ActionEngine's Patcher is the closest: it localizes the failure to one node and writes the fix back into the graph.
+   - Our 2.6 is therefore a real contribution, and the doc should say so.</li>
+<li><strong>Exploring the whole app is too slow for us.</strong>
+   - Every full-exploration paper spends 10 min to hours per app; MobileGPT's 10–15 min is the cheapest.
+   - Our 5 min task budget rules out exploring the whole app first. Mapping has to be <strong>task-driven and incremental</strong>, as in MobileGPT (on demand) and AppAgentX (memory from its own runs), with only a shallow pre-warm.</li>
+<li><strong>Identify a screen by function, not pixels.</strong>
+   - MobileGPT (the sub-task set), LLM-Explorer (the function set), ActionEngine (static atoms) and UI-KOBE (role + layout) all strip dynamic content before comparing.
+   - LLM-Explorer and MobileGPT both found that <strong>rules or structure beat pure LLM or vision matching</strong> for dedup.</li>
+<li><strong>Pixels-only dedup is solved well enough.</strong> The pattern is cheap retrieval followed by a strict verify step:
+   - UI-KOBE and PG-Agent: embedding top-k, then VLM yes/no or "reject all".
+   - ScreenSearch: spatially binned OCR text + Jaccard ≥ 0.93.</li>
+<li><strong>Store targets as function + label, never coordinates.</strong>
+   - AppAgentX shortcuts store raw x,y and are fragile.
+   - MobileGPT stores attribute-based actions (<code>click(text:"[contact_name]")</code>), and MAGNET stores the function plus several appearances. These survive a moved button.</li>
+<li><strong>Plan over the graph in one LLM call, then verify each step.</strong> GraphPilot (1.03 queries/task) and ActionEngine (1.5–3.5 calls/task, 27 s) show that a graph cuts LLM calls drastically, which suits our 5 min budget.</li>
+</ol>
+<hr />
+<h3 id="7-open-questions_1">7. Open questions<a class="headerlink" href="#7-open-questions_1" title="Permanent link">¶</a></h3>
+<p>None recorded in this document. The measurements for track 2 are defined in <a href="#appendix-e">Appendix E §6</a>.</p>
+<hr />
+<h3 id="8-sources_1">8. Sources<a class="headerlink" href="#8-sources_1" title="Permanent link">¶</a></h3>
+<p>Papers, and what to read first:</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -1932,16 +1973,26 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 </tr>
 </tbody>
 </table></div>
-<h2 id="appendix-e">Appendix E — Track 2 methodology: initial map + remap<a class="headerlink" href="#appendix-e" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/E-platform-mapping-methodology.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
-<p><strong>Platform Mapping Methodology — initial map + remap, as a graph (Track 2)</strong></p>
+<h2 id="appendix-e">Appendix E — Platform mapping: methodology<a class="headerlink" href="#appendix-e" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/E-mapping-methodology.md</code> · <a href="appendixes/E-mapping-methodology.html">open as its own page</a></em></p>
+<p><strong>Platform mapping methodology — initial map + remap, as a graph (track 2)</strong></p>
 <blockquote>
 <p>Appendix E of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as the track 2 spec (solution.md §5 Track 2, §6) · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/E-mapping-methodology.html">open as its own page →</a><ol><li><a href="#1-summary_3">1. Summary</a></li><li><a href="#2-problem-and-constraints_2">2. Problem and constraints</a></li><li><a href="#3-options-considered_2">3. Options considered</a></li><li><a href="#4-chosen-design_2">4. Chosen design</a></li><li><a href="#5-trade-offs_1">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement-m7-feeds-the-36-harness">6. Evidence and measurement (M7 → feeds the 3.6 harness)</a></li><li><a href="#7-open-questions-and-build-order">7. Open questions and build order</a></li><li><a href="#8-sources_2">8. Sources</a></li></ol></nav>
+<h3 id="1-summary_3">1. Summary<a class="headerlink" href="#1-summary_3" title="Permanent link">¶</a></h3>
 <p>Distilled from the 12 papers in <a href="#appendix-d">Appendix D</a> (PDFs in <code>../references/papers/</code>) and filtered through our constraints: an <strong>unseen desktop app</strong>, <strong>pixels only</strong> over VNC/RFB, <strong>5 min per task</strong>, and a <strong>change at 15:30</strong>. Covers sub-problems 2.2–2.6 of <a href="#frontier-challenge-1-solution">solution.md §5 Track 2</a>; it is the spec for boxes [E] fingerprint and [F] App Memory, and it feeds [C] the agent loop.</p>
 <p>Reuses what exists: <a href="#appendix-i"><code>poc/rfb_poc.py</code></a> → <code>RFB.fb</code>, <code>settle()</code>, <code>changed_bbox()</code>, <code>click/type/key</code>; title-bar text for app identity (<a href="#appendix-b">Appendix B</a> §5); perception <code>elements()</code> from track 7.</p>
 <hr />
-<h3 id="1-the-ten-ideas-we-keep">1. The ten ideas we keep<a class="headerlink" href="#1-the-ten-ideas-we-keep" title="Permanent link">¶</a></h3>
+<h3 id="2-problem-and-constraints_2">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_2" title="Permanent link">¶</a></h3>
+<h4 id="21-interfaces-assumed-m0">2.1 Interfaces assumed (M0)<a class="headerlink" href="#21-interfaces-assumed-m0" title="Permanent link">¶</a></h4>
+<ul>
+<li><code>elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]</code> from track 7. Timing: known screen &lt; 1 s (7.6 cache), <strong>first sight of a dense screen ≈ 8 s</strong> — budgeted below.</li>
+<li><code>settle()</code>, <code>changed_bbox(before, after)</code>, <code>click/type/key</code> from <a href="#appendix-i"><code>poc/rfb_poc.py</code></a>.</li>
+<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. A version change is itself a drift hint (S5).</li>
+</ul>
+<hr />
+<h3 id="3-options-considered_2">3. Options considered<a class="headerlink" href="#3-options-considered_2" title="Permanent link">¶</a></h3>
+<h4 id="31-the-ten-ideas-we-keep">3.1 The ten ideas we keep<a class="headerlink" href="#31-the-ten-ideas-we-keep" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2016,14 +2067,8 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 </table></div>
 <p><strong>Deliberately skipped</strong> (none fits a one-day build; <code>lazy:</code> notes say when to revisit): macro/shortcut mining (EAM, AppAgentX), embeddings + vector DB, Neo4j, offline crawls, trained Q-model/MCTS (EAM), distributed exploration (ScreenSearch).</p>
 <hr />
-<h3 id="2-interfaces-assumed-m0">2. Interfaces assumed (M0)<a class="headerlink" href="#2-interfaces-assumed-m0" title="Permanent link">¶</a></h3>
-<ul>
-<li><code>elements(fb) → [{id, text, bbox, kind ∈ {title, menu, button, field, link, header, cell, text}, paired_input?}]</code> from track 7. Timing: known screen &lt; 1 s (7.6 cache), <strong>first sight of a dense screen ≈ 8 s</strong> — budgeted below.</li>
-<li><code>settle()</code>, <code>changed_bbox(before, after)</code>, <code>click/type/key</code> from <a href="#appendix-i"><code>poc/rfb_poc.py</code></a>.</li>
-<li>App identity = title-bar text with the version split off: <code>app_id = "SIGECOM · Distribuidora Andina"</code>, <code>version = "v3.9"</code>. A version change is itself a drift hint (S5).</li>
-</ul>
-<hr />
-<h3 id="3-screen-fingerprint-m1-sub-problem-23">3. Screen fingerprint (M1 → sub-problem 2.3)<a class="headerlink" href="#3-screen-fingerprint-m1-sub-problem-23" title="Permanent link">¶</a></h3>
+<h3 id="4-chosen-design_2">4. Chosen design<a class="headerlink" href="#4-chosen-design_2" title="Permanent link">¶</a></h3>
+<h4 id="41-screen-fingerprint-m1-sub-problem-23">4.1 Screen fingerprint (M1 → sub-problem 2.3)<a class="headerlink" href="#41-screen-fingerprint-m1-sub-problem-23" title="Permanent link">¶</a></h4>
 <ol>
 <li><strong>Keep static elements only:</strong> kind ∈ {title, menu, button, field label, link label, header}. Drop numbers, dates, codes (<code>FV-#####</code>), currency, grid body cells, and anything inside a region track 7 flags as data.</li>
 <li><strong>Bin each kept label</strong> to a 12×8 grid on <strong>normalized</strong> coordinates → atom <code>cell|text</code>. Resolution-independent by construction.</li>
@@ -2036,8 +2081,7 @@ Question: how do published GUI agents build an <strong>initial map</strong> of a
 <li><strong>In-page state does not change the node.</strong> Filter text, pagination, selected row, scroll are <strong>self-loop edges</strong> with an <code>effect</code> field.</li>
 </ol>
 <p><strong>Done when:</strong> the same screen at two resolutions → one id; 10 distinct SIGECOM screens → 10 ids; a dropdown open/closed → same node.</p>
-<hr />
-<h3 id="4-map-schema-m2-sub-problem-24">4. Map schema (M2 → sub-problem 2.4)<a class="headerlink" href="#4-map-schema-m2-sub-problem-24" title="Permanent link">¶</a></h3>
+<h4 id="42-map-schema-m2-sub-problem-24">4.2 Map schema (M2 → sub-problem 2.4)<a class="headerlink" href="#42-map-schema-m2-sub-problem-24" title="Permanent link">¶</a></h4>
 <p>One JSON per app: <code>memory/&lt;app_id&gt;.json</code>. No database.</p>
 <pre><code class="language-jsonc">node      = {id, title, atoms[], description, ref_png, elements_snapshot,
              transient, stale, seen, last_seen}
@@ -2052,12 +2096,11 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li><code>data: true</code> when the target is not in the static set (a grid row, a record code). A miss on a data edge runs the <strong>find procedure</strong> (search field → type → Enter → <code>Siguiente</code> ≤ N pages), never the repair ladder. We store the procedure, not the row click.</li>
 <li><code>scroll: true</code> when the target was only found after one PageDown. "Not found" is declared only after that re-OCR.</li>
 <li><code>outcomes</code> is the histogram of where this action actually led. More than one node with real mass = an unreliable edge (S6).</li>
-<li>Edge rank = <code>ok / (ok + fail)</code> × recency decay. The planner sees edges with their <code>ok/fail</code>; nothing is deleted (see §7, rung 4).</li>
+<li>Edge rank = <code>ok / (ok + fail)</code> × recency decay. The planner sees edges with their <code>ok/fail</code>; nothing is deleted (see §4.5, rung 4).</li>
 <li>Denylist labels are never clicked unless the task names them.</li>
 </ul>
 <p><strong>Done when:</strong> a second task on the same app loads the map and finishes faster than the first.</p>
-<hr />
-<h3 id="5-initial-mapping-m3-sub-problems-22-and-25">5. Initial mapping (M3 → sub-problems 2.2 and 2.5)<a class="headerlink" href="#5-initial-mapping-m3-sub-problems-22-and-25" title="Permanent link">¶</a></h3>
+<h4 id="43-initial-mapping-m3-sub-problems-22-and-25">4.3 Initial mapping (M3 → sub-problems 2.2 and 2.5)<a class="headerlink" href="#43-initial-mapping-m3-sub-problems-22-and-25" title="Permanent link">¶</a></h4>
 <p>Decision for 2.5: <strong>cold + incremental</strong>, with one bounded pre-warm. No app-wide exploration ever.</p>
 <ol>
 <li><strong>Connect → identify app → load map or start cold.</strong> ~5 s.</li>
@@ -2068,17 +2111,15 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li><code>lazy:</code> background frontier exploration between tasks, only if a spare session exists. Shared session risk: <code>operador</code>/<code>operador2</code> collisions.</li>
 </ol>
 <p><strong>Done when:</strong> the first task on SIGECOM records the 9 menu screens as edges within the 45 s pre-warm, with no hand-written coordinates.</p>
-<hr />
-<h3 id="6-task-time-use-m4-feeds-35">6. Task-time use (M4 → feeds 3.5)<a class="headerlink" href="#6-task-time-use-m4-feeds-35" title="Permanent link">¶</a></h3>
+<h4 id="44-task-time-use-m4-feeds-35">4.4 Task-time use (M4 → feeds 3.5)<a class="headerlink" href="#44-task-time-use-m4-feeds-35" title="Permanent link">¶</a></h4>
 <ol>
 <li><strong>Plan: one LLM call.</strong> Input: task + compact graph (node titles + descriptions; edges as <code>Inicio —[click "Cartera › Facturas"]→ Facturas</code>; procedures whose <code>task_text</code> is similar). Output: ordered steps, each an edge, a self-loop with params, or <code>explore</code>.</li>
-<li><strong>Execute a step.</strong> Ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell) → act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §7.
+<li><strong>Execute a step.</strong> Ground <code>target.label</code> on the current <code>elements</code> (exact → fuzzy → same role in the same cell) → act → <code>settle</code> → fingerprint → <strong>compare with <code>edge.to</code></strong>. Match: <code>ok++</code>, next step. Mismatch: §4.5.
    - <code>fill_field</code>: click the <strong>paired input box</strong> (7.3), confirm a caret or text appeared inside that bbox, else <code>Tab</code>. Keyboard focus is invisible to the fingerprint.</li>
 <li><strong>Verify completion</strong> against the last screen's elements; write the summary in the README format.</li>
 <li><strong>Targets per step:</strong> act + settle ≤ 2 s, OCR ≤ 1 s, fingerprint in ms. <strong>LLM calls per task ≤ 3 on a warm map.</strong></li>
 </ol>
-<hr />
-<h3 id="7-change-detection-and-repair-m5-sub-problem-26-the-1530-path">7. Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)<a class="headerlink" href="#7-change-detection-and-repair-m5-sub-problem-26-the-1530-path" title="Permanent link">¶</a></h3>
+<h4 id="45-change-detection-and-repair-m5-sub-problem-26-the-1530-path">4.5 Change detection and repair (M5 → sub-problem 2.6, the 15:30 path)<a class="headerlink" href="#45-change-detection-and-repair-m5-sub-problem-26-the-1530-path" title="Permanent link">¶</a></h4>
 <p><strong>Signals</strong> (any one triggers):</p>
 <div class="tw"><table>
 <thead>
@@ -2134,7 +2175,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 <tr>
 <td>2</td>
-<td><strong>Local re-explore.</strong> Mark the node <code>stale</code>, run §5.4 on this node only, write the new edges. It is the pre-warm function applied to one node: no new code.</td>
+<td><strong>Local re-explore.</strong> Mark the node <code>stale</code>, run §4.3 step 4 on this node only, write the new edges. It is the pre-warm function applied to one node: no new code.</td>
 <td>≤ 30 s</td>
 <td>An item moved to another menu.</td>
 </tr>
@@ -2154,9 +2195,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </table></div>
 <p>Entry rung depends on the signal: <strong>S1 → 1 → 2 → 3. S3/S4 → <code>Esc</code>/back to the previous node (2 s) → 3.</strong></p>
 <p>Why four and not five: a task-driven graph of 10–20 nodes almost never has an alternative route, so the papers' "alternative path" rung would not fire; it is folded into rung 3. Deletion risks losing a good edge to three unlucky failures, so pruning is replaced by ranking. <code>lazy:</code> add pruning when the map grows past what fits in the prompt.</p>
-<p><strong>Done when:</strong> every mutation in §9 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.</p>
-<hr />
-<h3 id="8-time-budget-per-task-m6">8. Time budget per task (M6)<a class="headerlink" href="#8-time-budget-per-task-m6" title="Permanent link">¶</a></h3>
+<p><strong>Done when:</strong> every mutation in §6.1 is detected, the expected rung is reached, and the recovery is visible in the log before 15:30.</p>
+<h4 id="46-time-budget-per-task-m6">4.6 Time budget per task (M6)<a class="headerlink" href="#46-time-budget-per-task-m6" title="Permanent link">¶</a></h4>
 <p>300 s total, hard stop at 270 s.</p>
 <div class="tw"><table>
 <thead>
@@ -2179,7 +2219,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 <tr>
 <td>→ 45</td>
-<td>pre-warm (§5.2)</td>
+<td>pre-warm (§4.3 step 2)</td>
 <td>first task on an app only; cap 45 s</td>
 </tr>
 <tr>
@@ -2206,94 +2246,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </table></div>
 <p>What the 4:30 guard drops, in order: an in-flight repair at rung ≥ 2; unverified edges (never persisted anyway); VLM verifies (ambiguous → new node). The summary, the persist and the JSONL always run.</p>
 <hr />
-<h3 id="9-measurement-m7-feeds-the-36-harness">9. Measurement (M7 → feeds the 3.6 harness)<a class="headerlink" href="#9-measurement-m7-feeds-the-36-harness" title="Permanent link">¶</a></h3>
-<div class="tw"><table>
-<thead>
-<tr>
-<th>Unit</th>
-<th>Check</th>
-<th>Metric</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>§3 fingerprint</td>
-<td>same screen at 2 resolutions → one id; 10 distinct SIGECOM screens → 10 ids; dropdown open/closed → same node</td>
-<td>dedup FP / FN</td>
-</tr>
-<tr>
-<td>§5 mapping</td>
-<td>first task on SIGECOM records the 9 menu screens</td>
-<td>nodes found / 9; pre-warm seconds</td>
-</tr>
-<tr>
-<td>§6 warm start</td>
-<td>the same task cold then warm</td>
-<td>time, steps, LLM calls</td>
-</tr>
-<tr>
-<td>§7 remap</td>
-<td>the mutation set below</td>
-<td>detected (which signal), rung reached, seconds to repair, task success after repair</td>
-</tr>
-</tbody>
-</table></div>
-<h4 id="simulating-the-1530-change-without-touching-sigecom">Simulating the 15:30 change without touching SIGECOM<a class="headerlink" href="#simulating-the-1530-change-without-touching-sigecom" title="Permanent link">¶</a></h4>
-<p>Drift is a function of (stored map, live screen). We can't change the screen, so we mutate the map: the detect → repair → log code path is identical. Freeze a golden <code>map.json</code> once warm tasks pass. Per test: fresh copy → <code>--mutate &lt;kind&gt;</code> → run 3–4 tasks → assert the JSONL lines. The same flag is the demo script.</p>
-<div class="tw"><table>
-<thead>
-<tr>
-<th>Mutation</th>
-<th>Simulates</th>
-<th>Expected log</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>target.label</code> Facturas → Facturación</td>
-<td>renamed label</td>
-<td>S1 → rung 1 fuzzy match patches the edge</td>
-</tr>
-<tr>
-<td><code>target.label</code> → "Zzzz"</td>
-<td>control removed</td>
-<td>rung 1 fails → rung 2 re-explore finds the real item</td>
-</tr>
-<tr>
-<td><code>edge.to</code> → another node's fingerprint</td>
-<td>landing mismatch</td>
-<td>S3 → rung 1 retargets</td>
-</tr>
-<tr>
-<td>delete all edges into a node</td>
-<td>menu item moved</td>
-<td>rung 2 re-adds it</td>
-</tr>
-<tr>
-<td>node atoms → junk</td>
-<td>unknown screen</td>
-<td>S4 → rung 3 → <code>rejoin</code> line</td>
-</tr>
-<tr>
-<td>"Zzzz" repeated across 3 tasks</td>
-<td>persistent break</td>
-<td>rank-down line</td>
-</tr>
-<tr>
-<td>grid cell shifted by 3</td>
-<td>moved button</td>
-<td><strong>negative control: 0 drift lines</strong></td>
-</tr>
-<tr>
-<td>page 2 · filter applied · <code>operador2</code></td>
-<td>data state, not drift</td>
-<td><strong>negative control: 0 drift lines</strong></td>
-</tr>
-</tbody>
-</table></div>
-<p>Real-pixel drift with no app change: a transform hook in [E] that downscales the framebuffer 0.8× or translates it +40/+25 px before OCR (coordinates mapped back) proves resolution independence and that nothing uses raw x,y. If the SIGECOM window isn't locked maximized, un-maximizing it is a genuine layout shift. Run the set before 15:30, re-run on the real change, show the delta.</p>
-<hr />
-<h3 id="10-decisions-for-the-design-doc-with-the-discarded-alternative">10. Decisions for the design doc (with the discarded alternative)<a class="headerlink" href="#10-decisions-for-the-design-doc-with-the-discarded-alternative" title="Permanent link">¶</a></h3>
+<h3 id="5-trade-offs_1">5. Trade-offs<a class="headerlink" href="#5-trade-offs_1" title="Permanent link">¶</a></h3>
+<p>Decisions for the design doc, with the discarded alternative:</p>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2351,20 +2305,118 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tbody>
 </table></div>
 <hr />
-<h3 id="11-build-order-inside-track-2">11. Build order inside track 2<a class="headerlink" href="#11-build-order-inside-track-2" title="Permanent link">¶</a></h3>
+<h3 id="6-evidence-and-measurement-m7-feeds-the-36-harness">6. Evidence and measurement (M7 → feeds the 3.6 harness)<a class="headerlink" href="#6-evidence-and-measurement-m7-feeds-the-36-harness" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Unit</th>
+<th>Check</th>
+<th>Metric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§4.1 fingerprint</td>
+<td>same screen at 2 resolutions → one id; 10 distinct SIGECOM screens → 10 ids; dropdown open/closed → same node</td>
+<td>dedup FP / FN</td>
+</tr>
+<tr>
+<td>§4.3 mapping</td>
+<td>first task on SIGECOM records the 9 menu screens</td>
+<td>nodes found / 9; pre-warm seconds</td>
+</tr>
+<tr>
+<td>§4.4 warm start</td>
+<td>the same task cold then warm</td>
+<td>time, steps, LLM calls</td>
+</tr>
+<tr>
+<td>§4.5 remap</td>
+<td>the mutation set below</td>
+<td>detected (which signal), rung reached, seconds to repair, task success after repair</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="61-simulating-the-1530-change-without-touching-sigecom">6.1 Simulating the 15:30 change without touching SIGECOM<a class="headerlink" href="#61-simulating-the-1530-change-without-touching-sigecom" title="Permanent link">¶</a></h4>
+<p>Drift is a function of (stored map, live screen). We can't change the screen, so we mutate the map: the detect → repair → log code path is identical. Freeze a golden <code>map.json</code> once warm tasks pass. Per test: fresh copy → <code>--mutate &lt;kind&gt;</code> → run 3–4 tasks → assert the JSONL lines. The same flag is the demo script.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Mutation</th>
+<th>Simulates</th>
+<th>Expected log</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>target.label</code> Facturas → Facturación</td>
+<td>renamed label</td>
+<td>S1 → rung 1 fuzzy match patches the edge</td>
+</tr>
+<tr>
+<td><code>target.label</code> → "Zzzz"</td>
+<td>control removed</td>
+<td>rung 1 fails → rung 2 re-explore finds the real item</td>
+</tr>
+<tr>
+<td><code>edge.to</code> → another node's fingerprint</td>
+<td>landing mismatch</td>
+<td>S3 → rung 1 retargets</td>
+</tr>
+<tr>
+<td>delete all edges into a node</td>
+<td>menu item moved</td>
+<td>rung 2 re-adds it</td>
+</tr>
+<tr>
+<td>node atoms → junk</td>
+<td>unknown screen</td>
+<td>S4 → rung 3 → <code>rejoin</code> line</td>
+</tr>
+<tr>
+<td>"Zzzz" repeated across 3 tasks</td>
+<td>persistent break</td>
+<td>rank-down line</td>
+</tr>
+<tr>
+<td>grid cell shifted by 3</td>
+<td>moved button</td>
+<td><strong>negative control: 0 drift lines</strong></td>
+</tr>
+<tr>
+<td>page 2 · filter applied · <code>operador2</code></td>
+<td>data state, not drift</td>
+<td><strong>negative control: 0 drift lines</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>Real-pixel drift with no app change: a transform hook in [E] that downscales the framebuffer 0.8× or translates it +40/+25 px before OCR (coordinates mapped back) proves resolution independence and that nothing uses raw x,y. If the SIGECOM window isn't locked maximized, un-maximizing it is a genuine layout shift. Run the set before 15:30, re-run on the real change, show the delta.</p>
+<hr />
+<h3 id="7-open-questions-and-build-order">7. Open questions and build order<a class="headerlink" href="#7-open-questions-and-build-order" title="Permanent link">¶</a></h3>
+<h4 id="71-build-order-inside-track-2">7.1 Build order inside track 2<a class="headerlink" href="#71-build-order-inside-track-2" title="Permanent link">¶</a></h4>
 <ol>
-<li>§3 fingerprint + §4 schema (one module, pure functions over <code>elements()</code> output; the one runnable check is the 10-screen dedup test).</li>
-<li>§5.3 task-driven write-back inside the agent loop; §5.2 pre-warm.</li>
-<li>§6 planner prompt with the compact graph.</li>
-<li>§7 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §9 table.</li>
+<li>§4.1 fingerprint + §4.2 schema (one module, pure functions over <code>elements()</code> output; the one runnable check is the 10-screen dedup test).</li>
+<li>§4.3 step 3 task-driven write-back inside the agent loop; §4.3 step 2 pre-warm.</li>
+<li>§4.4 planner prompt with the compact graph.</li>
+<li>§4.5 signals + rung 1, then rungs 2–3; <code>--mutate</code> flag and the §6.1 table.</li>
 <li>Baseline numbers before 15:30; re-run after.</li>
 </ol>
-<h2 id="appendix-f">Appendix F — Track 3 research: agent loop<a class="headerlink" href="#appendix-f" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/F-research-3-agent-loop.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
-<p><strong>Research — Track 3: A fast agent loop</strong></p>
+<h4 id="72-deferred-lazy-notes">7.2 Deferred (<code>lazy:</code> notes)<a class="headerlink" href="#72-deferred-lazy-notes" title="Permanent link">¶</a></h4>
+<ul>
+<li>Background frontier exploration between tasks, only if a spare session exists (§4.3, step 6).</li>
+<li>Pruning, once the map grows past what fits in the prompt (§4.5).</li>
+<li>The techniques skipped on purpose for a one-day build (§3.1, "Deliberately skipped").</li>
+</ul>
+<hr />
+<h3 id="8-sources_2">8. Sources<a class="headerlink" href="#8-sources_2" title="Permanent link">¶</a></h3>
+<p>The twelve papers compared in <a href="#appendix-d">Appendix D</a>; PDFs in <code>../references/papers/</code>.</p>
+<h2 id="appendix-f">Appendix F — Agent loop<a class="headerlink" href="#appendix-f" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/F-agent-loop.md</code> · <a href="appendixes/F-agent-loop.html">open as its own page</a></em></p>
+<p><strong>Agent loop — fast plan → act → verify (track 3)</strong></p>
 <blockquote>
 <p>Appendix F of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as component [C] (solution.md §3.2); Jev stays a gated 1 h spike · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/F-agent-loop.html">open as its own page →</a><ol><li><a href="#1-summary_4">1. Summary</a></li><li><a href="#2-problem-and-constraints_3">2. Problem and constraints</a></li><li><a href="#3-options-considered_3">3. Options considered</a></li><li><a href="#4-chosen-design_3">4. Chosen design</a></li><li><a href="#5-trade-offs_2">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_2">6. Evidence and measurement</a></li><li><a href="#7-open-questions_2">7. Open questions</a></li><li><a href="#8-sources_3">8. Sources</a></li></ol></nav>
+<h3 id="1-summary_4">1. Summary<a class="headerlink" href="#1-summary_4" title="Permanent link">¶</a></h3>
 <p><strong>Decision:</strong> Claude runs the loop <strong>in-process</strong> with plain Python tool functions, with no MCP. We build it in three steps, and each one has to earn its place on the 3.6 harness:
 1. A tool-use loop with <strong>batched actions</strong> (L1+L2). This is the first end-to-end path.
 2. <strong>Plan-then-execute</strong> with replan when a check fails (L3). This cuts the number of LLM calls.
@@ -2373,8 +2425,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <p><strong>Terminology.</strong> <em>System 2</em> is the slow, deliberate planner (Claude). <em>System 1</em> is a fast decision function that answers narrow, typed questions in about 100 ms (Jev). Jev is TypeSafe AI's "System One" model. It does <strong>not</strong> generate text: it returns typed choices or scores, each with a calibrated probability.</p>
 </blockquote>
 <hr />
-<h3 id="1-time-budget">1. Time budget<a class="headerlink" href="#1-time-budget" title="Permanent link">¶</a></h3>
-<p>Each task gets 300 s. The guard stops at <strong>270 s</strong> and writes a partial summary.</p>
+<h3 id="2-problem-and-constraints_3">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_3" title="Permanent link">¶</a></h3>
+<p>The time budget. Each task gets 300 s. The guard stops at <strong>270 s</strong> and writes a partial summary.</p>
 <p><code>step cost = LLM latency + act + settle</code></p>
 <div class="tw"><table>
 <thead>
@@ -2444,7 +2496,8 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tbody>
 </table></div>
 <p><strong>Where the time goes:</strong> LLM round trips first, then settle, then image tokens. Every option below attacks round trips.</p>
-<h3 id="2-options">2. Options<a class="headerlink" href="#2-options" title="Permanent link">¶</a></h3>
+<hr />
+<h3 id="3-options-considered_3">3. Options considered<a class="headerlink" href="#3-options-considered_3" title="Permanent link">¶</a></h3>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2514,15 +2567,24 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tr>
 </tbody>
 </table></div>
-<h3 id="3-cross-cutting-accelerators-apply-to-every-option">3. Cross-cutting accelerators (apply to every option)<a class="headerlink" href="#3-cross-cutting-accelerators-apply-to-every-option" title="Permanent link">¶</a></h3>
+<hr />
+<h3 id="4-chosen-design_3">4. Chosen design<a class="headerlink" href="#4-chosen-design_3" title="Permanent link">¶</a></h3>
+<h4 id="41-recommendation-and-order">4.1 Recommendation and order<a class="headerlink" href="#41-recommendation-and-order" title="Permanent link">¶</a></h4>
+<ol>
+<li><strong>L1+L2.</strong> A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.</li>
+<li><strong>L3.</strong> Add plan-then-execute with strict checks; replan on failure.</li>
+<li><strong>L4 spike (~1 h).</strong> Put Jev behind the <code>effect_ok</code> and <code>target</code> checks and run the harness. Keep it or drop it based on the criteria in §5.</li>
+<li>Throughout, apply the accelerators from §4.2.</li>
+</ol>
+<h4 id="42-cross-cutting-accelerators-apply-to-every-option">4.2 Cross-cutting accelerators (apply to every option)<a class="headerlink" href="#42-cross-cutting-accelerators-apply-to-every-option" title="Permanent link">¶</a></h4>
 <ul>
 <li><strong>Text over images.</strong> Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.</li>
 <li><strong>Prompt caching</strong> on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.</li>
 <li><strong>Model tiering.</strong> Sonnet-class for routine steps; Opus-class only for recovery and replan. Add this only if measurements show we need it.</li>
-<li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="#appendix-d">Appendix D</a> and <a href="#appendix-e">Appendix E §6</a>).</li>
+<li><strong>App Memory shortcuts.</strong> <code>navigate_to(screen)</code> replaces about 5 menu clicks with one step (see <a href="#appendix-d">Appendix D</a> and <a href="#appendix-e">Appendix E §4.4</a>).</li>
 <li><strong>Settle.</strong> Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.</li>
 </ul>
-<h3 id="4-jev-deep-dive">4. Jev deep dive<a class="headerlink" href="#4-jev-deep-dive" title="Permanent link">¶</a></h3>
+<h4 id="43-jev-as-system-1-l4">4.3 Jev as System 1 (L4)<a class="headerlink" href="#43-jev-as-system-1-l4" title="Permanent link">¶</a></h4>
 <p><strong>Fit.</strong> Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in Claude or in code.</p>
 <p><strong>Proposed call per step</strong> (state as text or JSON, a single parallel pass):</p>
 <div class="tw"><table>
@@ -2562,24 +2624,15 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tbody>
 </table></div>
 <p>Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to Claude. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.</p>
-<p><strong>Adoption criteria.</strong> On the 3.6 harness, with Jev in place compared to Claude-only:
+<hr />
+<h3 id="5-trade-offs_2">5. Trade-offs<a class="headerlink" href="#5-trade-offs_2" title="Permanent link">¶</a></h3>
+<p><strong>Adoption criteria</strong> for Jev. On the 3.6 harness, with Jev in place compared to Claude-only:
 - success % no more than 5 points lower;
 - at least 5× faster per decision;
 - escalation rate under 30%.</p>
 <p>If it fails any of these, drop it. L3 stays intact because Jev only replaces the per-step checks.</p>
-<p><strong>Risks.</strong>
-1. <strong>Access.</strong> It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
-2. <strong>Out-of-distribution behaviour.</strong> The evaluation app is unseen. The confidence gate is the mitigation.
-3. <strong>Unverified claims.</strong> The vendor states 40–200× speedups; users report a median of about 7×.
-4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.</p>
-<h3 id="5-recommendation-and-order">5. Recommendation and order<a class="headerlink" href="#5-recommendation-and-order" title="Permanent link">¶</a></h3>
-<ol>
-<li><strong>L1+L2.</strong> A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.</li>
-<li><strong>L3.</strong> Add plan-then-execute with strict checks; replan on failure.</li>
-<li><strong>L4 spike (~1 h).</strong> Put Jev behind the <code>effect_ok</code> and <code>target</code> checks and run the harness. Keep it or drop it based on the criteria above.</li>
-<li>Throughout, apply the accelerators from section 3.</li>
-</ol>
-<h3 id="6-what-to-measure">6. What to measure<a class="headerlink" href="#6-what-to-measure" title="Permanent link">¶</a></h3>
+<hr />
+<h3 id="6-evidence-and-measurement_2">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement_2" title="Permanent link">¶</a></h3>
 <p>All from the JSONL log [H], for every option:
 - seconds per step;
 - LLM calls per task;
@@ -2588,24 +2641,33 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 - recoveries;
 - escalation rate (Jev → Claude).</p>
 <p>Run the baseline before 15:30 and again after.</p>
-<h3 id="sources_1">Sources<a class="headerlink" href="#sources_1" title="Permanent link">¶</a></h3>
+<hr />
+<h3 id="7-open-questions_2">7. Open questions<a class="headerlink" href="#7-open-questions_2" title="Permanent link">¶</a></h3>
+<p><strong>Risks</strong> of the Jev spike.
+1. <strong>Access.</strong> It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
+2. <strong>Out-of-distribution behaviour.</strong> The evaluation app is unseen. The confidence gate is the mitigation.
+3. <strong>Unverified claims.</strong> The vendor states 40–200× speedups; users report a median of about 7×.
+4. <strong>Wrong-but-valid answers.</strong> Jev can't produce an invalid type, but it can choose the wrong element. The <code>effect_ok</code> check after each action catches this.</p>
+<hr />
+<h3 id="8-sources_3">8. Sources<a class="headerlink" href="#8-sources_3" title="Permanent link">¶</a></h3>
 <ul>
 <li>TypeSafe AI, "Introducing System One Models &amp; Jev": https://typesafe.ai/blog/introducing-system-one-models-and-jev (local: <a href="references/jev/typesafe-blog-introducing-jev.html">../references/jev/typesafe-blog-introducing-jev.html</a>)</li>
 <li>InfoQ, "TypeSafe AI Releases Jev" (Oct 2026): https://www.infoq.com/news/2026/10/typesafe-ai-jev-released/ (local: <a href="references/jev/infoq-typesafe-jev-released.html">../references/jev/infoq-typesafe-jev-released.html</a>)</li>
 <li>Flavio Copes, "A deep dive into Jev": https://flaviocopes.com/jev/ (local: <a href="references/jev/flaviocopes-jev.html">../references/jev/flaviocopes-jev.html</a>)</li>
 <li>"Jev in the Wild" (arXiv 2609.30216): https://arxiv.org/pdf/2609.30216 (local: <a href="references/jev/2609.30216-jev-in-the-wild.pdf">../references/jev/2609.30216-jev-in-the-wild.pdf</a>)</li>
 </ul>
-<h2 id="appendix-g">Appendix G — Track 4 design: data sync<a class="headerlink" href="#appendix-g" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/G-data-sync-design.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
-<p><strong>Data Sync Design (track 4)</strong></p>
+<h2 id="appendix-g">Appendix G — Data sync and read cache<a class="headerlink" href="#appendix-g" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/G-data-sync.md</code> · <a href="appendixes/G-data-sync.html">open as its own page</a></em></p>
+<p><strong>Data sync and read cache (track 4)</strong></p>
 <blockquote>
 <p>Appendix G of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as components [S] and [DB] (solution.md §3.2, §4) · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/G-data-sync.html">open as its own page →</a><ol><li><a href="#1-summary_5">1. Summary</a></li><li><a href="#2-problem-and-constraints_4">2. Problem and constraints</a></li><li><a href="#3-options-considered_4">3. Options considered</a></li><li><a href="#4-chosen-design_4">4. Chosen design</a></li><li><a href="#5-trade-offs_3">5. Trade-offs</a></li><li><a href="#6-evidence-and-measurement_3">6. Evidence and measurement</a></li><li><a href="#7-open-questions_3">7. Open questions</a></li><li><a href="#8-sources_4">8. Sources</a></li></ol></nav>
+<h3 id="1-summary_5">1. Summary<a class="headerlink" href="#1-summary_5" title="Permanent link">¶</a></h3>
 <p><strong>Scope:</strong> an expansion of <a href="#frontier-challenge-1-solution">solution.md §5 Track 4</a> (4.1–4.4).
 <strong>Decision:</strong> a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.</p>
 <hr />
-<h3 id="0-what-sync-means-here">0. What "sync" means here<a class="headerlink" href="#0-what-sync-means-here" title="Permanent link">¶</a></h3>
-<p>There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (<a href="#appendix-b">Appendix B</a>). In this project, "sync" means:</p>
+<h3 id="2-problem-and-constraints_4">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_4" title="Permanent link">¶</a></h3>
+<p>What "sync" means here. There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (<a href="#appendix-b">Appendix B</a>). In this project, "sync" means:</p>
 <pre><code> Remote app (source of truth)  ──pixels / clipboard / export──►  Agent cache (SQLite)  ──►  task answer
           ▲                                                              │
           └───────────── writes happen ONLY through the UI ◄─────────────┘ (cache is never pushed back)
@@ -2614,11 +2676,110 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li><strong>Direction:</strong> one way. Data only flows from the app into the cache.</li>
 <li><strong>Who wins:</strong> the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.</li>
 <li><strong>Why it exists:</strong> read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.</li>
-<li><strong>What it is not:</strong> it is not the nav map. Screens, paths and procedures stay in the per-app JSON from <a href="#appendix-e">Appendix E §4</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
+<li><strong>What it is not:</strong> it is not the nav map. Screens, paths and procedures stay in the per-app JSON from <a href="#appendix-e">Appendix E §4.2</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
 </ul>
 <hr />
-<h3 id="1-happy-path">1. Happy path<a class="headerlink" href="#1-happy-path" title="Permanent link">¶</a></h3>
-<h4 id="11-read-task-full-entity">1.1 Read task, full entity<a class="headerlink" href="#11-read-task-full-entity" title="Permanent link">¶</a></h4>
+<h3 id="3-options-considered_4">3. Options considered<a class="headerlink" href="#3-options-considered_4" title="Permanent link">¶</a></h3>
+<h4 id="31-unit-of-sync-and-read-methods">3.1 Unit of sync and read methods<a class="headerlink" href="#31-unit-of-sync-and-read-methods" title="Permanent link">¶</a></h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Chosen</th>
+<th>Discarded, and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit of sync</td>
+<td>Per entity, lazy (on first need)</td>
+<td>Sync everything at task start: burns the 5-min budget on tables the task never touches</td>
+</tr>
+<tr>
+<td>Single-record reads</td>
+<td>Targeted search → upsert one row</td>
+<td>Full sync then SQL: cold cost is 30–120 s for one row</td>
+</tr>
+<tr>
+<td>Read methods</td>
+<td>Ladder: export → clipboard → OCR</td>
+<td>OCR only: slow and lossy. Export only: it may not exist in the unseen app</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="32-freshness-strategy">3.2 Freshness strategy<a class="headerlink" href="#32-freshness-strategy" title="Permanent link">¶</a></h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Freshness</th>
+<th>Cost per task</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Push / CDC / webhooks</td>
+<td>Real time</td>
+<td>—</td>
+<td><strong>Impossible.</strong> No API, only pixels</td>
+</tr>
+<tr>
+<td>Re-read the full table every task</td>
+<td>Perfect</td>
+<td>30–120 s per entity</td>
+<td>Discarded: defeats the purpose of a cache</td>
+</tr>
+<tr>
+<td>Always read live, no cache</td>
+<td>Perfect</td>
+<td>High; repeated OCR on multi-step tasks</td>
+<td>Kept only as the fallback for write tasks (§4.3.3)</td>
+</tr>
+<tr>
+<td><strong>Probe + lazy + expiry + write-through</strong></td>
+<td>Good, with one known gap (§4.3.1)</td>
+<td>A few seconds on a hit</td>
+<td><strong>Chosen</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="33-data-cache-store">3.3 Data cache store<a class="headerlink" href="#33-data-cache-store" title="Permanent link">¶</a></h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Chosen</th>
+<th>Discarded, and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data cache store</td>
+<td><strong>SQLite</strong> (Python stdlib <code>sqlite3</code>, WAL mode, one file per deployment)</td>
+<td><strong>JSON files:</strong> no queries for filter tasks, and a crash can leave a half-written file. <strong>DuckDB:</strong> an extra dependency, and analytics is overkill for about 1k rows. <strong>Postgres (Railway):</strong> network hop + ops work for a single writer, and no benefit. <strong>Redis:</strong> no ad-hoc filtering or aggregates, and one more service</td>
+</tr>
+<tr>
+<td>Schema style</td>
+<td><strong>Generic</strong> rows with a JSON payload</td>
+<td>Typed tables per entity (<code>facturas(numero, fecha, total…)</code>): impossible, because the grading app is unseen and its columns are unknown until runtime</td>
+</tr>
+<tr>
+<td>Nav map store</td>
+<td>Stays as JSON per app (<a href="#appendix-e">Appendix E §4.2</a>)</td>
+<td>Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON</td>
+</tr>
+<tr>
+<td>Durability</td>
+<td>Ephemeral; losing it is accepted</td>
+<td>A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy is worse than an empty one</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h3 id="4-chosen-design_4">4. Chosen design<a class="headerlink" href="#4-chosen-design_4" title="Permanent link">¶</a></h3>
+<h4 id="41-happy-path">4.1 Happy path<a class="headerlink" href="#41-happy-path" title="Permanent link">¶</a></h4>
+<h5 id="411-read-task-full-entity">4.1.1 Read task, full entity<a class="headerlink" href="#411-read-task-full-entity" title="Permanent link">¶</a></h5>
 <pre><code> Agent Loop            Cache (SQLite)            Sync Engine                 Remote app (RFB)
      │  need(Facturas)      │                         │                              │
      │─────────────────────►│ sync_state = complete?  │                              │
@@ -2648,36 +2809,9 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 4. <strong>Normalise:</strong> match columns by <strong>header text</strong>, never by position. Parse types (dates, money, ints). Compute the natural key and <code>row_hash</code>.
 5. Write everything to a <strong>staging</strong> table. Only a complete read is swapped in, in one transaction. Readers never see half a table.
 6. Record <code>sync_state</code> (count, probe hash, header hash, method, time). Log every step to the JSONL log [H].</p>
-<h4 id="12-read-task-one-record-targeted-path">1.2 Read task, one record (targeted path)<a class="headerlink" href="#12-read-task-one-record-targeted-path" title="Permanent link">¶</a></h4>
+<h5 id="412-read-task-one-record-targeted-path">4.1.2 Read task, one record (targeted path)<a class="headerlink" href="#412-read-task-one-record-targeted-path" title="Permanent link">¶</a></h5>
 <p>When the task names a single record ("total of factura F-0042"), do <strong>not</strong> sync the whole table. Use the app's own search or filter field instead, read the one row, and upsert it into the cache with <code>source = targeted</code>. This takes seconds instead of minutes and usually beats a cold full sync.</p>
-<div class="tw"><table>
-<thead>
-<tr>
-<th>Decision</th>
-<th>Chosen</th>
-<th>Discarded, and why</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Unit of sync</td>
-<td>Per entity, lazy (on first need)</td>
-<td>Sync everything at task start: burns the 5-min budget on tables the task never touches</td>
-</tr>
-<tr>
-<td>Single-record reads</td>
-<td>Targeted search → upsert one row</td>
-<td>Full sync then SQL: cold cost is 30–120 s for one row</td>
-</tr>
-<tr>
-<td>Read methods</td>
-<td>Ladder: export → clipboard → OCR</td>
-<td>OCR only: slow and lossy. Export only: it may not exist in the unseen app</td>
-</tr>
-</tbody>
-</table></div>
-<hr />
-<h3 id="2-keeping-it-in-sync">2. Keeping it in sync<a class="headerlink" href="#2-keeping-it-in-sync" title="Permanent link">¶</a></h3>
+<h4 id="42-keeping-it-in-sync">4.2 Keeping it in sync<a class="headerlink" href="#42-keeping-it-in-sync" title="Permanent link">¶</a></h4>
 <p>Nothing pushes changes to us. Freshness has to be <strong>detected</strong> by looking at the screen. In order of use:</p>
 <ol>
 <li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
@@ -2685,52 +2819,15 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
    - the grid's <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size), and
    - a <strong>hash of page 1</strong>, sorted newest first if the grid can sort.
    Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
-<li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §3.1.</li>
+<li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
 <li><strong>Optional pre-warm.</strong> If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.</li>
 </ol>
-<div class="tw"><table>
-<thead>
-<tr>
-<th>Strategy</th>
-<th>Freshness</th>
-<th>Cost per task</th>
-<th>Verdict</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Push / CDC / webhooks</td>
-<td>Real time</td>
-<td>—</td>
-<td><strong>Impossible.</strong> No API, only pixels</td>
-</tr>
-<tr>
-<td>Re-read the full table every task</td>
-<td>Perfect</td>
-<td>30–120 s per entity</td>
-<td>Discarded: defeats the purpose of a cache</td>
-</tr>
-<tr>
-<td>Always read live, no cache</td>
-<td>Perfect</td>
-<td>High; repeated OCR on multi-step tasks</td>
-<td>Kept only as the fallback for write tasks (§3.3)</td>
-</tr>
-<tr>
-<td><strong>Probe + lazy + expiry + write-through</strong></td>
-<td>Good, with one known gap (§3.1)</td>
-<td>A few seconds on a hit</td>
-<td><strong>Chosen</strong></td>
-</tr>
-</tbody>
-</table></div>
-<hr />
-<h3 id="3-what-if-something-changes-before-or-during-a-sync">3. What if something changes before or during a sync?<a class="headerlink" href="#3-what-if-something-changes-before-or-during-a-sync" title="Permanent link">¶</a></h3>
+<h4 id="43-what-if-something-changes-before-or-during-a-sync">4.3 What if something changes before or during a sync?<a class="headerlink" href="#43-what-if-something-changes-before-or-during-a-sync" title="Permanent link">¶</a></h4>
 <p>Who can change data behind our back:
 - <strong>another operator</strong> on the same desktop: <code>shared=1</code>, <code>operador</code> and <code>operador2</code> (1.5)
 - <strong>the evaluator</strong> setting up test data between tasks
 - <strong>the 15:30 change</strong>: this one changes the <strong>UI or structure</strong>, not just the data</p>
-<h4 id="31-external-edit-after-our-snapshot">3.1 External edit after our snapshot<a class="headerlink" href="#31-external-edit-after-our-snapshot" title="Permanent link">¶</a></h4>
+<h5 id="431-external-edit-after-our-snapshot">4.3.1 External edit after our snapshot<a class="headerlink" href="#431-external-edit-after-our-snapshot" title="Permanent link">¶</a></h5>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2759,9 +2856,9 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </table></div>
 <p>The last row is the <strong>known staleness window</strong>, and we accept it. Mitigations:
 - the expiry time puts an upper bound on it
-- any answer that depends on one specific record goes through the targeted path (§1.2), which always reads live
+- any answer that depends on one specific record goes through the targeted path (§4.1.2), which always reads live
 - the task summary states when an answer came from the cache and how old that cache was</p>
-<h4 id="32-edit-while-we-are-paging">3.2 Edit while we are paging<a class="headerlink" href="#32-edit-while-we-are-paging" title="Permanent link">¶</a></h4>
+<h5 id="432-edit-while-we-are-paging">4.3.2 Edit while we are paging<a class="headerlink" href="#432-edit-while-we-are-paging" title="Permanent link">¶</a></h5>
 <p>Paging is not a snapshot. An insert shifts rows down, which makes a row appear twice. A delete shifts rows up, which makes one get skipped.</p>
 <ul>
 <li><strong>Remove duplicates</strong> by natural key while staging.</li>
@@ -2769,23 +2866,22 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 <li>If it changes a second time, the table is "hot". Don't swap it in. Mark the entity <code>stale</code> and answer through the targeted path or live reading.</li>
 <li>Export and clipboard are near-atomic (one action), so this risk exists almost entirely on the OCR-paging step. That is another reason the ladder puts them first.</li>
 </ul>
-<h4 id="33-write-tasks-never-trust-the-cache">3.3 Write tasks never trust the cache<a class="headerlink" href="#33-write-tasks-never-trust-the-cache" title="Permanent link">¶</a></h4>
+<h5 id="433-write-tasks-never-trust-the-cache">4.3.3 Write tasks never trust the cache<a class="headerlink" href="#433-write-tasks-never-trust-the-cache" title="Permanent link">¶</a></h5>
 <p>Before the agent edits or creates anything:
 1. <strong>Read before write:</strong> open the actual record on screen.
 2. <strong>Check expectations:</strong> if the task implies a current state ("change the status of the pending order X"), confirm that state on screen. This is optimistic concurrency done by hand. The screen is the version check.
 3. If it doesn't match, <strong>don't overwrite</strong>. Report the conflict in the summary ("expected pending, found shipped by another user") and end as <code>fallida</code> or partial. Never guess.
-4. Save → <strong>read back</strong> → verify the new values are on screen → write-through to the cache (§2.1).</p>
+4. Save → <strong>read back</strong> → verify the new values are on screen → write-through to the cache (§4.2, step 1).</p>
 <p>Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" (<a href="#frontier-challenge-1-solution">solution.md §8</a>). A human <code>operador2</code> is not ruled out, and steps 2 and 4 are what protect us from them.</p>
-<h4 id="34-schema-or-ui-drift-the-1530-change">3.4 Schema or UI drift (the 15:30 change)<a class="headerlink" href="#34-schema-or-ui-drift-the-1530-change" title="Permanent link">¶</a></h4>
+<h5 id="434-schema-or-ui-drift-the-1530-change">4.3.4 Schema or UI drift (the 15:30 change)<a class="headerlink" href="#434-schema-or-ui-drift-the-1530-change" title="Permanent link">¶</a></h5>
 <ul>
 <li>Each entity stores a <strong>header hash</strong> (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, <strong>drop that entity's rows and re-acquire them</strong>. No attempt is made to migrate them.</li>
 <li>Columns are mapped by header text, so a column that only <strong>moves</strong> doesn't break anything.</li>
-<li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="#appendix-e">Appendix E §7</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
+<li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="#appendix-e">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
 </ul>
-<h4 id="35-conflict-policy-in-one-line">3.5 Conflict policy, in one line<a class="headerlink" href="#35-conflict-policy-in-one-line" title="Permanent link">¶</a></h4>
+<h5 id="435-conflict-policy-in-one-line">4.3.5 Conflict policy, in one line<a class="headerlink" href="#435-conflict-policy-in-one-line" title="Permanent link">¶</a></h5>
 <p><strong>The app always wins.</strong> We do no merging and no last-write-wins on our side, and the cache never overwrites the app.</p>
-<hr />
-<h3 id="4-error-handling">4. Error handling<a class="headerlink" href="#4-error-handling" title="Permanent link">¶</a></h3>
+<h4 id="44-error-handling">4.4 Error handling<a class="headerlink" href="#44-error-handling" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2848,40 +2944,7 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 </tbody>
 </table></div>
 <p>Every row above writes a JSONL event (<code>sync.probe</code>, <code>sync.acquire</code>, <code>sync.fallback</code>, <code>sync.conflict</code>, …) with the entity, method, counts and duration. These events feed the Challenge 2 spec and debrief.</p>
-<hr />
-<h3 id="5-database">5. Database<a class="headerlink" href="#5-database" title="Permanent link">¶</a></h3>
-<div class="tw"><table>
-<thead>
-<tr>
-<th>Decision</th>
-<th>Chosen</th>
-<th>Discarded, and why</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Data cache store</td>
-<td><strong>SQLite</strong> (Python stdlib <code>sqlite3</code>, WAL mode, one file per deployment)</td>
-<td><strong>JSON files:</strong> no queries for filter tasks, and a crash can leave a half-written file. <strong>DuckDB:</strong> an extra dependency, and analytics is overkill for about 1k rows. <strong>Postgres (Railway):</strong> network hop + ops work for a single writer, and no benefit. <strong>Redis:</strong> no ad-hoc filtering or aggregates, and one more service</td>
-</tr>
-<tr>
-<td>Schema style</td>
-<td><strong>Generic</strong> rows with a JSON payload</td>
-<td>Typed tables per entity (<code>facturas(numero, fecha, total…)</code>): impossible, because the grading app is unseen and its columns are unknown until runtime</td>
-</tr>
-<tr>
-<td>Nav map store</td>
-<td>Stays as JSON per app (<a href="#appendix-e">Appendix E §4</a>)</td>
-<td>Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON</td>
-</tr>
-<tr>
-<td>Durability</td>
-<td>Ephemeral; losing it is accepted</td>
-<td>A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy is worse than an empty one</td>
-</tr>
-</tbody>
-</table></div>
-<h4 id="schema">Schema<a class="headerlink" href="#schema" title="Permanent link">¶</a></h4>
+<h4 id="45-database-schema">4.5 Database schema<a class="headerlink" href="#45-database-schema" title="Permanent link">¶</a></h4>
 <pre><code class="language-sql">CREATE TABLE rows (
   app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
   entity      TEXT NOT NULL,          -- e.g. 'Facturas', named from the screen
@@ -2896,9 +2959,9 @@ denylist  = [&quot;Integraciones&quot;, &quot;Eliminar&quot;, &quot;Anular&quot;
 CREATE TABLE sync_state (
   app_id      TEXT NOT NULL,
   entity      TEXT NOT NULL,
-  header_hash TEXT NOT NULL,          -- §3.4 schema drift
-  row_count   INTEGER,                -- §2 probe
-  probe_hash  TEXT,                   -- §2 probe (page 1)
+  header_hash TEXT NOT NULL,          -- §4.3.4 schema drift
+  row_count   INTEGER,                -- §4.2 probe
+  probe_hash  TEXT,                   -- §4.2 probe (page 1)
   status      TEXT NOT NULL CHECK (status IN ('complete','partial','stale')),
   method      TEXT,                   -- which rung of the ladder worked
   acquired_at TEXT NOT NULL,
@@ -2907,7 +2970,7 @@ CREATE TABLE sync_state (
 </code></pre>
 <p>Queries use <code>json_extract(data_json, '$.Total')</code>, which is built into SQLite, so filter and sum tasks become SQL instead of LLM arithmetic. The swap works like this: rows are written into <code>rows_staging</code>, then <code>BEGIN; DELETE FROM rows WHERE app_id=? AND entity=?; INSERT … SELECT FROM rows_staging; UPDATE sync_state …; COMMIT;</code></p>
 <hr />
-<h3 id="6-trade-offs-summary">6. Trade-offs summary<a class="headerlink" href="#6-trade-offs-summary" title="Permanent link">¶</a></h3>
+<h3 id="5-trade-offs_3">5. Trade-offs<a class="headerlink" href="#5-trade-offs_3" title="Permanent link">¶</a></h3>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -2921,7 +2984,7 @@ CREATE TABLE sync_state (
 <tr>
 <td>A cache + probe</td>
 <td>Always reading live</td>
-<td>A small staleness window (§3.1)</td>
+<td>A small staleness window (§4.3.1)</td>
 <td>Lookups under 30 s; repeated reads cost almost nothing</td>
 </tr>
 <tr>
@@ -2957,7 +3020,10 @@ CREATE TABLE sync_state (
 </tbody>
 </table></div>
 <hr />
-<h3 id="7-known-unknowns">7. Known unknowns<a class="headerlink" href="#7-known-unknowns" title="Permanent link">¶</a></h3>
+<h3 id="6-evidence-and-measurement_3">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement_3" title="Permanent link">¶</a></h3>
+<p>Nothing measured yet. Probe cost and the ladder's success rate are measured in the eval harness (3.6, <a href="#frontier-challenge-1-solution">solution.md §7</a>) before and after 15:30.</p>
+<hr />
+<h3 id="7-open-questions_3">7. Open questions<a class="headerlink" href="#7-open-questions_3" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>4.1:</strong> where <code>Exportar</code> output goes (a download, a new screen, a printer dialog), and whether we can read it over RFB.</li>
 <li><strong>4.4:</strong> whether select-all + copy works on grids or only on text fields, and what format it produces.</li>
@@ -2966,21 +3032,25 @@ CREATE TABLE sync_state (
 <li>Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.</li>
 <li>Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.</li>
 </ul>
-<h2 id="appendix-h">Appendix H — Track 7 research: perception<a class="headerlink" href="#appendix-h" title="Permanent link">¶</a></h2>
-<p><em>Source: <code>resources/docs/appendixes/H-research-7-perception.md</code>, unchanged on disk. Shown here with headings one level down and file links turned into anchors.</em></p>
-<p><strong>Research — Track 7: Screen perception (pixels → elements → UI tree)</strong></p>
+<hr />
+<h3 id="8-sources_4">8. Sources<a class="headerlink" href="#8-sources_4" title="Permanent link">¶</a></h3>
+<p><a href="#appendix-b">Appendix B</a> for the transport facts, <a href="#appendix-e">Appendix E</a> for the nav map this cache sits beside, and <a href="#frontier-challenge-1-solution">solution.md §5 Track 4</a> for units 4.1–4.4.</p>
+<h2 id="appendix-h">Appendix H — Screen perception<a class="headerlink" href="#appendix-h" title="Permanent link">¶</a></h2>
+<p><em>Source: <code>resources/docs/appendixes/H-perception.md</code> · <a href="appendixes/H-perception.html">open as its own page</a></em></p>
+<p><strong>Screen perception — pixels → elements → UI tree (track 7)</strong></p>
 <blockquote>
 <p>Appendix H of <a href="#frontier-challenge-1-solution">solution.md</a> · Status: adopted as component [E] (solution.md §3.2, §5 Track 7) · Links checked 2026-10-10.</p>
-</blockquote>
+</blockquote><nav class="mini-toc"><strong>In this appendix</strong> · <a href="appendixes/H-perception.html">open as its own page →</a><ol><li><a href="#1-summary_6">1. Summary</a></li><li><a href="#2-problem-and-constraints_5">2. Problem and constraints</a></li><li><a href="#3-options-considered_5">3. Options considered</a></li><li><a href="#4-chosen-design_5">4. Chosen design</a></li><li><a href="#5-trade-offs-we-accept">5. Trade-offs we accept</a></li><li><a href="#6-evidence-and-measurement_4">6. Evidence and measurement</a></li><li><a href="#7-open-questions_4">7. Open questions</a></li><li><a href="#8-sources_5">8. Sources</a></li></ol></nav>
+<h3 id="1-summary_6">1. Summary<a class="headerlink" href="#1-summary_6" title="Permanent link">¶</a></h3>
 <p><strong>Decision:</strong> a hybrid, CPU-only pipeline.
 - <strong>OCR</strong> (RapidOCR with a Latin model) gives exact text and boxes.
 - <strong>Classic CV</strong> (OpenCV) gives widget boxes: fields, buttons, grid lines.
 - <strong>Heuristics</strong> turn those into a <strong>UI tree</strong>: containment, grouping, label↔field pairing, grids.
 - <strong>Claude</strong> sees an element list, plus a Set-of-Mark image only when the screen is new, and answers with an <strong>element id</strong>, never x,y.
 - <strong>Raw coordinates from Claude</strong> are a last-resort fallback.</p>
-<p>The whole pipeline is built around caching, because measurement (§5) shows that recognizing every line is the expensive part, not finding them.</p>
+<p>The whole pipeline is built around caching, because measurement (§6) shows that recognizing every line is the expensive part, not finding them.</p>
 <hr />
-<h3 id="1-the-problem">1. The problem<a class="headerlink" href="#1-the-problem" title="Permanent link">¶</a></h3>
+<h3 id="2-problem-and-constraints_5">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints_5" title="Permanent link">¶</a></h3>
 <pre><code>framebuffer (numpy, 1280×800, lossless)
    → elements  [{id, text, bbox, kind, conf}]          kind: menu, button, field, label, link, cell, title
    → UI tree   (window → panels → forms/grids → widgets)
@@ -2996,8 +3066,8 @@ CREATE TABLE sync_state (
 - The deploy is CPU-only (Railway).
 - 5 minutes per task, and the UI changes at 15:30.</p>
 <hr />
-<h3 id="2-building-blocks-and-options">2. Building blocks and options<a class="headerlink" href="#2-building-blocks-and-options" title="Permanent link">¶</a></h3>
-<h4 id="2a-ocr-text-box">2a. OCR — text + box<a class="headerlink" href="#2a-ocr-text-box" title="Permanent link">¶</a></h4>
+<h3 id="3-options-considered_5">3. Options considered<a class="headerlink" href="#3-options-considered_5" title="Permanent link">¶</a></h3>
+<h4 id="31-ocr-text-box">3.1 OCR — text + box<a class="headerlink" href="#31-ocr-text-box" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -3010,7 +3080,7 @@ CREATE TABLE sync_state (
 <tbody>
 <tr>
 <td><strong>RapidOCR</strong> (PaddleOCR PP-OCR models on ONNX Runtime)</td>
-<td>PaddleOCR accuracy without the Paddle framework. Pip install, CPU-friendly. Separate det/rec stages we can call independently (§5). Measured: numbers, dates and codes read near-perfectly</td>
+<td>PaddleOCR accuracy without the Paddle framework. Pip install, CPU-friendly. Separate det/rec stages we can call independently (§6). Measured: numbers, dates and codes read near-perfectly</td>
 <td>Default model is Chinese+English, so it <strong>drops accents</strong> (Gómez → Gomez). Line-level boxes, not word-level</td>
 <td><strong>Primary.</strong> Swap in the Latin rec model (PP-OCRv5 <code>latin_PP-OCRv5_mobile_rec</code> lists Spanish)</td>
 </tr>
@@ -3048,11 +3118,11 @@ CREATE TABLE sync_state (
 <td>VLM as OCR (Claude reading the image)</td>
 <td>Understands context</td>
 <td>Imprecise boxes, seconds per call, tokens</td>
-<td>Semantics only (2c), never as the source of boxes</td>
+<td>Semantics only (§3.3), never as the source of boxes</td>
 </tr>
 </tbody>
 </table></div>
-<h4 id="2b-non-text-widgets-fields-buttons-grid-lines-icons">2b. Non-text widgets — fields, buttons, grid lines, icons<a class="headerlink" href="#2b-non-text-widgets-fields-buttons-grid-lines-icons" title="Permanent link">¶</a></h4>
+<h4 id="32-non-text-widgets-fields-buttons-grid-lines-icons">3.2 Non-text widgets — fields, buttons, grid lines, icons<a class="headerlink" href="#32-non-text-widgets-fields-buttons-grid-lines-icons" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -3078,7 +3148,7 @@ CREATE TABLE sync_state (
 </tbody>
 </table></div>
 <p>Chen et al. (2020) asked exactly this question: old-fashioned CV, deep learning, or a mix? Their answer was <strong>a mix</strong>: CV for non-text widget boxes and a dedicated detector for text. That's our split.</p>
-<h4 id="2c-semantics-which-element-is-the-one-the-task-means">2c. Semantics — which element is the one the task means<a class="headerlink" href="#2c-semantics-which-element-is-the-one-the-task-means" title="Permanent link">¶</a></h4>
+<h4 id="33-semantics-which-element-is-the-one-the-task-means">3.3 Semantics — which element is the one the task means<a class="headerlink" href="#33-semantics-which-element-is-the-one-the-task-means" title="Permanent link">¶</a></h4>
 <div class="tw"><table>
 <thead>
 <tr>
@@ -3092,7 +3162,7 @@ CREATE TABLE sync_state (
 <tr>
 <td><strong>Claude + element list (text) + Set-of-Mark image on new screens</strong>: numbered boxes drawn on the screenshot; the model answers <code>click #12</code></td>
 <td>The model never predicts pixels. SoM and OmniParser show that marks plus a parsed element list greatly improve grounding for general-purpose VLMs. Text-only on known screens keeps it cheap</td>
-<td>Only as good as the element list (2a/2b)</td>
+<td>Only as good as the element list (§3.1/§3.2)</td>
 <td><strong>Chosen</strong></td>
 </tr>
 <tr>
@@ -3109,10 +3179,13 @@ CREATE TABLE sync_state (
 </tr>
 </tbody>
 </table></div>
-<h4 id="2d-building-the-tree-the-papers-on-building-a-ui-tree-part">2d. Building the tree (the "papers on building a UI tree" part)<a class="headerlink" href="#2d-building-the-tree-the-papers-on-building-a-ui-tree-part" title="Permanent link">¶</a></h4>
+<h4 id="34-building-the-tree-the-two-routes-in-the-literature">3.4 Building the tree — the two routes in the literature<a class="headerlink" href="#34-building-the-tree-the-two-routes-in-the-literature" title="Permanent link">¶</a></h4>
 <p>The literature takes two routes:
 - <strong>Learned end-to-end:</strong> a model outputs the structure directly. pix2code (2017) produces a DSL; Pix2Struct (2022) parses screenshots into simplified HTML; ScreenAI (2024) produces a "screen schema" of type + box + text. These need training data and a GPU.
 - <strong>Detect, then group with heuristics:</strong> REMAUI (2015) uses OCR + CV and then merges into a view hierarchy; UIED (2020) is a hybrid detector; Xie et al. (2022) add Gestalt grouping; Apple's Screen Recognition (2021) uses a detector + grouping + reading order to produce an accessibility tree.</p>
+<hr />
+<h3 id="4-chosen-design_5">4. Chosen design<a class="headerlink" href="#4-chosen-design_5" title="Permanent link">¶</a></h3>
+<h4 id="41-building-the-tree-detect-then-group-with-heuristics">4.1 Building the tree: detect, then group with heuristics<a class="headerlink" href="#41-building-the-tree-detect-then-group-with-heuristics" title="Permanent link">¶</a></h4>
 <p><strong>We take the second route</strong>, because it works on an unseen app with no training. The steps:
 1. <strong>Containment.</strong> If box A lies inside box B, A is B's child. That gives window → panel/dialog → widgets.
 2. <strong>Perceptual grouping (Gestalt, Xie 2022).</strong> Widgets that are aligned, close together and similarly styled become one group: a menu bar, a filter row, a form, a toolbar.
@@ -3130,7 +3203,7 @@ CREATE TABLE sync_state (
 - DroidBot (2017) builds a UI transition graph.
 - AppAgent (2023) has an LLM explore the app and write per-app docs.</p>
 <p>That's our tracks 2.2 and 2.4. Perception only has to deliver a stable tree and fingerprint for each node.</p>
-<h4 id="2e-fingerprint-and-change-detection">2e. Fingerprint and change detection<a class="headerlink" href="#2e-fingerprint-and-change-detection" title="Permanent link">¶</a></h4>
+<h4 id="42-fingerprint-and-change-detection">4.2 Fingerprint and change detection<a class="headerlink" href="#42-fingerprint-and-change-detection" title="Permanent link">¶</a></h4>
 <ul>
 <li><strong>Fingerprint:</strong> the sorted set of <em>stable</em> texts (title, menu, labels, column headers), plus a coarse layout hash of the tree. Values are excluded: grid cells, dates, the "Hoy:" clock. It doesn't depend on resolution, because it uses text and relative structure, not pixels.</li>
 <li><strong>Drift (15:30):</strong></li>
@@ -3138,8 +3211,7 @@ CREATE TABLE sync_state (
 <li>An unknown fingerprint after a known action means a <strong>changed navigation</strong>.</li>
 <li>Either way, it's reported to 2.6.</li>
 </ul>
-<hr />
-<h3 id="3-recommended-pipeline">3. Recommended pipeline<a class="headerlink" href="#3-recommended-pipeline" title="Permanent link">¶</a></h3>
+<h4 id="43-recommended-pipeline">4.3 Recommended pipeline<a class="headerlink" href="#43-recommended-pipeline" title="Permanent link">¶</a></h4>
 <pre><code>action → settle → changed_bbox (poc/rfb_poc.py:149)
               │
               ▼
@@ -3159,7 +3231,7 @@ fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box �
 - <strong>Line cache:</strong> key = hash of the line's pixels, value = text. Because frames are lossless and fonts are fixed, the same label always renders to the same bytes.
 - <strong>Screen cache:</strong> key = fingerprint, value = tree. It also lets <strong>lazy grid reading</strong> work: recognize only the columns or rows the task asks about.</p>
 <hr />
-<h3 id="4-tradeoffs-we-accept">4. Tradeoffs we accept<a class="headerlink" href="#4-tradeoffs-we-accept" title="Permanent link">¶</a></h3>
+<h3 id="5-trade-offs-we-accept">5. Trade-offs we accept<a class="headerlink" href="#5-trade-offs-we-accept" title="Permanent link">¶</a></h3>
 <ul>
 <li><strong>Icons with no text aren't understood.</strong> They fall back to Claude raw coordinates, or to the optional detector.</li>
 <li><strong>Heuristic grouping can mis-pair labels</strong> on dense forms. Action verification (3.3) catches it: "typed into a field, the wrong area changed."</li>
@@ -3167,7 +3239,7 @@ fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box �
 <li><strong>Latin-script, horizontal text</strong> is an assumption already stated in the design.</li>
 </ul>
 <hr />
-<h3 id="5-evidence-measured">5. Evidence (measured)<a class="headerlink" href="#5-evidence-measured" title="Permanent link">¶</a></h3>
+<h3 id="6-evidence-and-measurement_4">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement_4" title="Permanent link">¶</a></h3>
 <p>Setup: RapidOCR (<code>rapidocr_onnxruntime</code>, default models) on <code>poc/out/before.png</code> (Facturas, 1280×800). Laptop CPU with 16 threads; Railway will be slower, so re-measure there.</p>
 <div class="tw"><table>
 <thead>
@@ -3212,6 +3284,8 @@ fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box �
 - Header "Código" was read as "oo" with <strong>0.52 confidence</strong>. A confidence threshold should trigger re-OCR (upscale or Tesseract).
 - Small casing errors appeared in the title ("SIGEcoM"), so title text needs case-insensitive matching.</p>
 <p><strong>Conclusion:</strong> detect once, recognize lazily and cache by line pixels. A known screen then costs about 0.7 s (detection) plus near-zero recognition, and a diff region costs a few hundred ms. Full recognition of a 20-row grid stays a deliberate <code>read_grid()</code> cost (about 5–7 s) and is a candidate for the clipboard/export path (4.1, 4.4).</p>
+<hr />
+<h3 id="7-open-questions_4">7. Open questions<a class="headerlink" href="#7-open-questions_4" title="Permanent link">¶</a></h3>
 <p><strong>Still to measure</strong> (each one is the "Done when" of a 7.x unit):
 - Latin model accuracy on accents.
 - CV box recall for inputs and buttons.
@@ -3220,7 +3294,7 @@ fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box �
 - Click hit rate via <code>click_text</code>.
 - Timings on Railway.</p>
 <hr />
-<h3 id="6-references">6. References<a class="headerlink" href="#6-references" title="Permanent link">¶</a></h3>
+<h3 id="8-sources_5">8. Sources<a class="headerlink" href="#8-sources_5" title="Permanent link">¶</a></h3>
 <p><strong>OCR engines</strong>
 - RapidOCR — https://github.com/RapidAI/RapidOCR
 - PaddleOCR (PP-OCRv5 Latin rec model; PP-OCRv6 in 3.x) — https://github.com/PaddlePaddle/PaddleOCR
@@ -3250,7 +3324,10 @@ fallbacks: conf &lt; 0.8 → upscale + Tesseract cross-check · no text/no box �
 - AppAgent (Zhang et al., 2023) — https://arxiv.org/abs/2312.13771</p>
 <p><em>All links in this section were checked online on 2026-10-10 (the five that had been cited from memory included). The GUI Ripping entry now points at the DOI because the author's page was unreachable.</em></p>
 <h2 id="appendix-i">Appendix I — POC reference: <code>poc/rfb_poc.py</code><a class="headerlink" href="#appendix-i" title="Permanent link">¶</a></h2>
-<p><em>What the proof of concept already implements: the RFB handshake and VNC auth over WSS, Raw + CopyRect framebuffer, <code>shared=1</code>, quiet-time <code>settle</code>, <code>click</code> / <code>type</code> / <code>key</code>, <code>changed_bbox</code>, <code>ServerCutText</code> receive, and a stdio MCP stub. Reads <code>URL</code> and <code>PASSWORD</code> from <code>.env</code> (track 1.1 moves them to the request).</em></p>
+<blockquote>
+<p>Appendix I · Status: proof of concept, the base of component [G]; track 1.1 moves the credentials from <code>.env</code> to the request.</p>
+</blockquote>
+<p><em>What the proof of concept already implements: the RFB handshake and VNC auth over WSS, Raw + CopyRect framebuffer, <code>shared=1</code>, quiet-time <code>settle</code>, <code>click</code> / <code>type</code> / <code>key</code>, <code>changed_bbox</code>, <code>ServerCutText</code> receive, and a stdio MCP stub.</em></p>
 <pre><code>POC: talk RFB (VNC) straight to noVNC's /websockify — no browser.
 
   uv run poc/rfb_poc.py probe          # connect, print ServerInit + timings, save screen.png (no input sent)

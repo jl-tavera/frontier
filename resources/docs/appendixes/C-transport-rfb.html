@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix C — Transport: raw RFB over WebSocket</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix C</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered">3. Options considered</a><ul>
+<li><a href="#31-layer-a-where-the-rfb-client-runs">3.1 Layer A — where the RFB client runs</a></li>
+<li><a href="#32-layer-b-language">3.2 Layer B — language</a></li>
+<li><a href="#33-layer-b-websocket-library-within-python">3.3 Layer B — WebSocket library within Python</a></li>
+<li><a href="#34-layer-b-vnc-libraries-instead-of-our-own-rfb-code">3.4 Layer B — VNC libraries instead of our own RFB code</a></li>
+</ul>
+</li>
+<li><a href="#4-chosen-design">4. Chosen design</a></li>
+<li><a href="#5-trade-offs-we-accept-say-these-in-the-debrief">5. Trade-offs we accept (say these in the debrief)</a></li>
+<li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a><ul>
+<li><a href="#61-reading-the-numbers">6.1 Reading the numbers</a></li>
+</ul>
+</li>
+<li><a href="#7-open-questions">7. Open questions</a></li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix C of I</span><a href="../solution.html#appendix-c">inline version</a><a href="B-target-recon.html">← Appendix B</a><a href="D-mapping-papers.html">Appendix D →</a></div><h1 id="transport-raw-rfb-over-websocket-track-1">Transport: raw RFB over WebSocket (track 1)<a class="headerlink" href="#transport-raw-rfb-over-websocket-track-1" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix C of <a href="../solution.html">solution.md</a> · Status: adopted as component [G] (solution.md §3.2, §4) · Links checked 2026-10-10.</p>
+</blockquote>
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p><strong>Decision:</strong> our own Python process speaks <strong>raw RFB (VNC) over WSS</strong> to the target's <code>/websockify</code> endpoint, using the <code>websockets</code> library. No browser is involved. Implementation: <a href="../solution.html#appendix-i"><code>poc/rfb_poc.py</code></a>.</p>
+<blockquote>
+<p><strong>Terminology.</strong> <em>websockify</em> is the <strong>server-side</strong> proxy the target already runs: it accepts a WebSocket and forwards the bytes over TCP to the VNC server. We didn't choose it and can't change it. On our side the client library is <strong><code>websockets</code></strong> (Python). People mix the two up, so expect the question in the debrief.</p>
+</blockquote>
+<hr />
+<h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
+<p>Source: <a href="B-target-recon.html">Appendix B</a>.</p>
+<pre><code>our process ──WSS /websockify──► websockify ──TCP──► VNC server (Docker 86a79607eef2:0) ──► SIGECOM
+</code></pre>
+<ul>
+<li>Protocol: RFB 3.8 with VNC Authentication (DES challenge-response). There's no HTTP auth and no cookies.</li>
+<li>The app has no DOM and no API. The host exposes only <code>/health</code> and <code>/websockify</code>.</li>
+<li>noVNC in a browser is <strong>just one RFB client</strong>. Anything that speaks RFB through a WebSocket can take its place.</li>
+</ul>
+<p>The decision therefore has two layers:
+- <strong>A. Where the RFB client runs:</strong> inside a browser (noVNC) or inside our own process.
+- <strong>B. If it runs in our process:</strong> which language, which WebSocket library, and whether we write the RFB code ourselves or use a VNC library.</p>
+<hr />
+<h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
+<h3 id="31-layer-a-where-the-rfb-client-runs">3.1 Layer A — where the RFB client runs<a class="headerlink" href="#31-layer-a-where-the-rfb-client-runs" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>How it works</th>
+<th>Pros</th>
+<th>Cons</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A1. Raw RFB client over WSS</strong></td>
+<td>Our process opens the WSS connection, does the RFB handshake, keeps the framebuffer as a numpy array, and sends pointer and key events</td>
+<td><ul><li>Pixels are lossless because we choose the encodings (Raw and CopyRect).</li><li>The framebuffer lives in memory, so a screenshot needs no network call.</li><li>Click coordinates are framebuffer coordinates: no canvas offset, no scaling.</li><li>Every <code>FramebufferUpdate</code> reaches us, which gives the settle and change-detection signal for free.</li><li>We can use the clipboard channel (<code>ClientCutText</code> / <code>ServerCutText</code>) directly.</li><li>One process and no Chromium, so the Railway deploy stays small.</li><li>Per-task <code>{url, password}</code> are plain constructor arguments.</li><li>About 200 lines of code, already working.</li></ul></td>
+<td><ul><li>We own the protocol code: handshake, encodings, reconnect.</li><li>Only VNC auth is implemented.</li></ul></td>
+<td><strong>Chosen</strong></td>
+</tr>
+<tr>
+<td>A2. Playwright/Chromium + the noVNC page</td>
+<td>A headless browser loads <code>/vnc.html?autoconnect=1&amp;password=…</code>. We screenshot the canvas and click with <code>page.mouse</code></td>
+<td><ul><li>No protocol code to write.</li><li>noVNC already handles every encoding and auth type.</li><li>We see exactly what a human sees.</li></ul></td>
+<td><ul><li>Frames arrive as <strong>Tight/JPEG</strong> (observed in the analysis), and the artifacts hurt OCR and pixel diffs. <code>?quality=9</code> helps, but the default stays lossy.</li><li>Canvas offset and scaling: changing the viewport shifted the image by +160 x / +100 y in the analysis, so every click needs a coordinate translation.</li><li>Each screenshot is a canvas-to-PNG encode plus a CDP round trip (tens to hundreds of ms), compared with reading an in-memory array.</li><li>Settle has to be inferred by polling the DOM or canvas, or by hooking noVNC's JS.</li><li>Chromium adds about 300 MB to the image, more RAM and a slower cold start, all inside a 5-minute task budget.</li><li>Two layers can fail: the browser and VNC.</li></ul></td>
+<td>Discarded: it costs fidelity, latency and deploy size and gives the agent nothing it needs</td>
+</tr>
+<tr>
+<td>A3. Playwright driving noVNC's JS API</td>
+<td><code>page.evaluate(...)</code> calls <code>rfb.sendKey</code> and reads <code>canvas.getImageData</code></td>
+<td><ul><li>Lossless reads and exact coordinates.</li></ul></td>
+<td><ul><li>Every browser cost of A2, plus a JS bridge to maintain.</li><li>In effect it's A1 with a browser wrapped around it.</li></ul></td>
+<td>Discarded: strictly worse than A1</td>
+</tr>
+<tr>
+<td>A4. Local bridge + an off-the-shelf TCP VNC client</td>
+<td><code>websocat --binary tcp-l:127.0.0.1:5900 wss://host/websockify</code>, then asyncvnc, vncdotool or TigerVNC connects to localhost</td>
+<td><ul><li>Mature VNC libraries. asyncvnc gives numpy frames, the clipboard and many encodings.</li></ul></td>
+<td><ul><li>An extra binary and process to deploy and supervise for each task.</li><li>Two sockets to reconnect.</li><li>The libraries hide the update stream (vncdotool is Twisted-based and polls), so we lose the per-update settle signal.</li></ul></td>
+<td><strong>Fallback</strong>, if the unseen app's server needs an encoding or auth type our code lacks</td>
+</tr>
+<tr>
+<td>A5. Computer-use VM (Anthropic reference container with xdotool)</td>
+<td>Run a desktop locally and open the noVNC page in it</td>
+<td><ul><li>Works with Claude's computer-use tool out of the box.</li></ul></td>
+<td><ul><li>It's A2 with a full desktop on top: the heaviest option.</li></ul></td>
+<td>Discarded</td>
+</tr>
+<tr>
+<td>A6. Another protocol (RDP, SSH, an app API)</td>
+<td>—</td>
+<td>—</td>
+<td>Not exposed: the host serves only <code>/health</code> and <code>/websockify</code>, and the unseen app is delivered the same way</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-layer-b-language">3.2 Layer B — language<a class="headerlink" href="#32-layer-b-language" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Python (chosen)</strong></th>
+<th>Node/TS</th>
+<th>Go</th>
+<th>Rust</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WebSocket client</td>
+<td><code>websockets</code> (asyncio, mature)</td>
+<td><code>ws</code></td>
+<td><code>coder/websocket</code>, <code>gorilla</code></td>
+<td><code>tokio-tungstenite</code></td>
+</tr>
+<tr>
+<td>RFB reuse</td>
+<td>our own ~200 LOC, or asyncvnc</td>
+<td>could run noVNC's own <code>core/rfb.js</code> headless, but it's coupled to the DOM and canvas (Display, Keyboard) and would need shims</td>
+<td><code>go-vnc</code> (unmaintained)</td>
+<td><code>vnc-rs</code></td>
+</tr>
+<tr>
+<td>Image and vision stack</td>
+<td>numpy, Pillow, OpenCV, Tesseract / EasyOCR / PaddleOCR</td>
+<td>weak (sharp, tesseract.js)</td>
+<td>weak</td>
+<td>weak</td>
+</tr>
+<tr>
+<td>Agent and service</td>
+<td>Anthropic SDK, FastAPI, all in one process</td>
+<td>good SDKs</td>
+<td>OK</td>
+<td>thin</td>
+</tr>
+<tr>
+<td>Team speed</td>
+<td>POC already works</td>
+<td>rewrite</td>
+<td>rewrite</td>
+<td>rewrite, slower iteration</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="33-layer-b-websocket-library-within-python">3.3 Layer B — WebSocket library within Python<a class="headerlink" href="#33-layer-b-websocket-library-within-python" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Model</th>
+<th>Notes</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>websockets</code> ≥13</strong></td>
+<td>asyncio-native (<code>websockets.asyncio.client</code>)</td>
+<td><ul><li>Binary frames.</li><li>The <code>binary</code> subprotocol that websockify expects.</li><li><code>max_size=None</code> allows large Raw frames.</li><li>Built-in ping and keepalive (<code>ping_interval</code>), useful for reconnect (1.2).</li></ul></td>
+<td><strong>Chosen</strong>: fits the asyncio agent loop and FastAPI</td>
+</tr>
+<tr>
+<td><code>aiohttp</code></td>
+<td>asyncio client and server</td>
+<td>Works, but heavier. Only worth it if we already used aiohttp elsewhere</td>
+<td>Equivalent, no gain</td>
+</tr>
+<tr>
+<td><code>websocket-client</code></td>
+<td>sync, needs threads</td>
+<td>Blocking reads would need a thread per session next to async FastAPI</td>
+<td>Discarded</td>
+</tr>
+<tr>
+<td><code>wsproto</code></td>
+<td>sans-IO</td>
+<td>We'd have to write our own IO loop</td>
+<td>Discarded: more code</td>
+</tr>
+<tr>
+<td>websockify's <code>WebSocket</code> client class</td>
+<td>sync</td>
+<td>The maintainer mentions it can act as a client, but it has no asyncio API</td>
+<td>Discarded</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="34-layer-b-vnc-libraries-instead-of-our-own-rfb-code">3.4 Layer B — VNC libraries instead of our own RFB code<a class="headerlink" href="#34-layer-b-vnc-libraries-instead-of-our-own-rfb-code" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>asyncvnc / asyncvnc2:</strong> asyncio-based, numpy frames, clipboard support. But they connect over TCP through asyncio streams, so we'd need A4's bridge or a patched stream. They also hide <code>FramebufferUpdate</code> timing (our settle signal) and the choice of encoding.</li>
+<li><strong>vncdotool:</strong> Twisted-based and CLI-oriented. It's TCP-only; the noVNC maintainer confirms it can't connect to a WebSocket-only endpoint.</li>
+</ul>
+<hr />
+<h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
+<p>A raw RFB client in our own process (A1), in Python, on <code>websockets</code>, with our own protocol code. The verdict column in §3 gives the reason for each.</p>
+<p><strong>Why Python.</strong> The transport is the smallest part of the system. Perception (track 2), the agent loop and tools (track 3), and the entrypoint (track 5) all depend on Python's image and ML ecosystem. Keeping everything in one language and one process means no IPC. Raw speed doesn't matter here: the native framebuffer is 1280×800 (measured), so a full Raw frame is about 4.1 MB, incremental updates are small, and numpy slicing is far cheaper than the network. Node's one real advantage, reusing noVNC's <code>rfb.js</code>, is cancelled out by that code's DOM coupling.</p>
+<ul>
+<li><strong>Our own code:</strong> about 150 lines of protocol. We control the encodings (lossless) and see every update, so nothing hides inside the 5-minute budget.</li>
+<li>Risk: the unseen app's server may use an encoding or auth type we don't handle.</li>
+<li>Mitigation: we only <em>request</em> Raw and CopyRect, and every RFB server must support Raw. A4 stays as the fallback.</li>
+</ul>
+<hr />
+<h2 id="5-trade-offs-we-accept-say-these-in-the-debrief">5. Trade-offs we accept (say these in the debrief)<a class="headerlink" href="#5-trade-offs-we-accept-say-these-in-the-debrief" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>Bandwidth.</strong> Raw is the most expensive encoding. SIGECOM's UI is mostly static, so this is fine for now. Measure it in 1.4. If it hurts, add Tight with JPEG turned off (lossless zlib) rather than JPEG.</li>
+<li><strong>We own reconnect (1.2), settle (1.3) and clipboard send (1.6).</strong> Each is a small, listed unit.</li>
+<li><strong>Auth.</strong> We support VNC auth (type 2). Adding type 1 (None) is trivial. VeNCrypt and RA2 are out of scope, and the design doc states that as an assumption.</li>
+</ul>
+<hr />
+<h2 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Measurement</th>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Handshake and first full frame, 10 runs</td>
+<td><code>uv run poc/rfb_poc.py probe</code></td>
+<td>10 runs: handshake 1104–1667 ms (mean ~1.42 s); first full frame 2826–5992 ms (mean ~3.65 s). Server <code>RFB 003.008</code>, desktop <code>86a79607eef2:0</code>, <strong>1280×800</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Settle time after a click</td>
+<td><code>uv run poc/rfb_poc.py click X Y</code> (prints <code>settled in</code>)</td>
+<td><em>TODO</em></td>
+</tr>
+<tr>
+<td>3</td>
+<td>(optional) A2 baseline: Playwright time to first canvas and <code>page.screenshot()</code> latency</td>
+<td>a ~20-line script against <code>/vnc.html?autoconnect=1&amp;password=…</code></td>
+<td><em>TODO</em></td>
+</tr>
+<tr>
+<td>4</td>
+<td>(optional) Fidelity: an A1 PNG vs an A2 canvas capture of the same screen, counting differing pixels</td>
+<td>numpy diff</td>
+<td><em>TODO</em></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="61-reading-the-numbers">6.1 Reading the numbers<a class="headerlink" href="#61-reading-the-numbers" title="Permanent link">¶</a></h3>
+<ul>
+<li>Connecting costs <strong>about 4 s, up to 6 s</strong> per task, which is 1–2% of the 5-minute budget. Open the connection once per task and reuse it; never reconnect per action.</li>
+<li>About 2.2 s of that is the first <strong>4.1 MB Raw full frame</strong>. This is the bandwidth cost of lossless pixels. Incremental updates after that are small. If cold start matters, try Tight with JPEG off (lossless zlib) in 1.4.</li>
+<li>The native resolution is <strong>1280×800</strong>, not the 1258×566 canvas noVNC showed. A2's browser view was scaled or cropped, which is one more argument for A1's exact coordinates.</li>
+</ul>
+<hr />
+<h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
+<ul>
+<li>Still to measure (rows 2–4 of the table in §6): settle time after a click, the A2 Playwright baseline, and the A1 vs A2 fidelity diff.</li>
+<li>Whether the unseen app's server offers an encoding or auth type our code lacks (§4). A4 is the fallback if it does.</li>
+</ul>
+<hr />
+<h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
+<ul>
+<li>websockify direction; vncdotool has no WebSocket support: https://groups.google.com/g/novnc/c/r4UrX1ryOro</li>
+<li>asyncvnc: https://asyncvnc.readthedocs.io/ · asyncvnc2: https://asyncvnc2.readthedocs.io</li>
+<li>websocat (TCP↔WS bridge): https://github.com/vi/websocat</li>
+</ul></main>
+</div></body></html>

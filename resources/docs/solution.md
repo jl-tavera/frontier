@@ -23,7 +23,7 @@
 
 ## 1. Problem and constraints
 
-**Inputs we have.** The brief ([Appendix A](appendixes/A-challenge.md)), the recon of the target ([Appendix B](appendixes/B-page-technical-analysis.md): noVNC → websockify → RFB → SIGECOM shown only as pixels), and `poc/rfb_poc.py`, which already speaks raw RFB with no browser: VNC auth, Raw+CopyRect frames, click/type/key, quiet-time `settle`, and 4 tool functions (screenshot/click/type/key). See Appendix I.
+**Inputs we have.** The brief ([Appendix A](appendixes/A-challenge-brief.md)), the recon of the target ([Appendix B](appendixes/B-target-recon.md): noVNC → websockify → RFB → SIGECOM shown only as pixels), and `poc/rfb_poc.py`, which already speaks raw RFB with no browser: VNC auth, Raw+CopyRect frames, click/type/key, quiet-time `settle`, and 4 tool functions (screenshot/click/type/key). See Appendix I.
 
 **The entrypoint contract** (Appendix A): `Authorization: Bearer <token>` on every call; `GET /health` → 200; `POST /tasks` receives the task and the desktop (URL + password) and must answer `{"task_id": …}` in **under 2 s**; `GET /tasks/{task_id}` returns `en_curso` / `terminada` / `fallida` plus a summary; **5 minutes per task**.
 
@@ -87,16 +87,16 @@ Digest of the recon in Appendix B:
 
 | Layer | Framework / library | Why (and what it replaced) |
 |---|---|---|
-| Runtime | Python 3.12, `uv` (PEP 723 inline deps + lockfile), one process | One language for transport, vision and agent, no IPC. Node/Go/Rust rewrite discarded (Appendix C §3) |
+| Runtime | Python 3.12, `uv` (PEP 723 inline deps + lockfile), one process | One language for transport, vision and agent, no IPC. Node/Go/Rust rewrite discarded (Appendix C §3.2) |
 | [A] Entrypoint | FastAPI + uvicorn | Async-native next to the asyncio RFB client. `POST /tasks` validates the Bearer, stores `en_curso`, schedules the job and returns in well under 2 s |
 | [B] Task runner | `asyncio` task per job, in-process state dict, 270 s guard | No broker to deploy before 20:00 (upgrade path in §10) |
 | [C] Agent loop | Anthropic Python SDK. Claude Opus 5.5 (`claude-opus-5-5`) for planning, replanning and recovery; Claude Sonnet 5.5 (`claude-sonnet-5-5`) as the optional cheaper tier for routine steps, only if measurements call for it. Prompt caching on system prompt + tool schemas + map summary. Jev (TypeSafe AI) as an optional System 1 behind a confidence gate | Tool-use loop with batched actions first, then plan-then-execute (Appendix F). Agent frameworks and MCP discarded: no latency gain, more to explain |
 | [D] Tools | Plain Python functions in three levels (low: click/type/key/screenshot · mid: click_text, fill_field, read_region, wait_for · high: navigate_to, read_grid, export) | Every tool returns an observed effect (diff bbox, new screen id), never just an image |
 | [E] Perception | RapidOCR on ONNX Runtime (Latin PP-OCRv5 rec model, angle classifier off), OpenCV contours + grid lines, numpy, Pillow; Tesseract `spa` cross-check under 0.8 confidence | CPU-only hybrid. Detect once, recognize lazily, cache by line pixels (Appendix H). GPU grounding models discarded for the hackathon |
-| [F] App memory | Nav graph: one JSON per app (`memory/<app_id>.json`, Appendix E §4): nodes, edges with semantic targets, procedures, frontier | Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded |
+| [F] App memory | Nav graph: one JSON per app (`memory/<app_id>.json`, Appendix E §4.2): nodes, edges with semantic targets, procedures, frontier | Small, readable in a debrief, zero extra services. Neo4j + vector DB discarded |
 | [S] Data sync engine | Plain Python: `need(entity)` → probe (row count + page-1 hash) → cache hit or acquire through the ladder Exportar → clipboard (`ServerCutText`) → OCR paging; normalise by header text; staging table → one-transaction swap; write-through read-back after our own writes (Appendix G) | Always reading live: 30–120 s per entity. Push/CDC: impossible, there is only pixels |
 | [DB] SQLite read cache | stdlib `sqlite3`, WAL, one file, generic JSON rows (`rows`, `sync_state`), `json_extract` queries so filters and sums are SQL, not LLM arithmetic | JSON files: no queries, half-written on crash. DuckDB: extra dep. Postgres/Redis: ops work, no benefit for ~1k rows (§10 for later) |
-| [G] RFB session | `websockets` ≥ 13 (asyncio client, `binary` subprotocol), `pycryptodome` (VNC DES auth), numpy framebuffer; Raw + CopyRect only; `shared=1`; `ClientCutText`/`ServerCutText` clipboard | ~200 LOC we own instead of a headless browser (+300 MB, lossy JPEG, canvas offsets) or a TCP-only VNC library (Appendix C §2) |
+| [G] RFB session | `websockets` ≥ 13 (asyncio client, `binary` subprotocol), `pycryptodome` (VNC DES auth), numpy framebuffer; Raw + CopyRect only; `shared=1`; `ClientCutText`/`ServerCutText` clipboard | ~200 LOC we own instead of a headless browser (+300 MB, lossy JPEG, canvas offsets) or a TCP-only VNC library (Appendix C §3.1) |
 | [H] Log | JSONL file, one event per step (`tool`, `args`, `screen_id`, `diff`, `outcome`, `signal`, `rung`, `cost_ms`) | Evidence for the Challenge 2 spec, the debrief and the harness |
 | Deploy | Railway, Docker, one service, CPU-only | §3.4 |
 
@@ -104,7 +104,7 @@ Digest of the recon in Appendix B:
 
 1. `POST /tasks {task, desktop:{url,password}}` → validate Bearer → store `en_curso` → return `task_id`.
 2. Runner opens an RFB session [G] with the given URL+password and takes the first screenshot.
-3. [E] fingerprints the screen and identifies the app (title bar) → [F] loads its map if one exists, otherwise starts cold (first task on an app: ≤ 45 s menu pre-warm, Appendix E §5).
+3. [E] fingerprints the screen and identifies the app (title bar) → [F] loads its map if one exists, otherwise starts cold (first task on an app: ≤ 45 s menu pre-warm, Appendix E §4.3).
 4. [C] gets the task + current screen elements + map summary and plans in one call. Every tool call: act → settle → [E] diff/fingerprint → compare with the edge's expected screen → return the observed effect.
 5. Unexpected screen / no effect → [E] flags drift → [F] marks the node stale → [C] runs the repair ladder (§6). This is the 15:30 path.
 6. Finish or 270 s guard → [C] writes the summary in the README format → status `terminada` / `fallida`. [F] persists anything new it learned.
@@ -120,7 +120,7 @@ One Railway service built from the repo with a Dockerfile. Everything runs in a 
 | Health | `GET /health` → 200 when ready, declared as the Railway health check |
 | Config | `railway.json`: `build.builder = "DOCKERFILE"`, `deploy.healthcheckPath = "/health"`, `deploy.restartPolicyType = "ON_FAILURE"`. Railway marks config-as-code as deprecated after 2026-12-01; fine for the hackathon |
 | Variables | `TEAM_TOKEN` (Bearer check), `ANTHROPIC_API_KEY`, optional `JEV_API_KEY`, `LOG_DIR`. The desktop URL and password arrive **per task** in the request body, never from env (track 1.1) |
-| Storage | No volume. The SQLite cache and the per-app JSON maps live on the container disk and are rebuilt after a redeploy; a stale cache surviving a deploy is worse than an empty one (Appendix G §5) |
+| Storage | No volume. The SQLite cache and the per-app JSON maps live on the container disk and are rebuilt after a redeploy; a stale cache surviving a deploy is worse than an empty one (Appendix G §3.3) |
 | Network | Inbound HTTPS from the evaluator. Outbound WSS to the target's `/websockify` and HTTPS to the Anthropic API. Nothing else |
 | Resources | CPU-only. The OCR timings in Appendix H were measured on a laptop and must be re-measured on Railway (7.6) |
 
@@ -143,7 +143,7 @@ curl -s https://<service>.up.railway.app/tasks/<task_id> -H "Authorization: Bear
 | Clicking | Model names the target → grounded by perception | Model outputs raw x,y: not accurate enough and breaks when layout shifts |
 | Perception | Hybrid on CPU: OCR (RapidOCR, Latin model) for text+bbox + OpenCV for widget boxes → heuristic UI tree; Claude picks element ids via Set-of-Mark (Appendix H) | Vision alone: imprecise boxes. OCR alone: no notion of widgets. Raw x,y from the model: fallback only. Specialist grounding models (UI-TARS, OmniParser captioner): need a GPU |
 | Knowledge | Learned per-app map, built at runtime | Hand-coded SIGECOM map: zero value on the unseen app |
-| Node identity | Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous (Appendix E §3) | Pure embedding/VLM matching: ~3 MLLM calls per check. Pixel hash: breaks on any data change |
+| Node identity | Title band as hard key + Jaccard over static OCR labels on a coarse grid; VLM only when ambiguous (Appendix E §4.1) | Pure embedding/VLM matching: ~3 MLLM calls per check. Pixel hash: breaks on any data change |
 | Edge target | Semantic target (label + role + cell), grounded at run time | Stored x,y: breaks the moment a button moves, which is exactly 15:30 |
 | Initial mapping | Task-driven incremental graph + ≤ 45 s menu pre-warm; traces written back after each task | Full up-front exploration: 10 min to hours per app |
 | Settle | Quiet-time + expected-change check | Fixed sleeps: slow and flaky |
@@ -154,7 +154,7 @@ curl -s https://<service>.up.railway.app/tasks/<task_id> -H "Authorization: Bear
 | Agent loop | Plan-then-execute with Claude, batched actions, verify per step; Jev as an optional fast verifier/picker (Appendix F) | Plain one-call-per-step loop: slowest. Raw computer-use x,y: discarded above. Agent frameworks: no speed gain |
 | Storage | One JSON per app for the map; one SQLite file for data | Neo4j + vector DB: two services for a 10–20 node graph. Postgres/Redis: ops work with no benefit today (§10 for later) |
 
-Per-track decision tables with more alternatives: transport Appendix C §2–3, mapping Appendix E §10, agent loop Appendix F §2, data sync Appendix G §1/§2/§5, perception Appendix H §2.
+Per-track decision tables with more alternatives: transport Appendix C §3, mapping Appendix E §5, agent loop Appendix F §3, data sync Appendix G §3, perception Appendix H §3.
 
 ## 5. Work breakdown
 
@@ -179,8 +179,8 @@ The four starting tracks are 1. WebSocket, 2. platform mapping, 3. Agent tools +
 | 2.2 | **Exploration**: the agent walks menus by itself and builds a nav graph (screen → action → screen), with a denylist of dangerous actions (Integraciones, delete, anular) | full SIGECOM menu tree in under N minutes with no hand-written coordinates (methodology: the 9 menu screens inside the 45 s pre-warm) |
 | 2.3 | **Screen fingerprint**: recognize "which screen am I on" (title text + layout hash), resolution-independent | the same screen at 2 resolutions → same ID; 10 distinct screens → 10 ids; dropdown open/closed → same node |
 | 2.4 | **Map storage**: a per-app memory (screens, fields, paths, learned procedures), keyed by app identity (title bar) | a second task on the same app reuses the map and finishes faster |
-| 2.5 | **Pre-warm vs cold start**: is there time to explore inside 5 minutes, or only on demand? Decide what's explored up front and what's learned during the task | decision written in the design doc, with timings (decided: cold + incremental, one ≤ 45 s menu pre-warm, Appendix E §5) |
-| 2.6 | **Change detection (the 15:30 incident)**: fingerprint mismatch, element missing, or an action with no effect → mark the map stale and re-explore that screen | simulated change (moved button) gets detected and fixed in the log (mutation suite in Appendix E §9) |
+| 2.5 | **Pre-warm vs cold start**: is there time to explore inside 5 minutes, or only on demand? Decide what's explored up front and what's learned during the task | decision written in the design doc, with timings (decided: cold + incremental, one ≤ 45 s menu pre-warm, Appendix E §4.3) |
+| 2.6 | **Change detection (the 15:30 incident)**: fingerprint mismatch, element missing, or an action with no effect → mark the map stale and re-explore that screen | simulated change (moved button) gets detected and fixed in the log (mutation suite in Appendix E §6.1) |
 
 ### Track 3 — Agent tools + loop + testing (owner: 1 person; Appendix F)
 
@@ -227,9 +227,9 @@ Measured: OCR detection is ~0.7 s per full screen, but recognition is ~50 ms **p
 
 ## 6. Incident response: the 15:30 change
 
-Full spec in Appendix E §7–§9. The short version:
+Full spec in Appendix E §4.5–§6. The short version:
 
-**Signals, any one triggers:** S1 target label not found · S2 no change after the action · S3 landed on a different known node · S4 landed on an unmatched screen · S5 app version string changed · S6 the edge's outcome histogram has more than one node with real mass. On the data side, a changed **header hash** of an entity drops and re-acquires that entity (Appendix G §3.4).
+**Signals, any one triggers:** S1 target label not found · S2 no change after the action · S3 landed on a different known node · S4 landed on an unmatched screen · S5 app version string changed · S6 the edge's outcome histogram has more than one node with real mass. On the data side, a changed **header hash** of an entity drops and re-acquires that entity (Appendix G §4.3.4).
 
 **Order of checks on every step:** blocking dialog? → overlay? → data edge? → only then drift. Each of the first three is a cheap false-positive filter.
 
@@ -250,7 +250,7 @@ Every rung logs `{signal, rung, before, after, cost_ms}` to the JSONL, which is 
 
 Eval harness (3.6): about 15 NL tasks × categories (lookup, filter, create, edit, export, multi-screen), each with an expected answer. Metrics: success %, mean time per task, steps per task, click hit rate, drift detected/recovered. Run the baseline before 15:30 and again after.
 
-Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, LLM calls per task, steps per task, recoveries, escalation rate (Jev → Claude). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §9).
+Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for every loop option: seconds per step, LLM calls per task, steps per task, recoveries, escalation rate (Jev → Claude). Mapping-specific: dedup FP/FN, nodes found / 9 in the pre-warm, cold vs warm time, and for each mutation which signal fired, which rung was reached and the seconds to repair (Appendix E §6).
 
 ## 8. Assumptions and out of scope
 
@@ -260,13 +260,13 @@ Per-unit checks (the "Done when" columns in §5) plus, from the JSONL log, for e
 - One task at a time per desktop. Parallel tasks on the same desktop aren't supported.
 - VNC Authentication (type 2) only; type 1 (None) is trivial to add; VeNCrypt and RA2 are out of scope.
 - Icons with no text fall back to Claude raw coordinates. CPU-only deploy, no specialist grounding models.
-- The data cache has a known staleness window (an old row edited without changing the count); bounded by an expiry time and the targeted-read path (Appendix G §3.1).
+- The data cache has a known staleness window (an old row edited without changing the count); bounded by an expiry time and the targeted-read path (Appendix G §4.3.1).
 
 ## 9. Order and dependencies
 
 1. **Before 12:00**: design doc + diagram (this document), track 5 stub deployed, 3.6 task list written.
 2. **Critical path**: 1.1 → 7.1–7.3 → 3.2 → 3.5 → 5 (one task working end to end).
-3. **Parallel**: 2.2–2.4 (mapping memory, build order in Appendix E §11), 4.x (quick wins for read tasks), 1.2–1.6 (hardening).
+3. **Parallel**: 2.2–2.4 (mapping memory, build order in Appendix E §7.1), 4.x (quick wins for read tasks), 1.2–1.6 (hardening).
 4. **From 15:30**: 2.6 + the eval harness, re-run to show detect → adapt → explain.
 
 **How to check the split itself.** For each unit: one runnable check against SIGECOM (the "Done when" column). The 3.6 harness is the one number that combines them all.
@@ -277,7 +277,7 @@ Everything below was considered and deliberately left out of the one-day build; 
 
 | Area | Hackathon choice | Upgrade | Trigger |
 |---|---|---|---|
-| Data cache | Ephemeral SQLite file, generic JSON rows | Postgres on Railway with JSONB (same generic schema, `->>` instead of `json_extract`), persistent and shared across instances. Redis is **not** the cache replacement: no ad-hoc filters or aggregates (Appendix G §5) | More than one service instance, or the cache must survive redeploys |
+| Data cache | Ephemeral SQLite file, generic JSON rows | Postgres on Railway with JSONB (same generic schema, `->>` instead of `json_extract`), persistent and shared across instances. Redis is **not** the cache replacement: no ad-hoc filters or aggregates (Appendix G §3.3) | More than one service instance, or the cache must survive redeploys |
 | Task state and queue | In-process dict + asyncio tasks, one uvicorn worker | Redis-backed job queue (e.g. `arq`) with separate worker processes; retries; zero-downtime deploys that drain in-flight tasks | Concurrent tasks across desktops, horizontal scaling, or a deploy during an evaluation window |
 | App memory persistence | One JSON per app on the container disk | Railway volume (`RAILWAY_VOLUME_MOUNT_PATH`) or Postgres; versioned maps with a drift history; shared across instances | Maps must survive a redeploy or be shared by several workers |
 | Map growth | Rank down, never delete; whole map in the prompt | Pruning of dead edges, macro-action mining from frequent traces (Executable Agentic Memory), map summary retrieval instead of the whole graph | The map no longer fits comfortably in the planning prompt |
@@ -299,27 +299,26 @@ From the recon (Appendix B): exact RFB server version and security type; VNC ser
 
 From data sync (Appendix G §7): where `Exportar` output goes; whether select-all + copy works on grids; whether grids show a total count; whether entities have a visible unique id; whether grids can sort newest first; probe cost on the unseen app.
 
-From perception (Appendix H §5): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; `click_text` hit rate; timings on Railway.
+From perception (Appendix H §7): Latin model accuracy on accents; CV box recall; label↔field pairing on Facturas plus one form; grid JSON vs screen; `click_text` hit rate; timings on Railway.
 
-From the agent loop (Appendix F §4): Jev access (early access key), out-of-distribution behaviour on the unseen app, vendor-run benchmarks.
+From the agent loop (Appendix F §7): Jev access (early access key), out-of-distribution behaviour on the unseen app, vendor-run benchmarks.
 
 ---
 
 ## Appendixes
 
-The source documents live in `resources/docs/appendixes/`, letter-prefixed in this order. Each one opens with a status line saying how the final design uses it. `solution.html` includes all of them in full after this section.
+The source documents live in `resources/docs/appendixes/`, letter-prefixed in this order. Every research appendix (C–H) follows the same structure: 1 Summary · 2 Problem and constraints · 3 Options considered · 4 Chosen design · 5 Trade-offs · 6 Evidence and measurement · 7 Open questions · 8 Sources. Each one opens with a status line saying how the final design uses it. `solution.html` includes all of them in full after this section, and each one is also published as its own page.
 
-| Appendix | Document | Source file | Covers |
-|---|---|---|---|
-| A | Challenge brief | [A-challenge.md](appendixes/A-challenge.md) | brief, timeline, deliverables, entrypoint contract, evaluation rules |
-| B | Technical diagnosis of the target | [B-page-technical-analysis.md](appendixes/B-page-technical-analysis.md) | hosting, noVNC, RFB transport, SIGECOM screens and menus |
-| C | Track 1 research: transport | [C-research-1-transport.md](appendixes/C-research-1-transport.md) | where the RFB client runs, language and library, measurements |
-| D | Track 2 research: platform mapping papers | [D-platform-mapping-papers.md](appendixes/D-platform-mapping-papers.md) | 12 GUI-agent papers compared, what to steal |
-| E | Track 2 methodology: initial map + remap | [E-platform-mapping-methodology.md](appendixes/E-platform-mapping-methodology.md) | fingerprint, map schema, pre-warm, planning, repair ladder, budget, tests |
-| F | Track 3 research: agent loop | [F-research-3-agent-loop.md](appendixes/F-research-3-agent-loop.md) | time budget, loop options L1–L7, Jev deep dive |
-| G | Track 4 design: data sync | [G-data-sync-design.md](appendixes/G-data-sync-design.md) | cache, freshness probe, conflicts, errors, SQLite schema |
-| H | Track 7 research: perception | [H-research-7-perception.md](appendixes/H-research-7-perception.md) | OCR/CV options, UI tree, pipeline, measured timings |
-| I | POC reference | [../../poc/rfb_poc.py](../../poc/rfb_poc.py) | raw RFB over WSS: VNC auth, Raw+CopyRect, settle, click/type/key, clipboard receive, MCP stub |
-| Archive | Original design breakdown | [archive/solution-design.md](appendixes/archive/solution-design.md) | superseded by §1–§9 of this document; kept for history, not rendered |
+| Appendix | Document | Source | Page | Covers |
+|---|---|---|---|---|
+| A | Challenge brief | [A-challenge-brief.md](appendixes/A-challenge-brief.md) | [open](appendixes/A-challenge-brief.html) | brief, timeline, deliverables, entrypoint contract, evaluation rules |
+| B | Target recon (SIGECOM over noVNC) | [B-target-recon.md](appendixes/B-target-recon.md) | [open](appendixes/B-target-recon.html) | hosting, noVNC, RFB transport, SIGECOM screens and menus |
+| C | Transport: raw RFB over WebSocket | [C-transport-rfb.md](appendixes/C-transport-rfb.md) | [open](appendixes/C-transport-rfb.html) | where the RFB client runs, language and library, measurements |
+| D | Platform mapping: paper comparison | [D-mapping-papers.md](appendixes/D-mapping-papers.md) | [open](appendixes/D-mapping-papers.html) | 12 GUI-agent papers compared, what to take from each |
+| E | Platform mapping: methodology | [E-mapping-methodology.md](appendixes/E-mapping-methodology.md) | [open](appendixes/E-mapping-methodology.html) | fingerprint, map schema, pre-warm, planning, repair ladder, budget, tests |
+| F | Agent loop | [F-agent-loop.md](appendixes/F-agent-loop.md) | [open](appendixes/F-agent-loop.html) | time budget, loop options L1–L7, Jev System 1 |
+| G | Data sync and read cache | [G-data-sync.md](appendixes/G-data-sync.md) | [open](appendixes/G-data-sync.html) | cache, freshness probe, conflicts, errors, SQLite schema |
+| H | Screen perception | [H-perception.md](appendixes/H-perception.md) | [open](appendixes/H-perception.html) | OCR/CV options, UI tree, pipeline, measured timings |
+| I | POC reference | [../../poc/rfb_poc.py](../../poc/rfb_poc.py) | [open](appendixes/I-poc-reference.html) | raw RFB over WSS: VNC auth, Raw+CopyRect, settle, click/type/key, clipboard receive, MCP stub |
 
 Papers and saved articles the research cites are in `resources/docs/references/` (`papers/` for the 12 GUI-agent PDFs, `jev/` for the Jev sources).

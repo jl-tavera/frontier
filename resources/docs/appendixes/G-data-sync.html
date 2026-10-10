@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix G — Data sync and read cache</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix G</div><div class="toc">
+<ul>
+<li><a href="#1-summary">1. Summary</a></li>
+<li><a href="#2-problem-and-constraints">2. Problem and constraints</a></li>
+<li><a href="#3-options-considered">3. Options considered</a><ul>
+<li><a href="#31-unit-of-sync-and-read-methods">3.1 Unit of sync and read methods</a></li>
+<li><a href="#32-freshness-strategy">3.2 Freshness strategy</a></li>
+<li><a href="#33-data-cache-store">3.3 Data cache store</a></li>
+</ul>
+</li>
+<li><a href="#4-chosen-design">4. Chosen design</a><ul>
+<li><a href="#41-happy-path">4.1 Happy path</a></li>
+<li><a href="#42-keeping-it-in-sync">4.2 Keeping it in sync</a></li>
+<li><a href="#43-what-if-something-changes-before-or-during-a-sync">4.3 What if something changes before or during a sync?</a></li>
+<li><a href="#44-error-handling">4.4 Error handling</a></li>
+<li><a href="#45-database-schema">4.5 Database schema</a></li>
+</ul>
+</li>
+<li><a href="#5-trade-offs">5. Trade-offs</a></li>
+<li><a href="#6-evidence-and-measurement">6. Evidence and measurement</a></li>
+<li><a href="#7-open-questions">7. Open questions</a></li>
+<li><a href="#8-sources">8. Sources</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix G of I</span><a href="../solution.html#appendix-g">inline version</a><a href="F-agent-loop.html">← Appendix F</a><a href="H-perception.html">Appendix H →</a></div><h1 id="data-sync-and-read-cache-track-4">Data sync and read cache (track 4)<a class="headerlink" href="#data-sync-and-read-cache-track-4" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix G of <a href="../solution.html">solution.md</a> · Status: adopted as components [S] and [DB] (solution.md §3.2, §4) · Links checked 2026-10-10.</p>
+</blockquote>
+<h2 id="1-summary">1. Summary<a class="headerlink" href="#1-summary" title="Permanent link">¶</a></h2>
+<p><strong>Scope:</strong> an expansion of <a href="../solution.html">solution.md §5 Track 4</a> (4.1–4.4).
+<strong>Decision:</strong> a one-way pull from the screen into a disposable SQLite read cache. Freshness is checked with a probe, the app always wins, and write tasks never read from the cache.</p>
+<hr />
+<h2 id="2-problem-and-constraints">2. Problem and constraints<a class="headerlink" href="#2-problem-and-constraints" title="Permanent link">¶</a></h2>
+<p>What "sync" means here. There is no API, no change feed and no second database to reconcile with. The only source is pixels coming over RFB (<a href="B-target-recon.html">Appendix B</a>). In this project, "sync" means:</p>
+<pre><code> Remote app (source of truth)  ──pixels / clipboard / export──►  Agent cache (SQLite)  ──►  task answer
+          ▲                                                              │
+          └───────────── writes happen ONLY through the UI ◄─────────────┘ (cache is never pushed back)
+</code></pre>
+<ul>
+<li><strong>Direction:</strong> one way. Data only flows from the app into the cache.</li>
+<li><strong>Who wins:</strong> the app, always. The cache is a read copy that can be thrown away. Deleting the file loses nothing except speed.</li>
+<li><strong>Why it exists:</strong> read tasks such as lookups, filters and counts have to finish well inside the 5-minute budget. The target is a lookup in under 30 s (4.3). Walking and OCR-ing a grid on every task is too slow and too error-prone.</li>
+<li><strong>What it is not:</strong> it is not the nav map. Screens, paths and procedures stay in the per-app JSON from <a href="E-mapping-methodology.html">Appendix E §4.2</a>. This page covers <strong>business data</strong> only (Clientes, Facturas, Pedidos, or whatever entities the unseen app has).</li>
+</ul>
+<hr />
+<h2 id="3-options-considered">3. Options considered<a class="headerlink" href="#3-options-considered" title="Permanent link">¶</a></h2>
+<h3 id="31-unit-of-sync-and-read-methods">3.1 Unit of sync and read methods<a class="headerlink" href="#31-unit-of-sync-and-read-methods" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Chosen</th>
+<th>Discarded, and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit of sync</td>
+<td>Per entity, lazy (on first need)</td>
+<td>Sync everything at task start: burns the 5-min budget on tables the task never touches</td>
+</tr>
+<tr>
+<td>Single-record reads</td>
+<td>Targeted search → upsert one row</td>
+<td>Full sync then SQL: cold cost is 30–120 s for one row</td>
+</tr>
+<tr>
+<td>Read methods</td>
+<td>Ladder: export → clipboard → OCR</td>
+<td>OCR only: slow and lossy. Export only: it may not exist in the unseen app</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-freshness-strategy">3.2 Freshness strategy<a class="headerlink" href="#32-freshness-strategy" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Freshness</th>
+<th>Cost per task</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Push / CDC / webhooks</td>
+<td>Real time</td>
+<td>—</td>
+<td><strong>Impossible.</strong> No API, only pixels</td>
+</tr>
+<tr>
+<td>Re-read the full table every task</td>
+<td>Perfect</td>
+<td>30–120 s per entity</td>
+<td>Discarded: defeats the purpose of a cache</td>
+</tr>
+<tr>
+<td>Always read live, no cache</td>
+<td>Perfect</td>
+<td>High; repeated OCR on multi-step tasks</td>
+<td>Kept only as the fallback for write tasks (§4.3.3)</td>
+</tr>
+<tr>
+<td><strong>Probe + lazy + expiry + write-through</strong></td>
+<td>Good, with one known gap (§4.3.1)</td>
+<td>A few seconds on a hit</td>
+<td><strong>Chosen</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="33-data-cache-store">3.3 Data cache store<a class="headerlink" href="#33-data-cache-store" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Chosen</th>
+<th>Discarded, and why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data cache store</td>
+<td><strong>SQLite</strong> (Python stdlib <code>sqlite3</code>, WAL mode, one file per deployment)</td>
+<td><strong>JSON files:</strong> no queries for filter tasks, and a crash can leave a half-written file. <strong>DuckDB:</strong> an extra dependency, and analytics is overkill for about 1k rows. <strong>Postgres (Railway):</strong> network hop + ops work for a single writer, and no benefit. <strong>Redis:</strong> no ad-hoc filtering or aggregates, and one more service</td>
+</tr>
+<tr>
+<td>Schema style</td>
+<td><strong>Generic</strong> rows with a JSON payload</td>
+<td>Typed tables per entity (<code>facturas(numero, fecha, total…)</code>): impossible, because the grading app is unseen and its columns are unknown until runtime</td>
+</tr>
+<tr>
+<td>Nav map store</td>
+<td>Stays as JSON per app (<a href="E-mapping-methodology.html">Appendix E §4.2</a>)</td>
+<td>Putting it in SQLite: it is small, edited as a whole document, and easier to read in debriefs as JSON</td>
+</tr>
+<tr>
+<td>Durability</td>
+<td>Ephemeral; losing it is accepted</td>
+<td>A persistent volume: the cache rebuilds itself, and a stale cache surviving a redeploy is worse than an empty one</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-chosen-design">4. Chosen design<a class="headerlink" href="#4-chosen-design" title="Permanent link">¶</a></h2>
+<h3 id="41-happy-path">4.1 Happy path<a class="headerlink" href="#41-happy-path" title="Permanent link">¶</a></h3>
+<h4 id="411-read-task-full-entity">4.1.1 Read task, full entity<a class="headerlink" href="#411-read-task-full-entity" title="Permanent link">¶</a></h4>
+<pre><code> Agent Loop            Cache (SQLite)            Sync Engine                 Remote app (RFB)
+     │  need(Facturas)      │                         │                              │
+     │─────────────────────►│ sync_state = complete?  │                              │
+     │                      │── yes ─────────────────►│ probe()                      │
+     │                      │                         │── navigate + read footer ───►│
+     │                      │                         │◄─ count=812, page1 hash ─────│
+     │                      │                         │ matches sync_state? ── yes   │
+     │◄──── SQL result ─────│◄────── fresh ───────────│                              │
+     │                      │                         │                              │
+     │        (miss / stale / probe mismatch)          │                              │
+     │                      │── no ──────────────────►│ acquire() via ladder:        │
+     │                      │                         │  1. Exportar (4.1) ─────────►│
+     │                      │                         │  2. clipboard (4.4) ────────►│
+     │                      │                         │  3. OCR paging (4.2) ───────►│
+     │                      │                         │ normalise → staging table    │
+     │                      │                         │ re-probe: count unchanged?   │
+     │                      │◄── atomic swap ─────────│ BEGIN; DELETE; INSERT; COMMIT│
+     │◄──── SQL result ─────│                         │                              │
+</code></pre>
+<p>The steps:
+1. The agent asks for an entity, not for a screen. The sync engine keeps navigation and reading out of the LLM's context.
+2. <strong>Cache hit + probe matches:</strong> answer from SQL. Cost: one navigation plus one footer/first-page read, a few seconds.
+3. <strong>Miss or mismatch:</strong> acquire the data through the ladder, cheapest and most reliable method first. Each step either returns complete rows or hands off to the next.
+   - <strong>Export (4.1):</strong> the whole table in one action. Lossless if the file or screen it produces can be read.
+   - <strong>Clipboard (4.4):</strong> select-all + copy → <code>ServerCutText</code>. Lossless text, usually tab-separated.
+   - <strong>OCR paging (4.2):</strong> read a page, press <code>Siguiente</code>, repeat. Always available, but it is the slowest and least accurate.
+4. <strong>Normalise:</strong> match columns by <strong>header text</strong>, never by position. Parse types (dates, money, ints). Compute the natural key and <code>row_hash</code>.
+5. Write everything to a <strong>staging</strong> table. Only a complete read is swapped in, in one transaction. Readers never see half a table.
+6. Record <code>sync_state</code> (count, probe hash, header hash, method, time). Log every step to the JSONL log [H].</p>
+<h4 id="412-read-task-one-record-targeted-path">4.1.2 Read task, one record (targeted path)<a class="headerlink" href="#412-read-task-one-record-targeted-path" title="Permanent link">¶</a></h4>
+<p>When the task names a single record ("total of factura F-0042"), do <strong>not</strong> sync the whole table. Use the app's own search or filter field instead, read the one row, and upsert it into the cache with <code>source = targeted</code>. This takes seconds instead of minutes and usually beats a cold full sync.</p>
+<h3 id="42-keeping-it-in-sync">4.2 Keeping it in sync<a class="headerlink" href="#42-keeping-it-in-sync" title="Permanent link">¶</a></h3>
+<p>Nothing pushes changes to us. Freshness has to be <strong>detected</strong> by looking at the screen. In order of use:</p>
+<ol>
+<li><strong>Our own writes → write-through read-back.</strong> After the agent saves a record through the UI, it reads that record back off the screen and upserts just that row. This upgrades the original "invalidate after any write" (4.3) because it keeps the rest of the table warm. If the read-back fails, fall back to marking the whole entity <code>stale</code>.</li>
+<li><strong>Probe before trusting the cache.</strong> A probe is the cheapest signal that "something changed":
+   - the grid's <strong>total count</strong> (footer, "Mostrando 1-20 de 812", or the page count × page size), and
+   - a <strong>hash of page 1</strong>, sorted newest first if the grid can sort.
+   Together these catch inserts, deletes and edits to recent records. A probe costs one navigation plus one OCR region.</li>
+<li><strong>Expiry time as a backstop.</strong> Even if the probe matches, a snapshot older than N minutes (start with 10 and tune it) is re-acquired the next time it's needed. This bounds the blind spot described in §4.3.1.</li>
+<li><strong>Optional pre-warm.</strong> If the up-front exploration from decision 2.5 has spare time inside its ≤60 s, probe the entities with a native export (only those, because exports are cheap). Never OCR-page during pre-warm.</li>
+</ol>
+<h3 id="43-what-if-something-changes-before-or-during-a-sync">4.3 What if something changes before or during a sync?<a class="headerlink" href="#43-what-if-something-changes-before-or-during-a-sync" title="Permanent link">¶</a></h3>
+<p>Who can change data behind our back:
+- <strong>another operator</strong> on the same desktop: <code>shared=1</code>, <code>operador</code> and <code>operador2</code> (1.5)
+- <strong>the evaluator</strong> setting up test data between tasks
+- <strong>the 15:30 change</strong>: this one changes the <strong>UI or structure</strong>, not just the data</p>
+<h4 id="431-external-edit-after-our-snapshot">4.3.1 External edit after our snapshot<a class="headerlink" href="#431-external-edit-after-our-snapshot" title="Permanent link">¶</a></h4>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Caught by</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Row inserted or deleted</td>
+<td>Probe count</td>
+<td>Re-acquire</td>
+</tr>
+<tr>
+<td>Recent row edited</td>
+<td>Probe page-1 hash (newest first)</td>
+<td>Re-acquire</td>
+</tr>
+<tr>
+<td><strong>Old row edited, count unchanged</strong></td>
+<td><strong>Not caught by the probe</strong></td>
+<td>Served stale until the expiry time or a targeted read</td>
+</tr>
+</tbody>
+</table></div>
+<p>The last row is the <strong>known staleness window</strong>, and we accept it. Mitigations:
+- the expiry time puts an upper bound on it
+- any answer that depends on one specific record goes through the targeted path (§4.1.2), which always reads live
+- the task summary states when an answer came from the cache and how old that cache was</p>
+<h4 id="432-edit-while-we-are-paging">4.3.2 Edit while we are paging<a class="headerlink" href="#432-edit-while-we-are-paging" title="Permanent link">¶</a></h4>
+<p>Paging is not a snapshot. An insert shifts rows down, which makes a row appear twice. A delete shifts rows up, which makes one get skipped.</p>
+<ul>
+<li><strong>Remove duplicates</strong> by natural key while staging.</li>
+<li><strong>Probe at the start and at the end.</strong> If the count or page-1 hash changed during the read, discard the staging table and retry <strong>once</strong>.</li>
+<li>If it changes a second time, the table is "hot". Don't swap it in. Mark the entity <code>stale</code> and answer through the targeted path or live reading.</li>
+<li>Export and clipboard are near-atomic (one action), so this risk exists almost entirely on the OCR-paging step. That is another reason the ladder puts them first.</li>
+</ul>
+<h4 id="433-write-tasks-never-trust-the-cache">4.3.3 Write tasks never trust the cache<a class="headerlink" href="#433-write-tasks-never-trust-the-cache" title="Permanent link">¶</a></h4>
+<p>Before the agent edits or creates anything:
+1. <strong>Read before write:</strong> open the actual record on screen.
+2. <strong>Check expectations:</strong> if the task implies a current state ("change the status of the pending order X"), confirm that state on screen. This is optimistic concurrency done by hand. The screen is the version check.
+3. If it doesn't match, <strong>don't overwrite</strong>. Report the conflict in the summary ("expected pending, found shipped by another user") and end as <code>fallida</code> or partial. Never guess.
+4. Save → <strong>read back</strong> → verify the new values are on screen → write-through to the cache (§4.2, step 1).</p>
+<p>Two agents editing the same record at the same time is ruled out by the assumption "one task at a time per desktop" (<a href="../solution.html">solution.md §8</a>). A human <code>operador2</code> is not ruled out, and steps 2 and 4 are what protect us from them.</p>
+<h4 id="434-schema-or-ui-drift-the-1530-change">4.3.4 Schema or UI drift (the 15:30 change)<a class="headerlink" href="#434-schema-or-ui-drift-the-1530-change" title="Permanent link">¶</a></h4>
+<ul>
+<li>Each entity stores a <strong>header hash</strong> (its sorted column labels). If a column is renamed, added or removed, the hash changes. When it does, <strong>drop that entity's rows and re-acquire them</strong>. No attempt is made to migrate them.</li>
+<li>Columns are mapped by header text, so a column that only <strong>moves</strong> doesn't break anything.</li>
+<li>If a screen or grid can't be found, that's the nav map's job: drift detection (2.6) and the repair ladder in <a href="E-mapping-methodology.html">Appendix E §4.5</a>. The sync engine marks the entity <code>stale</code> and waits for navigation to recover.</li>
+</ul>
+<h4 id="435-conflict-policy-in-one-line">4.3.5 Conflict policy, in one line<a class="headerlink" href="#435-conflict-policy-in-one-line" title="Permanent link">¶</a></h4>
+<p><strong>The app always wins.</strong> We do no merging and no last-write-wins on our side, and the cache never overwrites the app.</p>
+<h3 id="44-error-handling">4.4 Error handling<a class="headerlink" href="#44-error-handling" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>How we detect it</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OCR misreads a cell</td>
+<td>Type parse fails (date, money, int), a totals or count check fails, or OCR disagrees with the clipboard</td>
+<td>Re-OCR that region with a tighter crop; if that still fails, store <code>null</code> + flag the row, and never invent values</td>
+</tr>
+<tr>
+<td>Export goes nowhere readable (download we can't reach, PDF)</td>
+<td>Nothing appears on screen or clipboard within the settle time</td>
+<td>Mark <code>export=unusable</code> for this app in memory and drop to the clipboard step</td>
+</tr>
+<tr>
+<td>Clipboard returns nothing or garbage</td>
+<td>Empty <code>ServerCutText</code>, or no tab/newline structure</td>
+<td>Drop to OCR paging and remember that clipboard doesn't work for this grid</td>
+</tr>
+<tr>
+<td>Paging gets stuck in a loop</td>
+<td>The page fingerprint was already seen, or <code>Siguiente</code> has no effect (action verification, design 3.3)</td>
+<td>Stop and treat what we have as the end; check it against the probe count</td>
+</tr>
+<tr>
+<td>Empty grid vs failed load</td>
+<td>Zero rows <strong>and</strong> no "no results" text or footer</td>
+<td>Retry the navigation once; if still unclear, mark <code>stale</code>, not <code>complete</code> with 0 rows</td>
+</tr>
+<tr>
+<td>WebSocket drop mid-sync</td>
+<td>RFB exception (1.2)</td>
+<td>Reconnect, navigate back, resume from page N (stored in staging); after 2 failures, give up and mark <code>partial</code></td>
+</tr>
+<tr>
+<td>Partial read (time ran out or errors)</td>
+<td>Staging count &lt; probe count</td>
+<td><strong>Never swapped in.</strong> The old snapshot stays and the entity is marked <code>partial</code>, so answers say so</td>
+</tr>
+<tr>
+<td>Time budget</td>
+<td>Sync running longer than about 60 s inside one task</td>
+<td>Stop syncing and use the targeted path; the 4:30 guard (design 3.5) still writes a summary</td>
+</tr>
+<tr>
+<td>Destructive control near a grid (Eliminar, Anular, Integraciones)</td>
+<td>Denylist</td>
+<td>The sync engine never clicks it; read-only actions only</td>
+</tr>
+<tr>
+<td>Cache file lost (Railway redeploy, corruption)</td>
+<td>Missing file or <code>PRAGMA integrity_check</code> fails</td>
+<td>Delete it and start cold; correctness is unaffected</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every row above writes a JSONL event (<code>sync.probe</code>, <code>sync.acquire</code>, <code>sync.fallback</code>, <code>sync.conflict</code>, …) with the entity, method, counts and duration. These events feed the Challenge 2 spec and debrief.</p>
+<h3 id="45-database-schema">4.5 Database schema<a class="headerlink" href="#45-database-schema" title="Permanent link">¶</a></h3>
+<pre><code class="language-sql">CREATE TABLE rows (
+  app_id      TEXT NOT NULL,          -- app identity (title bar), same key as the nav map
+  entity      TEXT NOT NULL,          -- e.g. 'Facturas', named from the screen
+  natural_key TEXT NOT NULL,          -- id column if found, else hash of identifying columns
+  data_json   TEXT NOT NULL,          -- {&quot;Numero&quot;: &quot;F-0042&quot;, &quot;Total&quot;: 1520.00, ...}, keyed by header text
+  row_hash    TEXT NOT NULL,          -- detects row-level change on re-acquire
+  acquired_at TEXT NOT NULL,
+  source      TEXT NOT NULL,          -- export | clipboard | ocr | targeted | writeback
+  PRIMARY KEY (app_id, entity, natural_key)
+);
+
+CREATE TABLE sync_state (
+  app_id      TEXT NOT NULL,
+  entity      TEXT NOT NULL,
+  header_hash TEXT NOT NULL,          -- §4.3.4 schema drift
+  row_count   INTEGER,                -- §4.2 probe
+  probe_hash  TEXT,                   -- §4.2 probe (page 1)
+  status      TEXT NOT NULL CHECK (status IN ('complete','partial','stale')),
+  method      TEXT,                   -- which rung of the ladder worked
+  acquired_at TEXT NOT NULL,
+  PRIMARY KEY (app_id, entity)
+);
+</code></pre>
+<p>Queries use <code>json_extract(data_json, '$.Total')</code>, which is built into SQLite, so filter and sum tasks become SQL instead of LLM arithmetic. The swap works like this: rows are written into <code>rows_staging</code>, then <code>BEGIN; DELETE FROM rows WHERE app_id=? AND entity=?; INSERT … SELECT FROM rows_staging; UPDATE sync_state …; COMMIT;</code></p>
+<hr />
+<h2 id="5-trade-offs">5. Trade-offs<a class="headerlink" href="#5-trade-offs" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>We chose</th>
+<th>Over</th>
+<th>We pay</th>
+<th>We get</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A cache + probe</td>
+<td>Always reading live</td>
+<td>A small staleness window (§4.3.1)</td>
+<td>Lookups under 30 s; repeated reads cost almost nothing</td>
+</tr>
+<tr>
+<td>Lazy per-entity sync</td>
+<td>Pre-loading everything</td>
+<td>The first read of each entity is slow</td>
+<td>No budget spent on tables the task doesn't touch</td>
+</tr>
+<tr>
+<td>Targeted reads for single records</td>
+<td>One sync path for everything</td>
+<td>Two code paths</td>
+<td>A one-record answer in seconds, and it is always live</td>
+</tr>
+<tr>
+<td>A generic JSON-row schema</td>
+<td>Typed tables</td>
+<td>Weaker typing; <code>json_extract</code> in queries</td>
+<td>Works on an app we have never seen</td>
+</tr>
+<tr>
+<td>App-always-wins, read-before-write</td>
+<td>Merge or last-write-wins logic</td>
+<td>Some write tasks fail with a reported conflict</td>
+<td>Never corrupts data another user changed</td>
+</tr>
+<tr>
+<td>An ephemeral SQLite file</td>
+<td>A managed database</td>
+<td>A cold start after a redeploy</td>
+<td>Zero ops, stdlib only, no stale data surviving a deploy</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="6-evidence-and-measurement">6. Evidence and measurement<a class="headerlink" href="#6-evidence-and-measurement" title="Permanent link">¶</a></h2>
+<p>Nothing measured yet. Probe cost and the ladder's success rate are measured in the eval harness (3.6, <a href="../solution.html">solution.md §7</a>) before and after 15:30.</p>
+<hr />
+<h2 id="7-open-questions">7. Open questions<a class="headerlink" href="#7-open-questions" title="Permanent link">¶</a></h2>
+<ul>
+<li><strong>4.1:</strong> where <code>Exportar</code> output goes (a download, a new screen, a printer dialog), and whether we can read it over RFB.</li>
+<li><strong>4.4:</strong> whether select-all + copy works on grids or only on text fields, and what format it produces.</li>
+<li>Whether grids show a total count. If they don't, the probe falls back to page count × page size, or to the page-1 hash alone.</li>
+<li>Whether each entity has a visible unique id column. If not, the natural key is a hash of the identifying columns, and duplicate removal gets weaker.</li>
+<li>Whether grids can sort newest first. Without it, the page-1 hash misses recent edits, so the expiry time should be shorter.</li>
+<li>Probe cost on the unseen app. Measure it in the eval harness (3.6) before and after 15:30.</li>
+</ul>
+<hr />
+<h2 id="8-sources">8. Sources<a class="headerlink" href="#8-sources" title="Permanent link">¶</a></h2>
+<p><a href="B-target-recon.html">Appendix B</a> for the transport facts, <a href="E-mapping-methodology.html">Appendix E</a> for the nav map this cache sits beside, and <a href="../solution.html">solution.md §5 Track 4</a> for units 4.1–4.4.</p></main>
+</div></body></html>

@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix I — POC reference</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix I</div><div class="toc">
+<ul></ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix I of I</span><a href="../solution.html#appendix-i">inline version</a><a href="H-perception.html">← Appendix H</a></div><h1 id="poc-reference-pocrfb_pocpy">POC reference: <code>poc/rfb_poc.py</code><a class="headerlink" href="#poc-reference-pocrfb_pocpy" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix I of <a href="../solution.html">solution.md</a> · Status: proof of concept, the base of component [G]; track 1.1 moves the credentials from <code>.env</code> to the request.</p>
+</blockquote>
+<p><em>What the proof of concept already implements: the RFB handshake and VNC auth over WSS, Raw + CopyRect framebuffer, <code>shared=1</code>, quiet-time <code>settle</code>, <code>click</code> / <code>type</code> / <code>key</code>, <code>changed_bbox</code>, <code>ServerCutText</code> receive, and a stdio MCP stub.</em></p>
+<pre><code>POC: talk RFB (VNC) straight to noVNC's /websockify — no browser.
+
+  uv run poc/rfb_poc.py probe          # connect, print ServerInit + timings, save screen.png (no input sent)
+  uv run poc/rfb_poc.py click X Y      # click, wait until settled, save before/after
+  uv run poc/rfb_poc.py type &quot;texto&quot;   # type text, wait until settled
+  uv run poc/rfb_poc.py mcp            # stdio MCP server: screenshot / click / type_text / key
+</code></pre>
+<pre><code class="language-python"># /// script
+# requires-python = &quot;&gt;=3.12&quot;
+# dependencies = [&quot;websockets&gt;=13&quot;, &quot;pycryptodome&quot;, &quot;numpy&quot;, &quot;pillow&quot;, &quot;mcp&gt;=1.10,&lt;2&quot;]  # mcp 2.x renamed FastMCP -&gt; MCPServer
+# ///
+&quot;&quot;&quot;POC: talk RFB (VNC) straight to noVNC's /websockify — no browser.
+
+  uv run poc/rfb_poc.py probe          # connect, print ServerInit + timings, save screen.png (no input sent)
+  uv run poc/rfb_poc.py click X Y      # click, wait until settled, save before/after
+  uv run poc/rfb_poc.py type &quot;texto&quot;   # type text, wait until settled
+  uv run poc/rfb_poc.py mcp            # stdio MCP server: screenshot / click / type_text / key
+&quot;&quot;&quot;
+import asyncio
+import io
+import struct
+import sys
+import time
+from pathlib import Path
+
+import numpy as np
+from Crypto.Cipher import DES
+from PIL import Image as PILImage
+from websockets.asyncio.client import connect
+
+ROOT = Path(__file__).resolve().parent.parent
+OUT = Path(__file__).resolve().parent / &quot;out&quot;
+KEYS = {&quot;enter&quot;: 0xFF0D, &quot;tab&quot;: 0xFF09, &quot;backspace&quot;: 0xFF08, &quot;esc&quot;: 0xFF1B,
+        &quot;up&quot;: 0xFF52, &quot;down&quot;: 0xFF54, &quot;left&quot;: 0xFF51, &quot;right&quot;: 0xFF53}
+
+
+def log(*a):
+    print(*a, file=sys.stderr, flush=True)  # stdout belongs to MCP in mcp mode
+
+
+def env():
+    return dict(l.split(&quot;=&quot;, 1) for l in (ROOT / &quot;.env&quot;).read_text().splitlines() if &quot;=&quot; in l)
+
+
+class RFB:
+    def __init__(self):
+        self.buf = bytearray()
+        self.last_change = 0.0
+        self.clipboard = &quot;&quot;
+        self.updated = asyncio.Event()
+
+    async def _read(self, n):
+        while len(self.buf) &lt; n:
+            self.buf += await self.ws.recv()
+        out, self.buf = bytes(self.buf[:n]), self.buf[n:]
+        return out
+
+    async def connect(self):
+        e = env()
+        url = e[&quot;URL&quot;].replace(&quot;https://&quot;, &quot;wss://&quot;).rstrip(&quot;/&quot;) + &quot;/websockify&quot;
+        t0 = time.perf_counter()
+        self.ws = await connect(url, subprotocols=[&quot;binary&quot;], max_size=None)
+        ver = await self._read(12)
+        await self.ws.send(b&quot;RFB 003.008\n&quot;)
+        n = (await self._read(1))[0]
+        types = await self._read(n)
+        if 2 not in types:
+            raise RuntimeError(f&quot;no VNC auth offered: {list(types)}&quot;)
+        await self.ws.send(b&quot;\x02&quot;)
+        challenge = await self._read(16)
+        # VNC auth quirk: DES key is the password with each byte's bits reversed
+        key = bytes(int(f&quot;{b:08b}&quot;[::-1], 2) for b in e[&quot;PASSWORD&quot;].encode()[:8].ljust(8, b&quot;\0&quot;))
+        await self.ws.send(DES.new(key, DES.MODE_ECB).encrypt(challenge))
+        if struct.unpack(&quot;&gt;I&quot;, await self._read(4))[0] != 0:
+            raise RuntimeError(&quot;VNC auth failed&quot;)
+        await self.ws.send(b&quot;\x01&quot;)  # ClientInit shared=1: don't kick other viewers
+        self.w, self.h = struct.unpack(&quot;&gt;HH&quot;, await self._read(4))
+        await self._read(16)  # server pixel format, overridden below
+        self.name = (await self._read(struct.unpack(&quot;&gt;I&quot;, await self._read(4))[0])).decode(errors=&quot;replace&quot;)
+        self.t_handshake = time.perf_counter() - t0
+        self.server_version = ver.decode().strip()
+
+        # 32bpp little-endian true colour -&gt; bytes arrive as B,G,R,X
+        await self.ws.send(b&quot;\x00\0\0\0&quot; + struct.pack(&quot;&gt;BBBBHHHBBB3x&quot;, 32, 24, 0, 1, 255, 255, 255, 16, 8, 0))
+        await self.ws.send(struct.pack(&quot;&gt;BxHii&quot;, 2, 2, 0, 1))  # SetEncodings: Raw, CopyRect (lossless only)
+        self.fb = np.zeros((self.h, self.w, 4), np.uint8)
+        self.reader = asyncio.create_task(self._loop())
+        await self._request(incremental=False)
+        await self.updated.wait()
+        self.t_first_frame = time.perf_counter() - t0
+
+    async def _request(self, incremental=True):
+        await self.ws.send(struct.pack(&quot;&gt;BBHHHH&quot;, 3, int(incremental), 0, 0, self.w, self.h))
+
+    async def _loop(self):
+        while True:
+            msg = (await self._read(1))[0]
+            if msg == 0:  # FramebufferUpdate
+                (n,) = struct.unpack(&quot;&gt;xH&quot;, await self._read(3))
+                for _ in range(n):
+                    x, y, w, h, enc = struct.unpack(&quot;&gt;HHHHi&quot;, await self._read(12))
+                    if enc == 0:
+                        self.fb[y:y + h, x:x + w] = np.frombuffer(await self._read(w * h * 4), np.uint8).reshape(h, w, 4)
+                    elif enc == 1:
+                        sx, sy = struct.unpack(&quot;&gt;HH&quot;, await self._read(4))
+                        self.fb[y:y + h, x:x + w] = self.fb[sy:sy + h, sx:sx + w].copy()
+                    else:
+                        raise RuntimeError(f&quot;unexpected encoding {enc}&quot;)
+                if n:
+                    self.last_change = time.perf_counter()
+                self.updated.set()
+                await self._request()  # keep a request outstanding, like noVNC does
+            elif msg == 1:  # SetColourMapEntries
+                _, cnt = struct.unpack(&quot;&gt;xHH&quot;, await self._read(5))
+                await self._read(cnt * 6)
+            elif msg == 2:  # Bell
+                pass
+            elif msg == 3:  # ServerCutText
+                (ln,) = struct.unpack(&quot;&gt;3xI&quot;, await self._read(7))
+                self.clipboard = (await self._read(ln)).decode(&quot;latin-1&quot;)
+            else:
+                raise RuntimeError(f&quot;unknown server message {msg}&quot;)
+
+    # lazy: quiet-time only; SIGECOM paints in two phases (&gt;300ms gap). Real fix = verify a per-screen anchor.
+    async def settle(self, quiet=1.0, timeout=8.0):
+        &quot;&quot;&quot;Return once no screen changes arrived for `quiet` seconds. No fixed sleeps per action.&quot;&quot;&quot;
+        start = time.perf_counter()
+        await asyncio.sleep(quiet)
+        while time.perf_counter() - self.last_change &lt; quiet and time.perf_counter() - start &lt; timeout:
+            await asyncio.sleep(0.05)
+        return time.perf_counter() - start
+
+    async def click(self, x, y):
+        await self.ws.send(struct.pack(&quot;&gt;BBHH&quot;, 5, 0, x, y))
+        await self.ws.send(struct.pack(&quot;&gt;BBHH&quot;, 5, 1, x, y))
+        await self.ws.send(struct.pack(&quot;&gt;BBHH&quot;, 5, 0, x, y))
+
+    async def key(self, keysym):
+        await self.ws.send(struct.pack(&quot;&gt;BBxxI&quot;, 4, 1, keysym))
+        await self.ws.send(struct.pack(&quot;&gt;BBxxI&quot;, 4, 0, keysym))
+
+    async def type(self, text):
+        for c in text:  # Latin-1 chars (ñ, á...) map 1:1 to keysyms
+            await self.key(KEYS[&quot;enter&quot;] if c == &quot;\n&quot; else ord(c))
+
+    def png(self, path=None):
+        img = PILImage.fromarray(self.fb[:, :, 2::-1])  # BGRX -&gt; RGB
+        if path:
+            path.parent.mkdir(exist_ok=True)
+            img.save(path)
+        b = io.BytesIO()
+        img.save(b, &quot;PNG&quot;)
+        return b.getvalue()
+
+
+def changed_bbox(a, b):
+    ys, xs = np.nonzero((a != b).any(axis=2))
+    return None if not len(xs) else (int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max()))
+
+
+async def cli(cmd, args):
+    r = RFB()
+    await r.connect()
+    log(f&quot;server={r.server_version} desktop={r.name!r} size={r.w}x{r.h}&quot;)
+    log(f&quot;handshake={r.t_handshake * 1000:.0f}ms first_full_frame={r.t_first_frame * 1000:.0f}ms&quot;)
+    await r.settle()
+    r.png(OUT / &quot;before.png&quot;)
+    before = r.fb.copy()
+    if cmd == &quot;probe&quot;:
+        log(f&quot;saved {OUT / 'before.png'}&quot;)
+        return
+    t0 = time.perf_counter()
+    if cmd == &quot;click&quot;:
+        await r.click(int(args[0]), int(args[1]))
+    elif cmd == &quot;type&quot;:
+        await r.type(args[0])
+    elif cmd == &quot;key&quot;:
+        await r.key(KEYS[args[0]])
+    took = await r.settle()
+    r.png(OUT / &quot;after.png&quot;)
+    log(f&quot;{cmd} -&gt; settled in {took * 1000:.0f}ms (total {(time.perf_counter() - t0) * 1000:.0f}ms), &quot;
+        f&quot;changed bbox={changed_bbox(before, r.fb)}, saved {OUT / 'after.png'}&quot;)
+
+
+def mcp_server():
+    from mcp.server.fastmcp import FastMCP, Image
+
+    app = FastMCP(&quot;sigecom-poc&quot;)
+    conn = {}
+
+    async def rfb():
+        if &quot;r&quot; not in conn:
+            conn[&quot;r&quot;] = RFB()
+            await conn[&quot;r&quot;].connect()
+        return conn[&quot;r&quot;]
+
+    async def shot():
+        r = await rfb()
+        await r.settle()
+        return Image(data=r.png(), format=&quot;png&quot;)
+
+    @app.tool()
+    async def screenshot() -&gt; Image:
+        &quot;&quot;&quot;Screenshot of the SIGECOM legacy app (VNC desktop). Coordinates are image pixels.&quot;&quot;&quot;
+        return await shot()
+
+    @app.tool()
+    async def click(x: int, y: int) -&gt; Image:
+        &quot;&quot;&quot;Left-click at pixel (x, y), wait until the screen settles, return the new screenshot.
+        Never open Herramientas &gt; Configuración &gt; Integraciones.&quot;&quot;&quot;
+        await (await rfb()).click(x, y)
+        return await shot()
+
+    @app.tool()
+    async def type_text(text: str) -&gt; Image:
+        &quot;&quot;&quot;Type text into the focused field (use \\n for Enter), then return the new screenshot.&quot;&quot;&quot;
+        await (await rfb()).type(text)
+        return await shot()
+
+    @app.tool()
+    async def key(name: str) -&gt; Image:
+        &quot;&quot;&quot;Press a special key: enter, tab, backspace, esc, up, down, left, right.&quot;&quot;&quot;
+        await (await rfb()).key(KEYS[name])
+        return await shot()
+
+    app.run()
+
+
+if __name__ == &quot;__main__&quot;:
+    if sys.argv[1] == &quot;mcp&quot;:
+        mcp_server()
+    else:
+        asyncio.run(cli(sys.argv[1], sys.argv[2:]))
+
+</code></pre></main>
+</div></body></html>

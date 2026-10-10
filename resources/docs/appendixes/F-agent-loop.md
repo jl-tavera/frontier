@@ -1,6 +1,8 @@
-# Research — Track 3: A fast agent loop
+# Agent loop — fast plan → act → verify (track 3)
 
 > Appendix F of [solution.md](../solution.md) · Status: adopted as component [C] (solution.md §3.2); Jev stays a gated 1 h spike · Links checked 2026-10-10.
+
+## 1. Summary
 
 **Decision:** Claude runs the loop **in-process** with plain Python tool functions, with no MCP. We build it in three steps, and each one has to earn its place on the 3.6 harness:
 1. A tool-use loop with **batched actions** (L1+L2). This is the first end-to-end path.
@@ -11,8 +13,9 @@
 
 ---
 
-## 1. Time budget
-Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
+## 2. Problem and constraints
+
+The time budget. Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
 
 `step cost = LLM latency + act + settle`
 
@@ -32,7 +35,9 @@ Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
 
 **Where the time goes:** LLM round trips first, then settle, then image tokens. Every option below attacks round trips.
 
-## 2. Options
+---
+
+## 3. Options considered
 
 | Option | How it works | Pros | Cons | Verdict |
 |---|---|---|---|---|
@@ -45,14 +50,26 @@ Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
 | **L7. Agent frameworks** (LangGraph, OpenAI/Claude Agent SDKs) | Orchestration layer over the same calls | <ul><li>Ready-made state and retries.</li></ul> | <ul><li>No latency gain.</li><li>More deps and abstraction to explain in the debrief.</li></ul> | Discarded: the loop is about 100 LOC |
 | **MCP** (as tool transport) | Tools served over stdio/HTTP to the loop | <ul><li>Claude Code could drive the tools.</li></ul> | <ul><li>Extra process and hop on every action.</li><li>Nothing outside the service needs it.</li></ul> | Discarded |
 
-## 3. Cross-cutting accelerators (apply to every option)
+---
+
+## 4. Chosen design
+
+### 4.1 Recommendation and order
+
+1. **L1+L2.** A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.
+2. **L3.** Add plan-then-execute with strict checks; replan on failure.
+3. **L4 spike (~1 h).** Put Jev behind the `effect_ok` and `target` checks and run the harness. Keep it or drop it based on the criteria in §5.
+4. Throughout, apply the accelerators from §4.2.
+
+### 4.2 Cross-cutting accelerators (apply to every option)
+
 - **Text over images.** Send the OCR element list by default. Send a screenshot (or a crop) only when the model asks or a check is ambiguous.
 - **Prompt caching** on the system prompt, the tool schemas and the app map summary. Steps after the first pay only for the changing state.
 - **Model tiering.** Sonnet-class for routine steps; Opus-class only for recovery and replan. Add this only if measurements show we need it.
-- **App Memory shortcuts.** `navigate_to(screen)` replaces about 5 menu clicks with one step (see [Appendix D](D-platform-mapping-papers.md) and [Appendix E §6](E-platform-mapping-methodology.md)).
+- **App Memory shortcuts.** `navigate_to(screen)` replaces about 5 menu clicks with one step (see [Appendix D](D-mapping-papers.md) and [Appendix E §4.4](E-mapping-methodology.md)).
 - **Settle.** Quiet-time plus an expected-change check, never fixed sleeps. With L4 this becomes the dominant cost.
 
-## 4. Jev deep dive
+### 4.3 Jev as System 1 (L4)
 
 **Fit.** Our perception already turns the screen into text (elements with label, kind and bbox). That is exactly the kind of input Jev takes. The per-step decisions in L3 are narrow classifications, which is Jev's sweet spot. Planning, writing field values, the final summary and anything numeric stay in Claude or in code.
 
@@ -67,26 +84,21 @@ Each task gets 300 s. The guard stops at **270 s** and writes a partial summary.
 
 Gate: act if the top probability ≥ θ (start at 0.8 and tune on the harness), otherwise escalate the step to Claude. Log every decision with its probability. That gives us the escalation rate and the evidence for the Challenge 2 spec.
 
-**Adoption criteria.** On the 3.6 harness, with Jev in place compared to Claude-only:
+---
+
+## 5. Trade-offs
+
+**Adoption criteria** for Jev. On the 3.6 harness, with Jev in place compared to Claude-only:
 - success % no more than 5 points lower;
 - at least 5× faster per decision;
 - escalation rate under 30%.
 
 If it fails any of these, drop it. L3 stays intact because Jev only replaces the per-step checks.
 
-**Risks.**
-1. **Access.** It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
-2. **Out-of-distribution behaviour.** The evaluation app is unseen. The confidence gate is the mitigation.
-3. **Unverified claims.** The vendor states 40–200× speedups; users report a median of about 7×.
-4. **Wrong-but-valid answers.** Jev can't produce an invalid type, but it can choose the wrong element. The `effect_ok` check after each action catches this.
+---
 
-## 5. Recommendation and order
-1. **L1+L2.** A Claude tool-use loop with batched actions. One task working end to end through the entrypoint.
-2. **L3.** Add plan-then-execute with strict checks; replan on failure.
-3. **L4 spike (~1 h).** Put Jev behind the `effect_ok` and `target` checks and run the harness. Keep it or drop it based on the criteria above.
-4. Throughout, apply the accelerators from section 3.
+## 6. Evidence and measurement
 
-## 6. What to measure
 All from the JSONL log [H], for every option:
 - seconds per step;
 - LLM calls per task;
@@ -97,7 +109,20 @@ All from the JSONL log [H], for every option:
 
 Run the baseline before 15:30 and again after.
 
-## Sources
+---
+
+## 7. Open questions
+
+**Risks** of the Jev spike.
+1. **Access.** It is early access, so we need a key before the hackathon. With no key, L4 is out and nothing else changes.
+2. **Out-of-distribution behaviour.** The evaluation app is unseen. The confidence gate is the mitigation.
+3. **Unverified claims.** The vendor states 40–200× speedups; users report a median of about 7×.
+4. **Wrong-but-valid answers.** Jev can't produce an invalid type, but it can choose the wrong element. The `effect_ok` check after each action catches this.
+
+---
+
+## 8. Sources
+
 - TypeSafe AI, "Introducing System One Models & Jev": https://typesafe.ai/blog/introducing-system-one-models-and-jev (local: [../references/jev/typesafe-blog-introducing-jev.html](../references/jev/typesafe-blog-introducing-jev.html))
 - InfoQ, "TypeSafe AI Releases Jev" (Oct 2026): https://www.infoq.com/news/2026/10/typesafe-ai-jev-released/ (local: [../references/jev/infoq-typesafe-jev-released.html](../references/jev/infoq-typesafe-jev-released.html))
 - Flavio Copes, "A deep dive into Jev": https://flaviocopes.com/jev/ (local: [../references/jev/flaviocopes-jev.html](../references/jev/flaviocopes-jev.html))

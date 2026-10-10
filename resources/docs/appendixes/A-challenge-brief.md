@@ -4,13 +4,13 @@
 
 An agent that learns to operate systems with no API, through the screen, and executes natural-language tasks in apps it has never seen.
 
-## Brief
+## 1. Brief
 
 We have a management system we've used for 15 years. It has no API, no documentation, and the vendor disappeared. Everything is done by hand: clicks, forms, pop-up windows, reports exported one by one.
 
 We want an agent that learns to use that system the way a new employee would, and that executes tasks we ask for in natural language, even if it has never done them before. We have 5 systems like this, so the agent must be able to adapt to any of them.
 
-## Timeline
+## 2. Timeline
 
 | Time | What happens |
 | --- | --- |
@@ -21,7 +21,7 @@ We want an agent that learns to use that system the way a new employee would, an
 | Before your slot | Pitch material (optional) |
 | 21:15–22:15 | Demo day |
 
-## Deliverables
+## 3. Deliverables
 
 | Stage | Deadline | Deliverable |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ We want an agent that learns to use that system the way a new employee would, an
 | Execution | 20:00 | 2-minute video (public link, 2 minutes max) |
 | Demo day | Before your slot | Pitch material (slides, PDF or link), optional |
 
-## Entrypoint contract
+## 4. Entrypoint contract
 
 Deployed by your team (anywhere you want), reachable from the internet from 20:00 until demo day ends.
 
@@ -44,7 +44,7 @@ Deployed by your team (anywhere you want), reachable from the internet from 20:0
 - Evaluated on an app your agent has never seen, on a clean evaluation desktop.
 - The summary format and evaluation rules are in the README of the provided material.
 
-## Rubric
+## 5. Rubric
 
 Scale 1 to 4 per criterion. They evaluate what you deliver, deploy and explain; they don't collect sessions or transcripts from your tools.
 
@@ -86,7 +86,7 @@ Scale 1 to 4 per criterion. They evaluate what you deliver, deploy and explain; 
 | Explaining decisions | That each team member can explain how it works and why. | Can't explain key parts of the system. | Explains failures, limits and what they'd do next. |
 | Reading results | How you interpret what the evaluation set shows. | Doesn't connect the numbers to the system. | Explains each failure with a concrete cause. |
 
-## Open items
+## 6. Open items
 
 - Summary format and evaluation rules (material README).
 - Details of the 15:30 change.

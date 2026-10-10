@@ -9,7 +9,7 @@
 
 ---
 
-## 1. Executive summary
+## 1. Summary
 
 The URL does **not** serve a web application. It serves the **noVNC** web client, which bridges the browser to a **remote VNC desktop** over a WebSocket. The actual business system — **SIGECOM · Distribuidora Andina v3.9** — runs *inside* that remote desktop and is only ever transmitted to the browser as **pixels** (framebuffer images). There is no HTML DOM, no REST/JSON API, and no HTTP endpoint for the business data. Everything the user sees is a screenshot stream; everything the user does is mouse/keyboard events sent back over the VNC protocol.
 

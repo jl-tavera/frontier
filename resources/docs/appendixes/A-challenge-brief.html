@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix A — Challenge brief</title>
+<style>
+:root{--bg:#fbfbfa;--fg:#1c1c1c;--muted:#5f6368;--line:#dcdcd7;--accent:#2563eb;--box:#fff;--rail:#eef3ff;--ext:#f4f4f1;--code:#f1f1ee;--side:#f4f4f1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}}
+:root[data-theme="dark"]{--bg:#111214;--fg:#e8e8e6;--muted:#a0a3aa;--line:#2c2e33;--accent:#7aa2ff;--box:#1b1d22;--rail:#161b2a;--ext:#17181c;--code:#1a1b1f;--side:#141518}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:290px minmax(0,1fr)}
+nav.side{position:sticky;top:0;height:100vh;overflow:auto;background:var(--side);border-right:1px solid var(--line);padding:16px;font-size:13px}
+nav.side .brand{font-weight:700;font-size:14px;margin-bottom:8px}nav.side .brand a{color:var(--fg);text-decoration:none}nav.side ul{list-style:none;margin:0;padding-left:0}nav.side ul ul{padding-left:12px;border-left:1px solid var(--line);margin-left:4px}
+nav.side li{margin:2px 0}nav.side a{color:var(--fg);text-decoration:none;display:block;padding:2px 6px;border-radius:4px}nav.side a:hover{background:var(--box);color:var(--accent)}
+main{padding:24px 32px 80px;max-width:1080px;min-width:0}
+.crumbs{font-size:13px;color:var(--muted);margin:0 0 14px;display:flex;flex-wrap:wrap;gap:4px 10px}.crumbs a{color:var(--accent);text-decoration:none}.crumbs a:hover{text-decoration:underline}
+h1{font-size:30px;margin:.2em 0 .5em}h2{font-size:22px;margin-top:2.2em;padding-bottom:.25em;border-bottom:1px solid var(--line)}h3{font-size:17px;margin-top:1.8em}h4{font-size:15.5px}h5{font-size:14.5px}
+h2[id^="appendix-"]{margin-top:3em;border-bottom:3px solid var(--accent)}
+a{color:var(--accent)}.headerlink{opacity:0;margin-left:.3em;text-decoration:none;font-size:.8em}h1:hover .headerlink,h2:hover .headerlink,h3:hover .headerlink,h4:hover .headerlink{opacity:.6}
+.mini-toc{background:var(--side);border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13.5px;margin:12px 0 20px}.mini-toc ol{margin:6px 0 2px;padding-left:20px;columns:2;column-gap:28px}.mini-toc li{break-inside:avoid}.mini-toc a{text-decoration:none}.mini-toc a:hover{text-decoration:underline}
+.tw{overflow-x:auto;margin:1em 0}table{border-collapse:collapse;font-size:13.5px;min-width:100%}th,td{border:1px solid var(--line);padding:6px 10px;vertical-align:top;text-align:left}th{background:var(--side)}
+td ul{margin:0;padding-left:18px}td p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow:auto;font-size:12.5px;line-height:1.4}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code);padding:1px 4px;border-radius:3px;font-size:.92em}pre code{background:none;padding:0;font-size:inherit}
+blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:.2em 1em;color:var(--muted)}hr{border:0;border-top:1px solid var(--line);margin:2.5em 0}
+figure.arch{margin:1em 0 1.5em}figure.arch svg{width:100%;height:auto;display:block;font:12px system-ui,sans-serif}figcaption{color:var(--muted);font-size:13px;margin-top:6px}
+.rail rect{fill:var(--rail);stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}.box rect{fill:var(--box);stroke:var(--line);stroke-width:1.2}.box.hi rect{stroke:var(--accent);stroke-width:1.6}.box.log rect{fill:var(--code)}
+.ext rect{fill:var(--ext);stroke:var(--muted);stroke-width:1.2}svg text{fill:var(--fg)}svg .t{font-weight:700;font-size:13.5px}svg .m{font-family:ui-monospace,Consolas,monospace;font-weight:400}
+svg .l{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;fill:var(--fg)}svg .e{font-size:10.5px;fill:var(--muted)}
+.edge line,.edge polyline{stroke:var(--muted);stroke-width:1.5;marker-end:url(#ah)}
+@media (max-width:900px){.wrap{display:block}nav.side{position:static;height:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line)}main{padding:16px}h1{font-size:24px}}
+@media (max-width:700px){.mini-toc ol{columns:1}}
+@media print{nav.side,.crumbs,.mini-toc{display:none}.wrap{display:block}main{max-width:none;padding:0}h2[id^="appendix-"]{break-before:page}pre{white-space:pre-wrap}a{color:inherit}}
+</style></head><body><div class="wrap">
+<nav class="side"><div class="brand"><a href="../solution.html">Frontier Challenge 1</a> · Appendix A</div><div class="toc">
+<ul>
+<li><a href="#1-brief">1. Brief</a></li>
+<li><a href="#2-timeline">2. Timeline</a></li>
+<li><a href="#3-deliverables">3. Deliverables</a></li>
+<li><a href="#4-entrypoint-contract">4. Entrypoint contract</a></li>
+<li><a href="#5-rubric">5. Rubric</a><ul>
+<li><a href="#01-systems-design-30-deadline-1200">01 · Systems design (30%) — deadline 12:00</a></li>
+<li><a href="#02-execution-40-deadline-2000">02 · Execution (40%) — deadline 20:00</a></li>
+<li><a href="#03-demo-day-15-21152215">03 · Demo day (15%) — 21:15–22:15</a></li>
+<li><a href="#04-technical-depth-15-20002100">04 · Technical depth (15%) — 20:00–21:00</a></li>
+</ul>
+</li>
+<li><a href="#6-open-items">6. Open items</a></li>
+</ul>
+</div>
+</nav>
+<main><div class="crumbs"><a href="../solution.html">← Solution design</a><span>Appendix A of I</span><a href="../solution.html#appendix-a">inline version</a><a href="B-target-recon.html">Appendix B →</a></div><h1 id="challenge-1-the-agent-that-operates-what-has-no-api">Challenge 1 — The agent that operates what has no API<a class="headerlink" href="#challenge-1-the-agent-that-operates-what-has-no-api" title="Permanent link">¶</a></h1>
+<blockquote>
+<p>Appendix A of <a href="../solution.html">solution.md</a> · Status: the brief as received, verbatim · Links checked 2026-10-10.</p>
+</blockquote>
+<p>An agent that learns to operate systems with no API, through the screen, and executes natural-language tasks in apps it has never seen.</p>
+<h2 id="1-brief">1. Brief<a class="headerlink" href="#1-brief" title="Permanent link">¶</a></h2>
+<p>We have a management system we've used for 15 years. It has no API, no documentation, and the vendor disappeared. Everything is done by hand: clicks, forms, pop-up windows, reports exported one by one.</p>
+<p>We want an agent that learns to use that system the way a new employee would, and that executes tasks we ask for in natural language, even if it has never done them before. We have 5 systems like this, so the agent must be able to adapt to any of them.</p>
+<h2 id="2-timeline">2. Timeline<a class="headerlink" href="#2-timeline" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Time</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>12:00</td>
+<td>Systems design deadline</td>
+</tr>
+<tr>
+<td>15:30</td>
+<td>Incident / change in the system</td>
+</tr>
+<tr>
+<td>20:00</td>
+<td>Execution deadline; entrypoint must be live from here</td>
+</tr>
+<tr>
+<td>20:00–21:00</td>
+<td>Technical depth: 10-min individual debrief</td>
+</tr>
+<tr>
+<td>Before your slot</td>
+<td>Pitch material (optional)</td>
+</tr>
+<tr>
+<td>21:15–22:15</td>
+<td>Demo day</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-deliverables">3. Deliverables<a class="headerlink" href="#3-deliverables" title="Permanent link">¶</a></h2>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Deadline</th>
+<th>Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Systems design</td>
+<td>12:00</td>
+<td>Design doc (one page, PDF or link)</td>
+</tr>
+<tr>
+<td>Systems design</td>
+<td>12:00</td>
+<td>Architecture diagram (image, PDF or link)</td>
+</tr>
+<tr>
+<td>Execution</td>
+<td>20:00</td>
+<td>Repo (public URL)</td>
+</tr>
+<tr>
+<td>Execution</td>
+<td>20:00</td>
+<td>Entrypoint (public URL of the deployed service, with <code>GET /health</code> and the team token)</td>
+</tr>
+<tr>
+<td>Execution</td>
+<td>20:00</td>
+<td>2-minute video (public link, 2 minutes max)</td>
+</tr>
+<tr>
+<td>Demo day</td>
+<td>Before your slot</td>
+<td>Pitch material (slides, PDF or link), optional</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-entrypoint-contract">4. Entrypoint contract<a class="headerlink" href="#4-entrypoint-contract" title="Permanent link">¶</a></h2>
+<p>Deployed by your team (anywhere you want), reachable from the internet from 20:00 until demo day ends.</p>
+<ul>
+<li><strong>Auth</strong>: every call carries <code>Authorization: Bearer &lt;token&gt;</code> (team token).</li>
+<li><strong><code>GET /health</code></strong> → <code>200</code> when the service is ready.</li>
+<li><strong><code>POST /tasks</code></strong> → receives the natural-language task and the desktop (URL and password). Responds <code>{"task_id": "…"}</code> in <strong>under 2 seconds</strong>.</li>
+<li><strong><code>GET /tasks/{task_id}</code></strong> → returns status (<code>en_curso</code>, <code>terminada</code>, <code>fallida</code> — in progress, done, failed) and a summary.</li>
+<li>Each task has <strong>5 minutes</strong>.</li>
+<li>Evaluated on an app your agent has never seen, on a clean evaluation desktop.</li>
+<li>The summary format and evaluation rules are in the README of the provided material.</li>
+</ul>
+<h2 id="5-rubric">5. Rubric<a class="headerlink" href="#5-rubric" title="Permanent link">¶</a></h2>
+<p>Scale 1 to 4 per criterion. They evaluate what you deliver, deploy and explain; they don't collect sessions or transcripts from your tools.</p>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Weight</th>
+<th>Fed by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01 · Systems design</td>
+<td>30%</td>
+<td>Design doc + diagram</td>
+</tr>
+<tr>
+<td>02 · Execution</td>
+<td>40%</td>
+<td>Repo, entrypoint, video and hidden evaluation set (+ spec + log from Challenge 2)</td>
+</tr>
+<tr>
+<td>03 · Demo day</td>
+<td>15%</td>
+<td>Pitch in your slot + optional material</td>
+</tr>
+<tr>
+<td>04 · Technical depth</td>
+<td>15%</td>
+<td>10-minute individual debrief</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="01-systems-design-30-deadline-1200">01 · Systems design (30%) — deadline 12:00<a class="headerlink" href="#01-systems-design-30-deadline-1200" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>What we look for</th>
+<th>1 looks like</th>
+<th>4 looks like</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Problem understanding</td>
+<td>What the system must solve, its limits and its assumptions.</td>
+<td>Repeats the brief without making decisions.</td>
+<td>Names assumptions, hard cases and what it leaves out, with reasons.</td>
+</tr>
+<tr>
+<td>Architecture and trade-offs</td>
+<td>Clear components and justified decisions.</td>
+<td>A diagram with no decisions behind it.</td>
+<td>Each decision says which alternative it discarded and why.</td>
+</tr>
+<tr>
+<td>Measurement plan</td>
+<td>How you'll know it works before building.</td>
+<td>No way to measure the result.</td>
+<td>Concrete test cases and metrics from the design.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="02-execution-40-deadline-2000">02 · Execution (40%) — deadline 20:00<a class="headerlink" href="#02-execution-40-deadline-2000" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>What we look for</th>
+<th>1 looks like</th>
+<th>4 looks like</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Result on the hidden evaluation set</td>
+<td>What the entrypoint achieves on cases it doesn't know. The final run counts: &lt;25% of cases = 1, up to 50% = 2, up to 75% = 3, more = 4.</td>
+<td>The entrypoint doesn't respond or fails almost everything.</td>
+<td>Solves most cases, including new ones.</td>
+</tr>
+<tr>
+<td>Incident response</td>
+<td>How you adapt to the 15:30 change.</td>
+<td>The system breaks and you don't detect it.</td>
+<td>You detect the change, adapt and explain it.</td>
+</tr>
+<tr>
+<td>Repo quality</td>
+<td>That someone else can run and understand it.</td>
+<td>Can't be run.</td>
+<td>Runs by following the README and the code explains itself.</td>
+</tr>
+<tr>
+<td>Specification (Challenge 2)</td>
+<td>That another engineer can reimplement the service from the spec, and that each behavior cites the log line that proves it.</td>
+<td>Describes few behaviors, without evidence or with false claims.</td>
+<td>Covers most behaviors, each with its log line, and marks what is confirmed vs. assumed.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="03-demo-day-15-21152215">03 · Demo day (15%) — 21:15–22:15<a class="headerlink" href="#03-demo-day-15-21152215" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>What we look for</th>
+<th>1 looks like</th>
+<th>4 looks like</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clarity</td>
+<td>That it's clear what you built and why.</td>
+<td>By the end it's unclear what it does.</td>
+<td>Within minutes the problem, solution and evidence are clear.</td>
+</tr>
+<tr>
+<td>Evidence</td>
+<td>Results seen working in the demo.</td>
+<td>Only claims.</td>
+<td>Shows real results, including what didn't work.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="04-technical-depth-15-20002100">04 · Technical depth (15%) — 20:00–21:00<a class="headerlink" href="#04-technical-depth-15-20002100" title="Permanent link">¶</a></h3>
+<div class="tw"><table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>What we look for</th>
+<th>1 looks like</th>
+<th>4 looks like</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Explaining decisions</td>
+<td>That each team member can explain how it works and why.</td>
+<td>Can't explain key parts of the system.</td>
+<td>Explains failures, limits and what they'd do next.</td>
+</tr>
+<tr>
+<td>Reading results</td>
+<td>How you interpret what the evaluation set shows.</td>
+<td>Doesn't connect the numbers to the system.</td>
+<td>Explains each failure with a concrete cause.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-open-items">6. Open items<a class="headerlink" href="#6-open-items" title="Permanent link">¶</a></h2>
+<ul>
+<li>Summary format and evaluation rules (material README).</li>
+<li>Details of the 15:30 change.</li>
+<li>Access to the test app.</li>
+<li>Team token.</li>
+</ul></main>
+</div></body></html>

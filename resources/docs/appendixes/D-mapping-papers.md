@@ -1,9 +1,16 @@
-# Platform Mapping as a Graph — Paper Comparison (Track 2)
+# Platform mapping as a graph — paper comparison (track 2)
 
-> Appendix D of [solution.md](../solution.md) · Status: research input for track 2, refined by [Appendix E](E-platform-mapping-methodology.md); where they differ, E wins (4-rung repair ladder instead of 5, ≤45 s pre-warm instead of ≤60 s) · Links checked 2026-10-10.
+> Appendix D of [solution.md](../solution.md) · Status: research input for track 2, refined by [Appendix E](E-mapping-methodology.md); where they differ, E wins (4-rung repair ladder instead of 5, ≤45 s pre-warm instead of ≤60 s) · Links checked 2026-10-10.
+
+## 1. Summary
+
+Question: how do published GUI agents build an **initial map** of an app as a graph (screens = nodes, actions = edges), and how do they **remap** when the app changes?
 
 Research for track 2 of [solution.md §5](../solution.md) (2.2 exploration → nav graph, 2.3 fingerprint, 2.4 map storage, 2.5 pre-warm vs cold, 2.6 change detection / remap).
-Question: how do published GUI agents build an **initial map** of an app as a graph (screens = nodes, actions = edges), and how do they **remap** when the app changes?
+
+---
+
+## 2. Problem and constraints
 
 Our constraints, which every "steal" below is filtered through:
 - The app is unseen.
@@ -16,7 +23,9 @@ PDFs are in `../references/papers/`. Every fact here comes from reading the pape
 
 ---
 
-## 1. Comparison table
+## 3. Options considered
+
+The twelve papers, compared on what we need from them:
 
 | # | Paper | Platform / input | Node = | Edge = | Screen dedup | Initial mapping (cost) | Remap / drift |
 |---|---|---|---|---|---|---|---|
@@ -37,7 +46,46 @@ Code available: AutoDroid, MobileGPT, GUI-Xplore, LLM-Explorer and UI-KOBE (GitH
 
 ---
 
-## 2. What the literature tells us
+## 4. Chosen design
+
+What we take for each sub-problem:
+
+| Sub-problem | Technique to take | From |
+|---|---|---|
+| **2.2 Exploration → nav graph** | Pick **unexplored** actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one `open row` action"). Denylist destructive labels. One action per step so every edge is clean. | LLM-Explorer, UI-KOBE |
+| **2.3 Screen fingerprint** | `fingerprint = title-bar text + set of static OCR labels binned to a coarse grid` (drop numbers, dates, grid-cell contents). Merge on Jaccard ≥ ~0.9. If ambiguous, use a VLM yes/no against a reference screenshot. Coarse grid + text makes it independent of resolution. | ScreenSearch, ActionEngine (static vs dynamic atoms), UI-KOBE |
+| **2.4 Map storage** | One JSON per app (keyed by title bar). Nodes: `{id, fingerprint, description, ref_screenshot, affordances[]}`. Edges: `{from, action:{kind, target_label, target_role}, to, desc, success, fail, last_ok}`. Data-reading actions as self-loops. No x,y stored. Neo4j (AppAgentX, EAM) is overkill. | MobileGPT, UI-KOBE, ActionEngine |
+| **2.5 Pre-warm vs cold** | **Cold + incremental by default.** At most a ~30–60 s shallow BFS of the top menu bar on first contact (one level, read-only items), then learn on demand. Every task's trace is written back as edges, so the next task on the same app is warm (MobileGPT: warm 98.75% vs cold 82.7%, latency −62.5%). | MobileGPT, AppAgentX |
+| **2.6 Change detection (15:30)** | The **expected-edge check**: each edge stores the fingerprint it should lead to. A mismatch is drift. Signals: (a) the target label is not found on the screen, (b) the action caused no screen change, (c) it landed on an unexpected or unmatched fingerprint, (d) the same action now has different outcomes. Repair ladder below. | MobileGPT (no-change), ActionEngine (localize), ScreenSearch (outcome dispersion), UI-KOBE (unmatched) |
+
+### 4.1 Repair ladder for 2.6
+
+Each rung is cheap, and the next one runs only if it fails. Every rung writes to the JSONL log for the Challenge 2 spec.
+1. **Re-ground in place.** Find the same function under a new label or position (OCR fuzzy match, then the LLM with the old action as a few-shot example). If found, **patch the edge** and keep the node. (MobileGPT re-derive, ActionEngine Patcher, MAGNET "appearance drift".)
+2. **Alternative path.** Search the graph for another route to the target node. (LLM-Explorer.)
+3. **Local re-explore.** Mark the node `stale` and explore one hop from it, unexplored actions only, within a budget of about 20 s. (UI-KOBE frontier re-exploration, done online.)
+4. **Free-plan fallback.** The LLM acts without the graph and rejoins it once a known fingerprint appears. (UI-KOBE.)
+5. **Prune.** If an edge fails N times, delete it. Edges whose success has decayed are ranked down rather than deleted. (LLM-Explorer prune, MAGNET recency×use score.)
+
+---
+
+## 5. Trade-offs
+
+Recommendation, with the discarded alternative:
+
+| Decision | Chosen | Discarded, and why |
+|---|---|---|
+| Initial mapping | **Task-driven incremental graph** plus a ≤60 s shallow menu pre-warm; traces written back after each task | Full up-front exploration (AutoDroid, LLM-Explorer, UI-KOBE, ActionEngine): 10 min–hours per app, impossible inside a 5 min task on an unseen app |
+| Node identity | **OCR static-label set on a coarse grid + Jaccard**, with a VLM verify only when ambiguous | Pure embedding or VLM matching (PG-Agent): ~3 MLLM calls per check and unstable across models (UI-KOBE A.1). Pixel hash: breaks on any data change |
+| Edge target | **Semantic target (label + role)**, grounded to pixels at run time | Stored x,y (AppAgentX shortcuts): breaks the moment a button moves, which is exactly the 15:30 scenario |
+| Task-time use | Plan a path over the graph in one call, then verify each step against the expected fingerprint | Per-step reactive LLM without a graph: 3–5× more LLM calls (GraphPilot, ActionEngine numbers) |
+| Remap | **Online, localized repair** (ladder above), written back into the graph | Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): it fails at exactly the moment we are graded. Passive memory decay alone (MAGNET): too slow to react within one task |
+
+---
+
+## 6. Evidence and measurement
+
+What the literature tells us:
 
 1. **Nobody does online remapping after an app update.**
    - EAM and UI-KOBE name it as future work.
@@ -60,39 +108,15 @@ Code available: AutoDroid, MobileGPT, GUI-Xplore, LLM-Explorer and UI-KOBE (GitH
 
 ---
 
-## 3. Mapping onto our sub-problems
+## 7. Open questions
 
-| Sub-problem | Technique to take | From |
-|---|---|---|
-| **2.2 Exploration → nav graph** | Pick **unexplored** actions; shortest path through the known graph to reach the frontier. Use the LLM only to name/group actions (e.g. "these 12 grid rows = one `open row` action"). Denylist destructive labels. One action per step so every edge is clean. | LLM-Explorer, UI-KOBE |
-| **2.3 Screen fingerprint** | `fingerprint = title-bar text + set of static OCR labels binned to a coarse grid` (drop numbers, dates, grid-cell contents). Merge on Jaccard ≥ ~0.9. If ambiguous, use a VLM yes/no against a reference screenshot. Coarse grid + text makes it independent of resolution. | ScreenSearch, ActionEngine (static vs dynamic atoms), UI-KOBE |
-| **2.4 Map storage** | One JSON per app (keyed by title bar). Nodes: `{id, fingerprint, description, ref_screenshot, affordances[]}`. Edges: `{from, action:{kind, target_label, target_role}, to, desc, success, fail, last_ok}`. Data-reading actions as self-loops. No x,y stored. Neo4j (AppAgentX, EAM) is overkill. | MobileGPT, UI-KOBE, ActionEngine |
-| **2.5 Pre-warm vs cold** | **Cold + incremental by default.** At most a ~30–60 s shallow BFS of the top menu bar on first contact (one level, read-only items), then learn on demand. Every task's trace is written back as edges, so the next task on the same app is warm (MobileGPT: warm 98.75% vs cold 82.7%, latency −62.5%). | MobileGPT, AppAgentX |
-| **2.6 Change detection (15:30)** | The **expected-edge check**: each edge stores the fingerprint it should lead to. A mismatch is drift. Signals: (a) the target label is not found on the screen, (b) the action caused no screen change, (c) it landed on an unexpected or unmatched fingerprint, (d) the same action now has different outcomes. Repair ladder below. | MobileGPT (no-change), ActionEngine (localize), ScreenSearch (outcome dispersion), UI-KOBE (unmatched) |
-
-### Repair ladder for 2.6
-Each rung is cheap, and the next one runs only if it fails. Every rung writes to the JSONL log for the Challenge 2 spec.
-1. **Re-ground in place.** Find the same function under a new label or position (OCR fuzzy match, then the LLM with the old action as a few-shot example). If found, **patch the edge** and keep the node. (MobileGPT re-derive, ActionEngine Patcher, MAGNET "appearance drift".)
-2. **Alternative path.** Search the graph for another route to the target node. (LLM-Explorer.)
-3. **Local re-explore.** Mark the node `stale` and explore one hop from it, unexplored actions only, within a budget of about 20 s. (UI-KOBE frontier re-exploration, done online.)
-4. **Free-plan fallback.** The LLM acts without the graph and rejoins it once a known fingerprint appears. (UI-KOBE.)
-5. **Prune.** If an edge fails N times, delete it. Edges whose success has decayed are ranked down rather than deleted. (LLM-Explorer prune, MAGNET recency×use score.)
+None recorded in this document. The measurements for track 2 are defined in [Appendix E §6](E-mapping-methodology.md).
 
 ---
 
-## 4. Recommendation (design-doc ready)
+## 8. Sources
 
-| Decision | Chosen | Discarded, and why |
-|---|---|---|
-| Initial mapping | **Task-driven incremental graph** plus a ≤60 s shallow menu pre-warm; traces written back after each task | Full up-front exploration (AutoDroid, LLM-Explorer, UI-KOBE, ActionEngine): 10 min–hours per app, impossible inside a 5 min task on an unseen app |
-| Node identity | **OCR static-label set on a coarse grid + Jaccard**, with a VLM verify only when ambiguous | Pure embedding or VLM matching (PG-Agent): ~3 MLLM calls per check and unstable across models (UI-KOBE A.1). Pixel hash: breaks on any data change |
-| Edge target | **Semantic target (label + role)**, grounded to pixels at run time | Stored x,y (AppAgentX shortcuts): breaks the moment a button moves, which is exactly the 15:30 scenario |
-| Task-time use | Plan a path over the graph in one call, then verify each step against the expected fingerprint | Per-step reactive LLM without a graph: 3–5× more LLM calls (GraphPilot, ActionEngine numbers) |
-| Remap | **Online, localized repair** (ladder above), written back into the graph | Full re-learn: too slow. Offline-only repair (UI-KOBE, EAM): it fails at exactly the moment we are graded. Passive memory decay alone (MAGNET): too slow to react within one task |
-
----
-
-## 5. Papers
+Papers, and what to read first:
 
 | File | Read first if you work on |
 |---|---|
