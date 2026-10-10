@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,8 @@ import pytest
 from app import runner
 from app.contracts import Summary
 from tests.test_main import AUTH, BODY, _wait, client  # noqa: F401  (client is a fixture)
+
+ROOT = Path(__file__).parent.parent
 
 
 def _post(client):
@@ -59,6 +62,13 @@ def test_each_task_logs_start_and_end_to_its_jsonl(client):
     assert [e["event"] for e in events] == ["task.start", "task.end"]
     assert all(e["task_id"] == task_id for e in events)
     assert events[-1]["outcome"] == "terminada"
+
+
+def test_dockerfile_command_matches_the_readme():
+    cmd = re.search(r"uvicorn app\.main:app[^\"\n]*", (ROOT / "Dockerfile").read_text()).group(0)
+    assert cmd == "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1"
+    assert cmd in (ROOT / "README.md").read_text("utf-8")
+    assert json.loads((ROOT / "railway.json").read_text())["deploy"]["healthcheckPath"] == "/health"
 
 
 def test_a_workers_own_timeout_is_an_error_not_an_overrun(client, monkeypatch):

@@ -1,0 +1,11 @@
+.env
+.venv/
+.git/
+__pycache__/
+logs/
+poc/out/
+resources/
+tests/
+.claude/
+*.sqlite-wal
+*.sqlite-shm
