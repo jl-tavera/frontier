@@ -45,7 +45,14 @@ def boxes(fb: ndarray) -> tuple[list[BBox], list[BBox]]:
                 parents.add(o)
                 if abs(_height(o) - _height(r)) <= 2:  # same-height parent: r is a grid cell, o its row
                     cells.add(r)
-    return [r for r in rects if r not in cells | parents], sorted(cells, key=lambda r: (r[1], r[0]))
+    # A header row drawn as bordered boxes: column-aligned with the cells, right on top of the top row. Not widgets,
+    # so their text stays free for the header rule.
+    # lazy: one grid per screen, and a header box drawn inside a same-height bordered row reads as a cell; take the
+    # top row per grid, or the row whose fill differs from the striped body, when a live frame shows either
+    top = min((c[1] for c in cells), default=0)
+    heads = {r for r in rects
+             if 0 < top - r[3] <= 3 and any(abs(r[0] - c[0]) <= 2 and abs(r[2] - c[2]) <= 2 for c in cells)}
+    return [r for r in rects if r not in cells | parents | heads], sorted(cells, key=lambda r: (r[1], r[0]))
 
 
 def _widget_kind(fb: ndarray, box: BBox, lines: list["Line"]) -> Kind | None:
