@@ -5,6 +5,7 @@ from itertools import count
 from app.contracts import Target
 from app.memory.appmap import AppMap
 from app.memory.prewarm import prewarm
+from tests.fakes.fake_app import FakeSession
 
 V39 = "SIGECOM · Distribuidora Andina   v3.9"
 MENUS = {"Archivo": "menu-archivo", "Comercial": "menu-comercial", "Cartera": "menu-cartera",
@@ -130,3 +131,44 @@ def test_prewarm_takes_items_ocr_reads_as_buttons_under_a_garbled_bar_label(fake
 
     labels = {(e["action"]["params"]["menu"], e["action"]["target"]["appearances"][0]["label"]) for e in m.edges.values()}
     assert ("Cartera", "Facturas") in labels and len(labels) == 9
+
+
+class Laggy(FakeSession):
+    """Live SIGECOM: after an item click the dropdown stays painted over the new screen through one settle."""
+    held, wait = None, 0
+
+    async def click(self, x, y):
+        before = self.screen
+        await super().click(x, y)
+        if before.startswith("menu-") and self.screen != before:
+            self.held, self.wait = self.screen, 1
+            self._go(before)
+
+    async def settle(self, *a, **kw):
+        if self.held and self.wait:
+            self.wait -= 1
+        elif self.held:
+            self._go(self.held)
+            self.held = None
+        return 0.0
+
+
+def test_visit_after_a_reset_maps_one_home_and_every_list_screen_with_its_grid(fixtures_dir, tmp_path):
+    t = menu_tree() | {("inicio-aviso", "Entendido"): "inicio", ("menu-archivo", "Inicio"): "inicio-garbled"}
+    t |= {("inicio-garbled", label): menu for label, menu in MENUS.items()}
+    session, m = Laggy("inicio-aviso", t, fixtures_dir / "elements"), AppMap.load(tmp_path, V39)
+    run(session, m, visit=True)
+
+    assert session.clicks[0] == (630, 311)  # Entendido, before anything else
+    assert sorted(m.nodes) == ["bitacora-de-cambios", "clientes", "facturas", "inicio", "pedidos", "reportes-generados"]
+    for nid in ("clientes", "pedidos", "facturas"):
+        snap = m.nodes[nid]["appearances"][0]["elements_snapshot"]
+        assert [e["text"] for e in snap if e["kind"] == "title"][1] == nid.capitalize()
+        assert any(e["kind"] == "header" for e in snap) and not any(e["text"] == "Maestros" for e in snap)
+
+
+def test_a_dialog_with_more_than_one_button_still_stops_the_prewarm(fake_app, tmp_path):
+    session, m = fake_app("facturas-dialog", menu_tree()), AppMap.load(tmp_path, V39)
+    run(session, m)
+
+    assert session.clicks == [] and m.nodes == {}

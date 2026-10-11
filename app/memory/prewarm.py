@@ -4,7 +4,7 @@ from typing import Callable
 
 from app.contracts import Element, Perceive, Session, Target
 from app.memory.appmap import AppMap
-from app.memory.fingerprint import cell
+from app.memory.fingerprint import cell, fingerprint
 
 
 def _xy(e: Element) -> tuple[int, int]:
@@ -13,7 +13,7 @@ def _xy(e: Element) -> tuple[int, int]:
 
 async def prewarm(session: Session, m: AppMap, perceive: Perceive, *, clock: Callable[[], float] = time.monotonic,
                   budget: float = 45.0, visit: bool = False) -> None:
-    """Click → settle → elements → Esc on every top menu not denylisted, recording `menu → item` edges with
+    """First dismisses an acknowledgement pop-up (one button, not denylisted). Then click → settle → elements → Esc on every top menu not denylisted, recording `menu → item` edges with
     `to` unknown (None) from the screen it started on. No menu is opened once `budget` seconds have passed.
 
     `visit` is W1's dev-time full mapping run: it also clicks every item that is not denylisted and records its
@@ -21,6 +21,11 @@ async def prewarm(session: Session, m: AppMap, perceive: Perceive, *, clock: Cal
     and walking back to the start screen along a confirmed edge into it otherwise."""
     t0 = clock()
     elements = perceive(session.fb)
+    if (buttons := fingerprint(elements, session.w, session.h).blocker) and len(buttons) == 1 and not m.denied(buttons[0]):
+        # an acknowledgement over the screen (SIGECOM's "Entendido" after a reset): its one button only dismisses it
+        await session.click(*_xy(next(e for e in elements if e.kind == "button" and e.text == buttons[0])))
+        await session.settle()
+        elements = perceive(session.fb)
     if (src := m.locate(elements, session.w, session.h, session.fb)) is None:
         return  # a dialog or an ambiguous screen: no node to hang the edges on
     top = {e.text for e in elements if e.kind == "menu"}
@@ -69,4 +74,14 @@ async def _click_item(session: Session, m: AppMap, perceive: Perceive, src: str,
     await session.settle()
     await session.click(*xy)
     await session.settle()
-    return m.learn(src, "click", target, xy, perceive(session.fb), session.w, session.h, session.fb, {"menu": menu})
+    # the screen settles under the dropdown before it closes: any of the menu's items still in place means it is open
+    # (not just the clicked one, which the cursor garbles)
+    looks = [(a["label"], a["xy"]) for e in m.edges.values() if e["action"]["params"].get("menu") == menu
+             for a in e["action"]["target"]["appearances"][:1]]
+    for _ in range(3):
+        landed = perceive(session.fb)
+        if not any(e.text == label and max(abs(p - q) for p, q in zip(_xy(e), at)) <= 10
+                   for label, at in looks for e in landed):
+            return m.learn(src, "click", target, xy, landed, session.w, session.h, session.fb, {"menu": menu})
+        await session.settle()
+    return None
