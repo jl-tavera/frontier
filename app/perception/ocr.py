@@ -1,5 +1,6 @@
 """OCR lines: detect once per screen, recognise each line crop once (Appendix H §4, §6)."""
 import hashlib
+import os
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
@@ -43,7 +44,10 @@ def _engine():
     # Classifier off: it flipped "Todos" → "sopol" (Appendix H §6). Limit "max" keeps a frame or region under
     # 1500 px at native scale; "min" upscales a small region to 736 px, ~2.5 s for one line (H §6).
     kw = {"rec_model_path": str(LATIN_REC)} if LATIN_REC.exists() else {}
-    return RapidOCR(use_cls=False, det_limit_type="max", **kw)
+    # The Dockerfile's OMP_NUM_THREADS caps onnxruntime too, which ignores it otherwise and sizes its pool to every
+    # host CPU; on Railway's 48-CPU host a step ran ~10x slower than on a laptop (#88). Unset (a laptop) keeps the default.
+    threads = int(os.environ.get("OMP_NUM_THREADS", -1))
+    return RapidOCR(use_cls=False, det_limit_type="max", intra_op_num_threads=threads, **kw)
 
 
 def ocr(fb: ndarray, region: BBox | None = None) -> list[Line]:
