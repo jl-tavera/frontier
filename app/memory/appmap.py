@@ -6,7 +6,7 @@ import re
 import time
 import unicodedata
 from dataclasses import asdict, dataclass, field
-from difflib import get_close_matches
+from difflib import SequenceMatcher, get_close_matches
 from pathlib import Path
 from typing import Callable, Literal
 
@@ -18,6 +18,7 @@ from app.memory.fingerprint import Fingerprint, fingerprint, jaccard, split_titl
 
 DENYLIST = ["Integraciones", "Eliminar", "Anular", "Borrar", "Guardar*", "Enviar", "Configuración"]
 SAME, AMBIGUOUS, OVERLAY_AREA, ADOPT, SAME_APP = 0.90, 0.60, 0.25, 0.5, 0.9
+BAND = 0.8  # a title band OCR read a few letters off (Inicio / lnicio) is the stored one
 CROP_KINDS = {"title", "menu", "button", "header"}
 
 
@@ -40,6 +41,20 @@ def _dirname(app_id: str) -> str:
 def _slug(text: str) -> str:
     ascii_ = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
     return re.sub(r"[^a-z0-9]+", "-", ascii_.lower()).strip("-") or "screen"
+
+
+def _key(title: str) -> str:
+    return _slug(title).replace("-", "")
+
+
+def _band_names(stored: tuple[str, ...], band: tuple[str, ...]) -> dict[str, str] | None:
+    """The stored title for each of this frame's band titles when the two bands are the same up to OCR misreads."""
+    # lazy: pairs titles by their sorted keys, so a misread first letter that re-sorts a multi-title band misses;
+    # pair by best ratio if it bites
+    pairs = list(zip(sorted(stored, key=_key), sorted(band, key=_key)))
+    if len(stored) != len(band) or any(SequenceMatcher(None, _key(a), _key(b)).ratio() < BAND for a, b in pairs):
+        return None
+    return {b: a for a, b in pairs}
 
 
 def _area(boxes) -> float:
@@ -137,20 +152,23 @@ class AppMap:
         return new
 
     def identify(self, fp: Fingerprint) -> Match:
-        """Blocker, then overlay of a node, then Jaccard over atoms (max over appearances) with the title band as hard key."""
+        """Blocker, then overlay of a node, then Jaccard over atoms (max over appearances) with the title band as hard
+        key, up to an OCR misread of a few letters; a misread band only ever matches as an overlay or the same node."""
         if fp.blocker:
             return Match("blocker", None, 0.0, fp.blocker)
         best = Match("new", None, 0.0)
         for nid, node in self.nodes.items():
             for a in node["appearances"]:
-                if tuple(a["band"]) != fp.band:
+                if (names := _band_names(tuple(a["band"]), fp.band)) is None:
                     continue
-                parent, sim = set(a["atoms"]), jaccard(a["atoms"], fp.atoms)
-                extra = [x for x in fp.atoms if x not in parent]
+                # the band's own atoms carry the misread too: read them as the stored titles
+                atoms = {pos + "|" + names.get(text, text): v for k, v in fp.atoms.items() for pos, _, text in [k.partition("|")]}
+                parent, sim = set(a["atoms"]), jaccard(a["atoms"], atoms)
+                extra = [x for x in atoms if x not in parent]
                 # lazy: every parent label must stay visible; loosen when OCR noise drops one under a real dropdown
-                if extra and parent <= fp.atoms.keys() and _area(fp.atoms[x] for x in extra) < OVERLAY_AREA:
+                if extra and parent <= atoms.keys() and _area(atoms[x] for x in extra) < OVERLAY_AREA:
                     return Match("overlay", nid, sim, [x.split("|", 1)[1] for x in extra])
-                if sim > best.sim:
+                if sim > best.sim and (sim >= SAME or tuple(a["band"]) == fp.band):  # a near title on other atoms is another screen
                     best = Match("new", nid, sim)
         kind = "same" if best.sim >= SAME else "ambiguous" if best.sim >= AMBIGUOUS else "new"
         return Match(kind, best.node_id if kind != "new" else None, best.sim)
@@ -201,7 +219,8 @@ class AppMap:
         fp = fingerprint(elements, w, h)
         match = self.identify(fp)
         if match.kind == "same":
-            self.seen[match.node_id] = (fp, elements, fb)
+            if any(tuple(a["band"]) == fp.band for a in self.nodes[match.node_id]["appearances"]):
+                self.seen[match.node_id] = (fp, elements, fb)  # a misread title is no snapshot to keep
             return match.node_id
         return self.upsert_node(fp, elements, fb) if match.kind == "new" else None
 

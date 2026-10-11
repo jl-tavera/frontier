@@ -110,3 +110,31 @@ def test_both_ocr_readings_of_the_real_title_load_the_same_map(tmp_path):
         m = AppMap.load(tmp_path, reading)
         assert (m.dir, m.app_id, m.version) == (local.dir, local.app_id, local.version)
     assert AppMap.load(tmp_path, "CONTABILIDAD · Distribuidora Andina v4.2").dir != local.dir
+
+
+def retitle(els, old, new):
+    return [replace(e, text=new) if e.text == old and e.kind == "title" else e for e in els]
+
+
+def test_a_title_band_misread_lands_on_the_stored_node(screen, tmp_path):
+    m = AppMap.load(tmp_path, V39)
+    inicio = m.locate(screen("inicio"), W, H)
+    welcome = retitle(screen("inicio"), "Inicio", "Bienvenido a SIGECOM")
+    home = m.locate(welcome, W, H)
+
+    assert m.locate(retitle(screen("inicio"), "Inicio", "lnicio"), W, H) == inicio
+    assert m.locate(retitle(welcome, "Bienvenido a SIGECOM", "BienvenidckaSIGECOM"), W, H) == home
+    assert m.locate(screen("facturas"), W, H) == "facturas"
+    assert m.locate(screen("pedidos"), W, H) == "pedidos" and len(m.nodes) == 4
+    # a title a letter off over only part of a stored screen's atoms (here no grid) is another screen, not "ambiguous"
+    other = [e for e in retitle(screen("pedidos"), "Pedidos", "Pedido") if e.kind != "header"]
+    assert m.locate(other, W, H) == "pedido"
+
+
+def test_a_misread_frame_never_overwrites_the_clean_snapshot(screen, tmp_path):
+    m = AppMap.load(tmp_path, V39)
+    m.locate(screen("inicio"), W, H)
+    m.locate(retitle(screen("inicio"), "Inicio", "lnicio"), W, H)
+    m.write_back()
+
+    assert m.nodes["inicio"]["appearances"][0]["band"] == ["Inicio"]
