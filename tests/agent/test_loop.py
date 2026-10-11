@@ -4,6 +4,7 @@ import os
 from functools import partial
 from itertools import groupby
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -14,10 +15,13 @@ from app.contracts import Target
 from app.main import app
 from app.memory.appmap import AppMap
 from app.memory.fingerprint import cell, fingerprint
+from app.perception import ocr
 from app.perception.grid import Grid
 from app.sync.cache import Cache
 from tests.fakes.fake_app import FakeSession
 from tests.fakes.llm import FakeLLM
+from tests.perception.conftest import facturas_live_fb  # noqa: F401  (fixture)
+from tests.perception.test_ocr import norm
 from tests.test_main import AUTH, _wait
 
 V39 = "SIGECOM · Distribuidora Andina   v3.9"
@@ -213,3 +217,12 @@ def test_a_missed_entity_read_twice_costs_one_go_to(monkeypatch, fixtures_dir, m
     assert status["status"] == "terminada"
     visits = [k for k, _ in groupby(e["args"][0] for e in events if e["event"] == "step" and e["tool"] == "go_to")]
     assert visits == ["clientes", "bitacora"]  # acquisition re-probes on the screen it is on; no second trip back
+
+
+def test_a_node_snapshotted_from_the_live_facturas_screen_is_an_entity(facturas_live_fb, tmp_path):
+    els = ocr.elements(facturas_live_fb)
+    m = AppMap.load(tmp_path, "SIGECOM · Distribuidora Andina   v4.2", els, 1280, 800)
+    nid = m.upsert_node(fingerprint(els, 1280, 800), els)
+    [entity] = loop.Executor.entities(SimpleNamespace(m=m))  # only the map is read
+    assert entity["id"] == nid
+    assert [norm(c) for c in entity["columns"]] == ["codigo", "cliente", "fecha", "vence", "valor", "estado"]
