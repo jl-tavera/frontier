@@ -7,6 +7,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 from app import runner
+from synth.web import router as evals_router
 
 REQUIRED_ENV = ("TEAM_TOKEN", "OPENROUTER_API_KEY", "MODEL_FAST", "MODEL_VLM", "MODEL_PLANNER")
 
@@ -19,6 +20,7 @@ async def lifespan(_):
 
 
 app = FastAPI(lifespan=lifespan)
+app.include_router(evals_router)
 
 
 def bearer(authorization: str = Header("")) -> None:
