@@ -1,0 +1,5194 @@
+{
+ "app_id": "SIGEcoM·Distribuidora Andina",
+ "version": "V4.2",
+ "titles": [
+  "SIGEcoM·Distribuidora Andina V4.2"
+ ],
+ "root": "bienvenidoasigecom",
+ "nodes": {
+  "bienvenidoasigecom": {
+   "id": "bienvenidoasigecom",
+   "title": "BienvenidoaSIGEcOM",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 2,
+   "last_seen": 1791676588.900501,
+   "appearances": [
+    {
+     "version": "V4.2",
+     "band": [
+      "BienvenidoaSIGEcOM"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "1,0|BienvenidoaSIGEcOM",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "ref_png": "bienvenidoasigecom.png",
+     "crops": [
+      {
+       "bbox": [
+        9,
+        8,
+        310,
+        29
+       ],
+       "file": "bienvenidoasigecom/0.png"
+      },
+      {
+       "bbox": [
+        14,
+        39,
+        76,
+        60
+       ],
+       "file": "bienvenidoasigecom/2.png"
+      },
+      {
+       "bbox": [
+        86,
+        39,
+        165,
+        60
+       ],
+       "file": "bienvenidoasigecom/3.png"
+      },
+      {
+       "bbox": [
+        153,
+        39,
+        234,
+        60
+       ],
+       "file": "bienvenidoasigecom/4.png"
+      },
+      {
+       "bbox": [
+        248,
+        40,
+        345,
+        58
+       ],
+       "file": "bienvenidoasigecom/5.png"
+      },
+      {
+       "bbox": [
+        359,
+        36,
+        411,
+        63
+       ],
+       "file": "bienvenidoasigecom/6.png"
+      },
+      {
+       "bbox": [
+        11,
+        72,
+        223,
+        96
+       ],
+       "file": "bienvenidoasigecom/7.png"
+      }
+     ],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGEcoM·DistribuidoraAndinav4.2",
+       "bbox": [
+        11,
+        10,
+        308,
+        27
+       ],
+       "kind": "title",
+       "conf": 0.9610146399467222,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy:14/10/2026·Usuario:operador2",
+       "bbox": [
+        1037,
+        7,
+        1270,
+        28
+       ],
+       "kind": "text",
+       "conf": 0.9688506592065096,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        16,
+        41,
+        74,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9987571239471436,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        88,
+        41,
+        163,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9829444554116991,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        155,
+        41,
+        232,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.998549052647182,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        250,
+        42,
+        343,
+        56
+       ],
+       "kind": "menu",
+       "conf": 0.9983056386311849,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        361,
+        38,
+        409,
+        61
+       ],
+       "kind": "menu",
+       "conf": 0.9966241717338562,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "BienvenidoaSIGEcOM",
+       "bbox": [
+        13,
+        74,
+        221,
+        94
+       ],
+       "kind": "title",
+       "conf": 0.9500175250901116,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Sistema de gestion comercial. Use el menu superior para acceder a los modulos.",
+       "bbox": [
+        11,
+        105,
+        543,
+        124
+       ],
+       "kind": "text",
+       "conf": 0.9885039726893107,
+       "paired_input": null
+      },
+      {
+       "id": 9,
+       "text": "Soporte: extension 214 (fuera de servicio).",
+       "bbox": [
+        12,
+        132,
+        271,
+        149
+       ],
+       "kind": "text",
+       "conf": 0.9677952597307604,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1791676588.900501
+    }
+   ]
+  },
+  "bienvenidckasigecom": {
+   "id": "bienvenidckasigecom",
+   "title": "BienvenidckaSIGEcoM",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 2,
+   "last_seen": 1791676589.4986007,
+   "appearances": [
+    {
+     "version": "V4.2",
+     "band": [
+      "BienvenidckaSIGEcoM"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "1,0|BienvenidckaSIGEcoM",
+      "1,0|Comercial Cartera",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Comercial Cartera",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "ref_png": "bienvenidckasigecom.png",
+     "crops": [
+      {
+       "bbox": [
+        9,
+        8,
+        309,
+        29
+       ],
+       "file": "bienvenidckasigecom/0.png"
+      },
+      {
+       "bbox": [
+        14,
+        39,
+        74,
+        60
+       ],
+       "file": "bienvenidckasigecom/2.png"
+      },
+      {
+       "bbox": [
+        86,
+        39,
+        234,
+        60
+       ],
+       "file": "bienvenidckasigecom/3.png"
+      },
+      {
+       "bbox": [
+        249,
+        40,
+        345,
+        58
+       ],
+       "file": "bienvenidckasigecom/4.png"
+      },
+      {
+       "bbox": [
+        359,
+        36,
+        411,
+        63
+       ],
+       "file": "bienvenidckasigecom/5.png"
+      },
+      {
+       "bbox": [
+        11,
+        72,
+        223,
+        96
+       ],
+       "file": "bienvenidckasigecom/6.png"
+      }
+     ],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGEcoM·Distribuidora Andinav4.2",
+       "bbox": [
+        11,
+        10,
+        307,
+        27
+       ],
+       "kind": "title",
+       "conf": 0.9534603469073772,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy:14/10/2026·Usuario:operador2",
+       "bbox": [
+        1037,
+        7,
+        1270,
+        28
+       ],
+       "kind": "text",
+       "conf": 0.9688506592065096,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        16,
+        41,
+        72,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9993306057793754,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial Cartera",
+       "bbox": [
+        88,
+        41,
+        232,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9829444554116991,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Herramientas",
+       "bbox": [
+        251,
+        42,
+        343,
+        56
+       ],
+       "kind": "menu",
+       "conf": 0.9972009609142939,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Ayuda",
+       "bbox": [
+        361,
+        38,
+        409,
+        61
+       ],
+       "kind": "menu",
+       "conf": 0.9966241717338562,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "BienvenidckaSIGEcoM",
+       "bbox": [
+        13,
+        74,
+        221,
+        94
+       ],
+       "kind": "title",
+       "conf": 0.9018857855545847,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Sistema de gestion comercial. Use el menu superior para acceder a los modulos.",
+       "bbox": [
+        11,
+        105,
+        543,
+        124
+       ],
+       "kind": "text",
+       "conf": 0.9885039726893107,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Soporte: extension 214 (fuera de servicio).",
+       "bbox": [
+        12,
+        132,
+        271,
+        149
+       ],
+       "kind": "text",
+       "conf": 0.9677952597307604,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1791676589.4986007
+    }
+   ]
+  },
+  "pedidos": {
+   "id": "pedidos",
+   "title": "Pedidos",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 2,
+   "last_seen": 1791676589.5827096,
+   "appearances": [
+    {
+     "version": "V4.2",
+     "band": [
+      "Pedidos"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,0|Pedidos",
+      "0,1|Sistema d",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "ref_png": "pedidos.png",
+     "crops": [
+      {
+       "bbox": [
+        9,
+        8,
+        310,
+        29
+       ],
+       "file": "pedidos/0.png"
+      },
+      {
+       "bbox": [
+        13,
+        37,
+        73,
+        59
+       ],
+       "file": "pedidos/2.png"
+      },
+      {
+       "bbox": [
+        84,
+        36,
+        165,
+        62
+       ],
+       "file": "pedidos/3.png"
+      },
+      {
+       "bbox": [
+        174,
+        39,
+        234,
+        60
+       ],
+       "file": "pedidos/4.png"
+      },
+      {
+       "bbox": [
+        247,
+        39,
+        347,
+        60
+       ],
+       "file": "pedidos/5.png"
+      },
+      {
+       "bbox": [
+        359,
+        36,
+        411,
+        63
+       ],
+       "file": "pedidos/6.png"
+      },
+      {
+       "bbox": [
+        10,
+        72,
+        91,
+        96
+       ],
+       "file": "pedidos/7.png"
+      },
+      {
+       "bbox": [
+        10,
+        104,
+        86,
+        125
+       ],
+       "file": "pedidos/12.png"
+      }
+     ],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGEcoM·DistribuidoraAndinav4.2",
+       "bbox": [
+        11,
+        10,
+        308,
+        27
+       ],
+       "kind": "title",
+       "conf": 0.9610146399467222,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy:14/10/2026·Usuario:operador2",
+       "bbox": [
+        1037,
+        7,
+        1270,
+        28
+       ],
+       "kind": "text",
+       "conf": 0.9688506592065096,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        15,
+        39,
+        71,
+        57
+       ],
+       "kind": "menu",
+       "conf": 0.9986313496317182,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        86,
+        38,
+        163,
+        60
+       ],
+       "kind": "menu",
+       "conf": 0.9983191622628106,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        176,
+        41,
+        232,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.996434645993369,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        249,
+        41,
+        345,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.999443307518959,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        361,
+        38,
+        409,
+        61
+       ],
+       "kind": "menu",
+       "conf": 0.9966241717338562,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Pedidos",
+       "bbox": [
+        12,
+        74,
+        89,
+        94
+       ],
+       "kind": "title",
+       "conf": 0.9966326526233128,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Ventas",
+       "bbox": [
+        79,
+        95,
+        288,
+        117
+       ],
+       "kind": "select",
+       "conf": 0.9968655010064443,
+       "paired_input": null
+      },
+      {
+       "id": 9,
+       "text": "Pedidos",
+       "bbox": [
+        297,
+        94,
+        354,
+        114
+       ],
+       "kind": "text",
+       "conf": 0.9944624475070408,
+       "paired_input": null
+      },
+      {
+       "id": 10,
+       "text": "M",
+       "bbox": [
+        389,
+        103,
+        402,
+        117
+       ],
+       "kind": "text",
+       "conf": 0.07566923648118973,
+       "paired_input": null
+      },
+      {
+       "id": 11,
+       "text": "Idulos.",
+       "bbox": [
+        495,
+        102,
+        544,
+        125
+       ],
+       "kind": "text",
+       "conf": 0.9095945826598576,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "Sistema d",
+       "bbox": [
+        12,
+        106,
+        84,
+        123
+       ],
+       "kind": "text",
+       "conf": 0.9618832998805575,
+       "paired_input": 8
+      },
+      {
+       "id": 13,
+       "text": "Soporte: extension 214 (fuera de servicio).",
+       "bbox": [
+        12,
+        132,
+        270,
+        149
+       ],
+       "kind": "text",
+       "conf": 0.9865352705467579,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1791676589.5827096
+    }
+   ]
+  },
+  "pedidos-2": {
+   "id": "pedidos-2",
+   "title": "Pedidos",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 2,
+   "last_seen": 1791676589.0557077,
+   "appearances": [
+    {
+     "version": "V4.2",
+     "band": [
+      "Pedidos"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,0|Pedidos",
+      "0,1|Cliente",
+      "0,1|Codigo",
+      "0,6|Anterior",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "1,1|Estado",
+      "1,6|Siguiente",
+      "10,1|Exportar",
+      "11,1|Crear pedido",
+      "11,1|Total",
+      "2,0|Herramientas",
+      "3,0|Ayuda",
+      "3,1|Fecha desde",
+      "4,1|Cliente",
+      "5,1|Fecha hasta",
+      "6,1|Filtrar",
+      "7,1|Fecha",
+      "7,1|Limpiar",
+      "9,1|Estado"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "ref_png": "pedidos-2.png",
+     "crops": [
+      {
+       "bbox": [
+        7,
+        5,
+        310,
+        30
+       ],
+       "file": "pedidos-2/0.png"
+      },
+      {
+       "bbox": [
+        13,
+        38,
+        73,
+        60
+       ],
+       "file": "pedidos-2/2.png"
+      },
+      {
+       "bbox": [
+        85,
+        36,
+        162,
+        62
+       ],
+       "file": "pedidos-2/3.png"
+      },
+      {
+       "bbox": [
+        176,
+        39,
+        234,
+        60
+       ],
+       "file": "pedidos-2/4.png"
+      },
+      {
+       "bbox": [
+        248,
+        39,
+        347,
+        60
+       ],
+       "file": "pedidos-2/5.png"
+      },
+      {
+       "bbox": [
+        359,
+        35,
+        412,
+        62
+       ],
+       "file": "pedidos-2/6.png"
+      },
+      {
+       "bbox": [
+        9,
+        70,
+        91,
+        97
+       ],
+       "file": "pedidos-2/7.png"
+      },
+      {
+       "bbox": [
+        18,
+        102,
+        68,
+        126
+       ],
+       "file": "pedidos-2/8.png"
+      },
+      {
+       "bbox": [
+        181,
+        104,
+        229,
+        126
+       ],
+       "file": "pedidos-2/9.png"
+      },
+      {
+       "bbox": [
+        342,
+        104,
+        421,
+        125
+       ],
+       "file": "pedidos-2/10.png"
+      },
+      {
+       "bbox": [
+        505,
+        104,
+        581,
+        125
+       ],
+       "file": "pedidos-2/11.png"
+      },
+      {
+       "bbox": [
+        668,
+        116,
+        737,
+        144
+       ],
+       "file": "pedidos-2/16.png"
+      },
+      {
+       "bbox": [
+        746,
+        118,
+        821,
+        142
+       ],
+       "file": "pedidos-2/17.png"
+      },
+      {
+       "bbox": [
+        1066,
+        154,
+        1149,
+        178
+       ],
+       "file": "pedidos-2/19.png"
+      },
+      {
+       "bbox": [
+        1154,
+        154,
+        1265,
+        178
+       ],
+       "file": "pedidos-2/20.png"
+      },
+      {
+       "bbox": [
+        13,
+        183,
+        167,
+        207
+       ],
+       "file": "pedidos-2/21.png"
+      },
+      {
+       "bbox": [
+        165,
+        183,
+        698,
+        207
+       ],
+       "file": "pedidos-2/22.png"
+      },
+      {
+       "bbox": [
+        696,
+        183,
+        893,
+        207
+       ],
+       "file": "pedidos-2/23.png"
+      },
+      {
+       "bbox": [
+        891,
+        183,
+        1089,
+        207
+       ],
+       "file": "pedidos-2/24.png"
+      },
+      {
+       "bbox": [
+        1087,
+        183,
+        1265,
+        207
+       ],
+       "file": "pedidos-2/25.png"
+      },
+      {
+       "bbox": [
+        13,
+        672,
+        92,
+        696
+       ],
+       "file": "pedidos-2/126.png"
+      },
+      {
+       "bbox": [
+        163,
+        672,
+        252,
+        696
+       ],
+       "file": "pedidos-2/128.png"
+      }
+     ],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGEcoM·Distribuidora Andina V4.2",
+       "bbox": [
+        9,
+        7,
+        308,
+        28
+       ],
+       "kind": "title",
+       "conf": 0.9383701639516013,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: 0perador2",
+       "bbox": [
+        1039,
+        9,
+        1269,
+        26
+       ],
+       "kind": "text",
+       "conf": 0.9407586869266298,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        15,
+        40,
+        71,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9990236503737313,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        87,
+        38,
+        160,
+        60
+       ],
+       "kind": "menu",
+       "conf": 0.9979267650180392,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        178,
+        41,
+        232,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.997572124004364,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        250,
+        41,
+        345,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9991580694913864,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        361,
+        37,
+        410,
+        60
+       ],
+       "kind": "menu",
+       "conf": 0.9966308832168579,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Pedidos",
+       "bbox": [
+        11,
+        72,
+        89,
+        95
+       ],
+       "kind": "title",
+       "conf": 0.9951422895703997,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Cliente",
+       "bbox": [
+        20,
+        104,
+        66,
+        124
+       ],
+       "kind": "text",
+       "conf": 0.9757306831223624,
+       "paired_input": 12
+      },
+      {
+       "id": 9,
+       "text": "Estado",
+       "bbox": [
+        183,
+        106,
+        227,
+        124
+       ],
+       "kind": "text",
+       "conf": 0.9990304509798685,
+       "paired_input": 13
+      },
+      {
+       "id": 10,
+       "text": "Fecha desde",
+       "bbox": [
+        344,
+        106,
+        419,
+        123
+       ],
+       "kind": "text",
+       "conf": 0.975851915099404,
+       "paired_input": 14
+      },
+      {
+       "id": 11,
+       "text": "Fecha hasta",
+       "bbox": [
+        507,
+        106,
+        579,
+        123
+       ],
+       "kind": "text",
+       "conf": 0.994758362119848,
+       "paired_input": 15
+      },
+      {
+       "id": 12,
+       "text": "",
+       "bbox": [
+        22,
+        120,
+        173,
+        142
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 13,
+       "text": "Todos",
+       "bbox": [
+        184,
+        120,
+        335,
+        142
+       ],
+       "kind": "select",
+       "conf": 0.9972292304039001,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "dd/mm/aaa",
+       "bbox": [
+        346,
+        120,
+        497,
+        142
+       ],
+       "kind": "field",
+       "conf": 0.997163799073961,
+       "paired_input": null
+      },
+      {
+       "id": 15,
+       "text": "dd/mm/aaaa",
+       "bbox": [
+        508,
+        120,
+        659,
+        142
+       ],
+       "kind": "field",
+       "conf": 0.999485832452774,
+       "paired_input": null
+      },
+      {
+       "id": 16,
+       "text": "Filtrar",
+       "bbox": [
+        670,
+        118,
+        735,
+        142
+       ],
+       "kind": "button",
+       "conf": 0.98358496597835,
+       "paired_input": null
+      },
+      {
+       "id": 17,
+       "text": "Limpiar",
+       "bbox": [
+        748,
+        120,
+        819,
+        140
+       ],
+       "kind": "button",
+       "conf": 0.9993133800370353,
+       "paired_input": null
+      },
+      {
+       "id": 18,
+       "text": "Pedidos",
+       "bbox": [
+        11,
+        158,
+        64,
+        176
+       ],
+       "kind": "text",
+       "conf": 0.9847441826547895,
+       "paired_input": null
+      },
+      {
+       "id": 19,
+       "text": "Exportar",
+       "bbox": [
+        1068,
+        156,
+        1147,
+        176
+       ],
+       "kind": "button",
+       "conf": 0.9992582499980927,
+       "paired_input": null
+      },
+      {
+       "id": 20,
+       "text": "Crear pedido",
+       "bbox": [
+        1156,
+        156,
+        1263,
+        176
+       ],
+       "kind": "button",
+       "conf": 0.9886682778596878,
+       "paired_input": null
+      },
+      {
+       "id": 21,
+       "text": "Codigo",
+       "bbox": [
+        15,
+        185,
+        165,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9912810325622559,
+       "paired_input": null
+      },
+      {
+       "id": 22,
+       "text": "Cliente",
+       "bbox": [
+        167,
+        185,
+        696,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.99575161082404,
+       "paired_input": null
+      },
+      {
+       "id": 23,
+       "text": "Fecha",
+       "bbox": [
+        698,
+        185,
+        891,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9984627723693847,
+       "paired_input": null
+      },
+      {
+       "id": 24,
+       "text": "Estado",
+       "bbox": [
+        893,
+        185,
+        1087,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.99976314107577,
+       "paired_input": null
+      },
+      {
+       "id": 25,
+       "text": "Total",
+       "bbox": [
+        1089,
+        185,
+        1263,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9995181560516357,
+       "paired_input": null
+      },
+      {
+       "id": 26,
+       "text": "PD-0143",
+       "bbox": [
+        19,
+        211,
+        80,
+        228
+       ],
+       "kind": "link",
+       "conf": 0.9995927299771991,
+       "paired_input": null
+      },
+      {
+       "id": 27,
+       "text": "Miscelanea Quintero La 14",
+       "bbox": [
+        170,
+        208,
+        350,
+        229
+       ],
+       "kind": "cell",
+       "conf": 0.9917170929908753,
+       "paired_input": null
+      },
+      {
+       "id": 28,
+       "text": "13/10/2026",
+       "bbox": [
+        702,
+        211,
+        782,
+        228
+       ],
+       "kind": "cell",
+       "conf": 0.9999087452888489,
+       "paired_input": null
+      },
+      {
+       "id": 29,
+       "text": "Confirmado",
+       "bbox": [
+        896,
+        209,
+        978,
+        229
+       ],
+       "kind": "cell",
+       "conf": 0.9985860586166382,
+       "paired_input": null
+      },
+      {
+       "id": 30,
+       "text": "6.980.000",
+       "bbox": [
+        1092,
+        209,
+        1166,
+        229
+       ],
+       "kind": "cell",
+       "conf": 0.9993460377057394,
+       "paired_input": null
+      },
+      {
+       "id": 31,
+       "text": "PD-0186",
+       "bbox": [
+        18,
+        232,
+        81,
+        252
+       ],
+       "kind": "link",
+       "conf": 0.9997701815196446,
+       "paired_input": null
+      },
+      {
+       "id": 32,
+       "text": "Abarrotes Quintero S.A.S.",
+       "bbox": [
+        171,
+        231,
+        340,
+        252
+       ],
+       "kind": "cell",
+       "conf": 0.9981463503837585,
+       "paired_input": null
+      },
+      {
+       "id": 33,
+       "text": "13/10/2026",
+       "bbox": [
+        701,
+        232,
+        783,
+        252
+       ],
+       "kind": "cell",
+       "conf": 0.9999347448348999,
+       "paired_input": null
+      },
+      {
+       "id": 34,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        231,
+        970,
+        254
+       ],
+       "kind": "cell",
+       "conf": 0.9980543785625033,
+       "paired_input": null
+      },
+      {
+       "id": 35,
+       "text": "9.600.000",
+       "bbox": [
+        1091,
+        231,
+        1166,
+        253
+       ],
+       "kind": "cell",
+       "conf": 0.9990252455075582,
+       "paired_input": null
+      },
+      {
+       "id": 36,
+       "text": "PD-0103",
+       "bbox": [
+        18,
+        255,
+        81,
+        275
+       ],
+       "kind": "link",
+       "conf": 0.9996618713651385,
+       "paired_input": null
+      },
+      {
+       "id": 37,
+       "text": "Abarrotes Moreno Central",
+       "bbox": [
+        170,
+        254,
+        344,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.9880764236052831,
+       "paired_input": null
+      },
+      {
+       "id": 38,
+       "text": "12/10/2026",
+       "bbox": [
+        701,
+        255,
+        783,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.9999261260032654,
+       "paired_input": null
+      },
+      {
+       "id": 39,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        254,
+        970,
+        277
+       ],
+       "kind": "cell",
+       "conf": 0.9980037874645658,
+       "paired_input": null
+      },
+      {
+       "id": 40,
+       "text": "7.030.000",
+       "bbox": [
+        1092,
+        255,
+        1166,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.9988930092917548,
+       "paired_input": null
+      },
+      {
+       "id": 41,
+       "text": "PD-0152",
+       "bbox": [
+        18,
+        278,
+        81,
+        298
+       ],
+       "kind": "link",
+       "conf": 0.9996885827609471,
+       "paired_input": null
+      },
+      {
+       "id": 42,
+       "text": "Ferreteria Gomez Central",
+       "bbox": [
+        171,
+        278,
+        340,
+        297
+       ],
+       "kind": "cell",
+       "conf": 0.9910251324375471,
+       "paired_input": null
+      },
+      {
+       "id": 43,
+       "text": "12/10/2026",
+       "bbox": [
+        701,
+        278,
+        783,
+        298
+       ],
+       "kind": "cell",
+       "conf": 0.9999271512031556,
+       "paired_input": null
+      },
+      {
+       "id": 44,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        277,
+        970,
+        300
+       ],
+       "kind": "cell",
+       "conf": 0.9980524778366089,
+       "paired_input": null
+      },
+      {
+       "id": 45,
+       "text": "8.830.000",
+       "bbox": [
+        1093,
+        280,
+        1165,
+        297
+       ],
+       "kind": "cell",
+       "conf": 0.9984731276830038,
+       "paired_input": null
+      },
+      {
+       "id": 46,
+       "text": "PD-0034",
+       "bbox": [
+        19,
+        303,
+        80,
+        320
+       ],
+       "kind": "link",
+       "conf": 0.9994230951581683,
+       "paired_input": null
+      },
+      {
+       "id": 47,
+       "text": "Papeleria Diaz Central",
+       "bbox": [
+        172,
+        303,
+        319,
+        320
+       ],
+       "kind": "cell",
+       "conf": 0.9827557314525951,
+       "paired_input": null
+      },
+      {
+       "id": 48,
+       "text": "11/10/2026",
+       "bbox": [
+        702,
+        303,
+        782,
+        320
+       ],
+       "kind": "cell",
+       "conf": 0.9998862564563751,
+       "paired_input": null
+      },
+      {
+       "id": 49,
+       "text": "Borrador",
+       "bbox": [
+        896,
+        301,
+        960,
+        321
+       ],
+       "kind": "cell",
+       "conf": 0.9997653514146805,
+       "paired_input": null
+      },
+      {
+       "id": 50,
+       "text": "7.130.000",
+       "bbox": [
+        1092,
+        302,
+        1164,
+        319
+       ],
+       "kind": "cell",
+       "conf": 0.9994867642720541,
+       "paired_input": null
+      },
+      {
+       "id": 51,
+       "text": "PD-0199",
+       "bbox": [
+        18,
+        324,
+        81,
+        344
+       ],
+       "kind": "link",
+       "conf": 0.9997163244656154,
+       "paired_input": null
+      },
+      {
+       "id": 52,
+       "text": "Distribuciones Gomez y Cia.",
+       "bbox": [
+        171,
+        325,
+        355,
+        342
+       ],
+       "kind": "cell",
+       "conf": 0.983429577615526,
+       "paired_input": null
+      },
+      {
+       "id": 53,
+       "text": "11/10/2026",
+       "bbox": [
+        702,
+        326,
+        782,
+        343
+       ],
+       "kind": "cell",
+       "conf": 0.9998778760433197,
+       "paired_input": null
+      },
+      {
+       "id": 54,
+       "text": "Anulado",
+       "bbox": [
+        897,
+        325,
+        955,
+        343
+       ],
+       "kind": "cell",
+       "conf": 0.9979613593646458,
+       "paired_input": null
+      },
+      {
+       "id": 55,
+       "text": "6.290.000",
+       "bbox": [
+        1093,
+        326,
+        1165,
+        343
+       ],
+       "kind": "cell",
+       "conf": 0.9996057682567172,
+       "paired_input": null
+      },
+      {
+       "id": 56,
+       "text": "PD-0233",
+       "bbox": [
+        18,
+        348,
+        81,
+        368
+       ],
+       "kind": "link",
+       "conf": 0.9995530843734741,
+       "paired_input": null
+      },
+      {
+       "id": 57,
+       "text": "Supermercado Moreno S.A.S.",
+       "bbox": [
+        172,
+        349,
+        363,
+        366
+       ],
+       "kind": "cell",
+       "conf": 0.9903764633031992,
+       "paired_input": null
+      },
+      {
+       "id": 58,
+       "text": "11/10/2026",
+       "bbox": [
+        702,
+        349,
+        782,
+        366
+       ],
+       "kind": "cell",
+       "conf": 0.9998862564563751,
+       "paired_input": null
+      },
+      {
+       "id": 59,
+       "text": "Borrador",
+       "bbox": [
+        896,
+        347,
+        960,
+        367
+       ],
+       "kind": "cell",
+       "conf": 0.9997653514146805,
+       "paired_input": null
+      },
+      {
+       "id": 60,
+       "text": "5.380.000",
+       "bbox": [
+        1091,
+        346,
+        1165,
+        366
+       ],
+       "kind": "cell",
+       "conf": 0.9994570811589559,
+       "paired_input": null
+      },
+      {
+       "id": 61,
+       "text": "PD-0253",
+       "bbox": [
+        19,
+        372,
+        80,
+        389
+       ],
+       "kind": "link",
+       "conf": 0.9991701585905892,
+       "paired_input": null
+      },
+      {
+       "id": 62,
+       "text": "Comercializadora Mejfa S.A.S.",
+       "bbox": [
+        171,
+        369,
+        368,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9681415249561441,
+       "paired_input": null
+      },
+      {
+       "id": 63,
+       "text": "10/10/2026",
+       "bbox": [
+        701,
+        370,
+        783,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9999234139919281,
+       "paired_input": null
+      },
+      {
+       "id": 64,
+       "text": "Entregado",
+       "bbox": [
+        896,
+        370,
+        970,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9993473092714945,
+       "paired_input": null
+      },
+      {
+       "id": 65,
+       "text": "370.000",
+       "bbox": [
+        1093,
+        370,
+        1154,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9998265419687543,
+       "paired_input": null
+      },
+      {
+       "id": 66,
+       "text": "PD-0035",
+       "bbox": [
+        18,
+        393,
+        81,
+        413
+       ],
+       "kind": "link",
+       "conf": 0.9996666312217712,
+       "paired_input": null
+      },
+      {
+       "id": 67,
+       "text": "Comercializadora Suarez del Norte",
+       "bbox": [
+        173,
+        395,
+        402,
+        412
+       ],
+       "kind": "cell",
+       "conf": 0.9963083881320376,
+       "paired_input": null
+      },
+      {
+       "id": 68,
+       "text": "09/10/2026",
+       "bbox": [
+        702,
+        395,
+        782,
+        412
+       ],
+       "kind": "cell",
+       "conf": 0.9998973906040192,
+       "paired_input": null
+      },
+      {
+       "id": 69,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        392,
+        970,
+        415
+       ],
+       "kind": "cell",
+       "conf": 0.9980037874645658,
+       "paired_input": null
+      },
+      {
+       "id": 70,
+       "text": "4.170.000",
+       "bbox": [
+        1093,
+        394,
+        1165,
+        411
+       ],
+       "kind": "cell",
+       "conf": 0.9995327128304375,
+       "paired_input": null
+      },
+      {
+       "id": 71,
+       "text": "PD-0086",
+       "bbox": [
+        18,
+        416,
+        81,
+        436
+       ],
+       "kind": "link",
+       "conf": 0.999714229788099,
+       "paired_input": null
+      },
+      {
+       "id": 72,
+       "text": "Deposito Gomez S.A.S.",
+       "bbox": [
+        173,
+        418,
+        323,
+        435
+       ],
+       "kind": "cell",
+       "conf": 0.972308893998464,
+       "paired_input": null
+      },
+      {
+       "id": 73,
+       "text": "09/10/2026",
+       "bbox": [
+        702,
+        418,
+        782,
+        435
+       ],
+       "kind": "cell",
+       "conf": 0.9998898088932038,
+       "paired_input": null
+      },
+      {
+       "id": 74,
+       "text": "Entregado",
+       "bbox": [
+        896,
+        417,
+        970,
+        437
+       ],
+       "kind": "cell",
+       "conf": 0.9987877739800347,
+       "paired_input": null
+      },
+      {
+       "id": 75,
+       "text": "8.230.000",
+       "bbox": [
+        1092,
+        416,
+        1166,
+        436
+       ],
+       "kind": "cell",
+       "conf": 0.998614768187205,
+       "paired_input": null
+      },
+      {
+       "id": 76,
+       "text": "PD-0142",
+       "bbox": [
+        18,
+        439,
+        81,
+        459
+       ],
+       "kind": "link",
+       "conf": 0.999700163091932,
+       "paired_input": null
+      },
+      {
+       "id": 77,
+       "text": "Almacén Diaz",
+       "bbox": [
+        172,
+        441,
+        266,
+        458
+       ],
+       "kind": "cell",
+       "conf": 0.963684007525444,
+       "paired_input": null
+      },
+      {
+       "id": 78,
+       "text": "09/10/2026",
+       "bbox": [
+        702,
+        441,
+        782,
+        458
+       ],
+       "kind": "cell",
+       "conf": 0.9998973906040192,
+       "paired_input": null
+      },
+      {
+       "id": 79,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        438,
+        970,
+        461
+       ],
+       "kind": "cell",
+       "conf": 0.9980037874645658,
+       "paired_input": null
+      },
+      {
+       "id": 80,
+       "text": "5.660.000",
+       "bbox": [
+        1092,
+        439,
+        1166,
+        459
+       ],
+       "kind": "cell",
+       "conf": 0.9993571043014526,
+       "paired_input": null
+      },
+      {
+       "id": 81,
+       "text": "PD-0153",
+       "bbox": [
+        18,
+        464,
+        79,
+        481
+       ],
+       "kind": "link",
+       "conf": 0.9996261937277657,
+       "paired_input": null
+      },
+      {
+       "id": 82,
+       "text": "Distribuciones Hernandez S.A.S.",
+       "bbox": [
+        172,
+        464,
+        383,
+        481
+       ],
+       "kind": "cell",
+       "conf": 0.9827803296427573,
+       "paired_input": null
+      },
+      {
+       "id": 83,
+       "text": "09/10/2026",
+       "bbox": [
+        701,
+        462,
+        783,
+        482
+       ],
+       "kind": "cell",
+       "conf": 0.9999033808708191,
+       "paired_input": null
+      },
+      {
+       "id": 84,
+       "text": "Anulado",
+       "bbox": [
+        897,
+        463,
+        955,
+        481
+       ],
+       "kind": "cell",
+       "conf": 0.9979613593646458,
+       "paired_input": null
+      },
+      {
+       "id": 85,
+       "text": "8.260.000",
+       "bbox": [
+        1092,
+        462,
+        1166,
+        482
+       ],
+       "kind": "cell",
+       "conf": 0.9987093143992953,
+       "paired_input": null
+      },
+      {
+       "id": 86,
+       "text": "PD-0195",
+       "bbox": [
+        19,
+        487,
+        80,
+        504
+       ],
+       "kind": "link",
+       "conf": 0.9996603046144757,
+       "paired_input": null
+      },
+      {
+       "id": 87,
+       "text": "Almacen Gomez La 14",
+       "bbox": [
+        173,
+        487,
+        323,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.9658470342033788,
+       "paired_input": null
+      },
+      {
+       "id": 88,
+       "text": "08/10/2026",
+       "bbox": [
+        702,
+        487,
+        782,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.999865186214447,
+       "paired_input": null
+      },
+      {
+       "id": 89,
+       "text": "Confirmado",
+       "bbox": [
+        896,
+        485,
+        978,
+        505
+       ],
+       "kind": "cell",
+       "conf": 0.9985860586166382,
+       "paired_input": null
+      },
+      {
+       "id": 90,
+       "text": "7.180.000",
+       "bbox": [
+        1092,
+        487,
+        1164,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.9996560348404778,
+       "paired_input": null
+      },
+      {
+       "id": 91,
+       "text": "PD-0101",
+       "bbox": [
+        18,
+        508,
+        80,
+        528
+       ],
+       "kind": "link",
+       "conf": 0.9996898344584874,
+       "paired_input": null
+      },
+      {
+       "id": 92,
+       "text": "Distribuciones El Faro",
+       "bbox": [
+        172,
+        510,
+        317,
+        527
+       ],
+       "kind": "cell",
+       "conf": 0.9894287450747057,
+       "paired_input": null
+      },
+      {
+       "id": 93,
+       "text": "07/10/2026",
+       "bbox": [
+        702,
+        510,
+        782,
+        527
+       ],
+       "kind": "cell",
+       "conf": 0.9998715698719025,
+       "paired_input": null
+      },
+      {
+       "id": 94,
+       "text": "Entregado",
+       "bbox": [
+        896,
+        509,
+        970,
+        529
+       ],
+       "kind": "cell",
+       "conf": 0.9987877739800347,
+       "paired_input": null
+      },
+      {
+       "id": 95,
+       "text": "2.950.000",
+       "bbox": [
+        1093,
+        510,
+        1165,
+        527
+       ],
+       "kind": "cell",
+       "conf": 0.9995716545316908,
+       "paired_input": null
+      },
+      {
+       "id": 96,
+       "text": "PD-0243",
+       "bbox": [
+        18,
+        532,
+        81,
+        552
+       ],
+       "kind": "link",
+       "conf": 0.9996486306190491,
+       "paired_input": null
+      },
+      {
+       "id": 97,
+       "text": "Abarrotes Gomez S.A.S.",
+       "bbox": [
+        171,
+        530,
+        329,
+        551
+       ],
+       "kind": "cell",
+       "conf": 0.9963750053535808,
+       "paired_input": null
+      },
+      {
+       "id": 98,
+       "text": "06/10/2026",
+       "bbox": [
+        701,
+        533,
+        782,
+        550
+       ],
+       "kind": "cell",
+       "conf": 0.9973767459392547,
+       "paired_input": null
+      },
+      {
+       "id": 99,
+       "text": "Anulado",
+       "bbox": [
+        896,
+        531,
+        957,
+        551
+       ],
+       "kind": "cell",
+       "conf": 0.9990024822098869,
+       "paired_input": null
+      },
+      {
+       "id": 100,
+       "text": "8.190.000",
+       "bbox": [
+        1092,
+        531,
+        1166,
+        551
+       ],
+       "kind": "cell",
+       "conf": 0.9994012183613248,
+       "paired_input": null
+      },
+      {
+       "id": 101,
+       "text": "PD-0146",
+       "bbox": [
+        18,
+        554,
+        81,
+        574
+       ],
+       "kind": "link",
+       "conf": 0.9998007672173637,
+       "paired_input": null
+      },
+      {
+       "id": 102,
+       "text": "Comercializadora Moreno La 14",
+       "bbox": [
+        172,
+        555,
+        380,
+        572
+       ],
+       "kind": "cell",
+       "conf": 0.9907438282308907,
+       "paired_input": null
+      },
+      {
+       "id": 103,
+       "text": "05/10/2026",
+       "bbox": [
+        702,
+        556,
+        782,
+        573
+       ],
+       "kind": "cell",
+       "conf": 0.9998903810977936,
+       "paired_input": null
+      },
+      {
+       "id": 104,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        553,
+        970,
+        576
+       ],
+       "kind": "cell",
+       "conf": 0.9980543123351203,
+       "paired_input": null
+      },
+      {
+       "id": 105,
+       "text": "3.600.000",
+       "bbox": [
+        1092,
+        553,
+        1165,
+        573
+       ],
+       "kind": "cell",
+       "conf": 0.9990136358473036,
+       "paired_input": null
+      },
+      {
+       "id": 106,
+       "text": "PD-0250",
+       "bbox": [
+        19,
+        579,
+        80,
+        596
+       ],
+       "kind": "link",
+       "conf": 0.9992731894765582,
+       "paired_input": null
+      },
+      {
+       "id": 107,
+       "text": "Comercializadora Gomez y Cia.",
+       "bbox": [
+        173,
+        579,
+        377,
+        596
+       ],
+       "kind": "cell",
+       "conf": 0.9871821074650206,
+       "paired_input": null
+      },
+      {
+       "id": 108,
+       "text": "05/10/2026",
+       "bbox": [
+        702,
+        579,
+        782,
+        596
+       ],
+       "kind": "cell",
+       "conf": 0.9998979866504669,
+       "paired_input": null
+      },
+      {
+       "id": 109,
+       "text": "Anulado",
+       "bbox": [
+        897,
+        578,
+        955,
+        596
+       ],
+       "kind": "cell",
+       "conf": 0.9979521121297564,
+       "paired_input": null
+      },
+      {
+       "id": 110,
+       "text": "2.490.000",
+       "bbox": [
+        1092,
+        577,
+        1165,
+        597
+       ],
+       "kind": "cell",
+       "conf": 0.9993757274415758,
+       "paired_input": null
+      },
+      {
+       "id": 111,
+       "text": "PD-0074",
+       "bbox": [
+        18,
+        600,
+        81,
+        620
+       ],
+       "kind": "link",
+       "conf": 0.9998011674199786,
+       "paired_input": null
+      },
+      {
+       "id": 112,
+       "text": "Drogueria Pardo",
+       "bbox": [
+        172,
+        601,
+        280,
+        618
+       ],
+       "kind": "cell",
+       "conf": 0.993205185731252,
+       "paired_input": null
+      },
+      {
+       "id": 113,
+       "text": "04/10/2026",
+       "bbox": [
+        701,
+        600,
+        782,
+        620
+       ],
+       "kind": "cell",
+       "conf": 0.9999012649059296,
+       "paired_input": null
+      },
+      {
+       "id": 114,
+       "text": "Entregado",
+       "bbox": [
+        895,
+        599,
+        970,
+        622
+       ],
+       "kind": "cell",
+       "conf": 0.9980543123351203,
+       "paired_input": null
+      },
+      {
+       "id": 115,
+       "text": "6.170.000",
+       "bbox": [
+        1092,
+        600,
+        1165,
+        620
+       ],
+       "kind": "cell",
+       "conf": 0.9997883703973558,
+       "paired_input": null
+      },
+      {
+       "id": 116,
+       "text": "PD-0151",
+       "bbox": [
+        19,
+        625,
+        79,
+        642
+       ],
+       "kind": "link",
+       "conf": 0.9997582350458417,
+       "paired_input": null
+      },
+      {
+       "id": 117,
+       "text": "Supermercado Ramirez",
+       "bbox": [
+        172,
+        625,
+        329,
+        642
+       ],
+       "kind": "cell",
+       "conf": 0.9933543771505355,
+       "paired_input": null
+      },
+      {
+       "id": 118,
+       "text": "04/10/2026",
+       "bbox": [
+        701,
+        625,
+        782,
+        642
+       ],
+       "kind": "cell",
+       "conf": 0.9755470216274261,
+       "paired_input": null
+      },
+      {
+       "id": 119,
+       "text": "Entregado",
+       "bbox": [
+        896,
+        624,
+        970,
+        644
+       ],
+       "kind": "cell",
+       "conf": 0.9985650777816772,
+       "paired_input": null
+      },
+      {
+       "id": 120,
+       "text": "350.000",
+       "bbox": [
+        1092,
+        623,
+        1154,
+        643
+       ],
+       "kind": "cell",
+       "conf": 0.9997960499354771,
+       "paired_input": null
+      },
+      {
+       "id": 121,
+       "text": "PD-0220",
+       "bbox": [
+        18,
+        646,
+        81,
+        666
+       ],
+       "kind": "link",
+       "conf": 0.9995947224753243,
+       "paired_input": null
+      },
+      {
+       "id": 122,
+       "text": "Supermercado Quintero Central",
+       "bbox": [
+        172,
+        648,
+        382,
+        665
+       ],
+       "kind": "cell",
+       "conf": 0.9900779826887722,
+       "paired_input": null
+      },
+      {
+       "id": 123,
+       "text": "04/10/2026",
+       "bbox": [
+        701,
+        648,
+        782,
+        665
+       ],
+       "kind": "cell",
+       "conf": 0.9997643411159516,
+       "paired_input": null
+      },
+      {
+       "id": 124,
+       "text": "Anulado",
+       "bbox": [
+        897,
+        646,
+        955,
+        664
+       ],
+       "kind": "cell",
+       "conf": 0.9974605100495475,
+       "paired_input": null
+      },
+      {
+       "id": 125,
+       "text": "1.330.000",
+       "bbox": [
+        1093,
+        648,
+        1165,
+        665
+       ],
+       "kind": "cell",
+       "conf": 0.9995729128519694,
+       "paired_input": null
+      },
+      {
+       "id": 126,
+       "text": "Anterior",
+       "bbox": [
+        15,
+        674,
+        90,
+        694
+       ],
+       "kind": "button",
+       "conf": 0.9990004971623421,
+       "paired_input": null
+      },
+      {
+       "id": 127,
+       "text": "Pagina 1",
+       "bbox": [
+        98,
+        677,
+        159,
+        694
+       ],
+       "kind": "text",
+       "conf": 0.9709355756640434,
+       "paired_input": null
+      },
+      {
+       "id": 128,
+       "text": "Siguiente",
+       "bbox": [
+        165,
+        674,
+        250,
+        694
+       ],
+       "kind": "button",
+       "conf": 0.9946573509110345,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1791676589.0557077
+    }
+   ]
+  },
+  "facturas": {
+   "id": "facturas",
+   "title": "Facturas",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 2,
+   "last_seen": 1791676589.3093066,
+   "appearances": [
+    {
+     "version": "V4.2",
+     "band": [
+      "Facturas"
+     ],
+     "atoms": [
+      "0,0|Archivo",
+      "0,0|Facturas",
+      "0,1|Cliente",
+      "0,1|Codigo",
+      "0,6|Anterior",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "1,1|Estado",
+      "1,6|Siguiente",
+      "11,1|Estado",
+      "11,1|Exportar",
+      "2,0|Herramientas",
+      "3,0|Ayuda",
+      "3,1|Cliente",
+      "3,1|Filtrar",
+      "4,1|Limpiar",
+      "6,1|Fecha",
+      "8,1|Vence",
+      "9,1|Valor"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "ref_png": "facturas.png",
+     "crops": [
+      {
+       "bbox": [
+        7,
+        5,
+        310,
+        30
+       ],
+       "file": "facturas/0.png"
+      },
+      {
+       "bbox": [
+        12,
+        37,
+        72,
+        59
+       ],
+       "file": "facturas/2.png"
+      },
+      {
+       "bbox": [
+        86,
+        37,
+        162,
+        61
+       ],
+       "file": "facturas/3.png"
+      },
+      {
+       "bbox": [
+        176,
+        38,
+        234,
+        60
+       ],
+       "file": "facturas/4.png"
+      },
+      {
+       "bbox": [
+        248,
+        39,
+        347,
+        60
+       ],
+       "file": "facturas/5.png"
+      },
+      {
+       "bbox": [
+        360,
+        36,
+        412,
+        61
+       ],
+       "file": "facturas/6.png"
+      },
+      {
+       "bbox": [
+        10,
+        72,
+        97,
+        96
+       ],
+       "file": "facturas/7.png"
+      },
+      {
+       "bbox": [
+        19,
+        104,
+        68,
+        125
+       ],
+       "file": "facturas/8.png"
+      },
+      {
+       "bbox": [
+        181,
+        104,
+        229,
+        126
+       ],
+       "file": "facturas/9.png"
+      },
+      {
+       "bbox": [
+        344,
+        116,
+        413,
+        144
+       ],
+       "file": "facturas/12.png"
+      },
+      {
+       "bbox": [
+        422,
+        118,
+        497,
+        142
+       ],
+       "file": "facturas/13.png"
+      },
+      {
+       "bbox": [
+        1182,
+        154,
+        1265,
+        178
+       ],
+       "file": "facturas/15.png"
+      },
+      {
+       "bbox": [
+        13,
+        183,
+        165,
+        207
+       ],
+       "file": "facturas/16.png"
+      },
+      {
+       "bbox": [
+        163,
+        183,
+        598,
+        207
+       ],
+       "file": "facturas/17.png"
+      },
+      {
+       "bbox": [
+        596,
+        183,
+        774,
+        207
+       ],
+       "file": "facturas/18.png"
+      },
+      {
+       "bbox": [
+        772,
+        183,
+        950,
+        207
+       ],
+       "file": "facturas/19.png"
+      },
+      {
+       "bbox": [
+        948,
+        183,
+        1109,
+        207
+       ],
+       "file": "facturas/20.png"
+      },
+      {
+       "bbox": [
+        1107,
+        183,
+        1265,
+        207
+       ],
+       "file": "facturas/21.png"
+      },
+      {
+       "bbox": [
+        13,
+        672,
+        92,
+        696
+       ],
+       "file": "facturas/142.png"
+      },
+      {
+       "bbox": [
+        163,
+        672,
+        252,
+        696
+       ],
+       "file": "facturas/144.png"
+      }
+     ],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGEcoM·Distribuidora Andina V4.2",
+       "bbox": [
+        9,
+        7,
+        308,
+        28
+       ],
+       "kind": "title",
+       "conf": 0.9383701639516013,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy: 14/10/2026 · Usuario: 0perador2",
+       "bbox": [
+        1039,
+        9,
+        1269,
+        26
+       ],
+       "kind": "text",
+       "conf": 0.9407586869266298,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        14,
+        39,
+        70,
+        57
+       ],
+       "kind": "menu",
+       "conf": 0.9990626403263637,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        88,
+        39,
+        160,
+        59
+       ],
+       "kind": "menu",
+       "conf": 0.9992390275001526,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        178,
+        40,
+        232,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9846424545560565,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        250,
+        41,
+        345,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9991580694913864,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        362,
+        38,
+        410,
+        59
+       ],
+       "kind": "menu",
+       "conf": 0.9736573457717895,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Facturas",
+       "bbox": [
+        12,
+        74,
+        95,
+        94
+       ],
+       "kind": "title",
+       "conf": 0.993596650660038,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "Cliente",
+       "bbox": [
+        21,
+        106,
+        66,
+        123
+       ],
+       "kind": "text",
+       "conf": 0.9961071184703282,
+       "paired_input": 10
+      },
+      {
+       "id": 9,
+       "text": "Estado",
+       "bbox": [
+        183,
+        106,
+        227,
+        124
+       ],
+       "kind": "text",
+       "conf": 0.9990304509798685,
+       "paired_input": 11
+      },
+      {
+       "id": 10,
+       "text": "",
+       "bbox": [
+        22,
+        120,
+        173,
+        142
+       ],
+       "kind": "field",
+       "conf": 1.0,
+       "paired_input": null
+      },
+      {
+       "id": 11,
+       "text": "Todos",
+       "bbox": [
+        184,
+        120,
+        335,
+        142
+       ],
+       "kind": "select",
+       "conf": 0.9972292304039001,
+       "paired_input": null
+      },
+      {
+       "id": 12,
+       "text": "Filtrar",
+       "bbox": [
+        346,
+        118,
+        411,
+        142
+       ],
+       "kind": "button",
+       "conf": 0.9980491484914508,
+       "paired_input": null
+      },
+      {
+       "id": 13,
+       "text": "Limpiar",
+       "bbox": [
+        424,
+        120,
+        495,
+        140
+       ],
+       "kind": "button",
+       "conf": 0.9993133800370353,
+       "paired_input": null
+      },
+      {
+       "id": 14,
+       "text": "Facturas",
+       "bbox": [
+        12,
+        159,
+        69,
+        176
+       ],
+       "kind": "text",
+       "conf": 0.9992308914661407,
+       "paired_input": null
+      },
+      {
+       "id": 15,
+       "text": "Exportar",
+       "bbox": [
+        1184,
+        156,
+        1263,
+        176
+       ],
+       "kind": "button",
+       "conf": 0.9994183629751205,
+       "paired_input": null
+      },
+      {
+       "id": 16,
+       "text": "Codigo",
+       "bbox": [
+        15,
+        185,
+        163,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9721660614013672,
+       "paired_input": null
+      },
+      {
+       "id": 17,
+       "text": "Cliente",
+       "bbox": [
+        165,
+        185,
+        596,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9974858845983233,
+       "paired_input": null
+      },
+      {
+       "id": 18,
+       "text": "Fecha",
+       "bbox": [
+        598,
+        185,
+        772,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9996504068374634,
+       "paired_input": null
+      },
+      {
+       "id": 19,
+       "text": "Vence",
+       "bbox": [
+        774,
+        185,
+        948,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9919619560241699,
+       "paired_input": null
+      },
+      {
+       "id": 20,
+       "text": "Valor",
+       "bbox": [
+        950,
+        185,
+        1107,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9950319409370423,
+       "paired_input": null
+      },
+      {
+       "id": 21,
+       "text": "Estado",
+       "bbox": [
+        1109,
+        185,
+        1263,
+        205
+       ],
+       "kind": "button",
+       "conf": 0.9993849794069926,
+       "paired_input": null
+      },
+      {
+       "id": 22,
+       "text": "FV-10159",
+       "bbox": [
+        18,
+        211,
+        85,
+        228
+       ],
+       "kind": "link",
+       "conf": 0.9937051832675934,
+       "paired_input": null
+      },
+      {
+       "id": 23,
+       "text": "Distribuciones Gomez La 14",
+       "bbox": [
+        169,
+        210,
+        355,
+        227
+       ],
+       "kind": "cell",
+       "conf": 0.9906345858023717,
+       "paired_input": null
+      },
+      {
+       "id": 24,
+       "text": "01/03/2026",
+       "bbox": [
+        601,
+        209,
+        683,
+        229
+       ],
+       "kind": "cell",
+       "conf": 0.9998839020729064,
+       "paired_input": null
+      },
+      {
+       "id": 25,
+       "text": "31/03/2026",
+       "bbox": [
+        778,
+        211,
+        859,
+        228
+       ],
+       "kind": "cell",
+       "conf": 0.9998118340969085,
+       "paired_input": null
+      },
+      {
+       "id": 26,
+       "text": "1.810.000",
+       "bbox": [
+        952,
+        209,
+        1026,
+        229
+       ],
+       "kind": "cell",
+       "conf": 0.999692612224155,
+       "paired_input": null
+      },
+      {
+       "id": 27,
+       "text": "Vencida",
+       "bbox": [
+        1112,
+        210,
+        1169,
+        228
+       ],
+       "kind": "cell",
+       "conf": 0.9975798981530326,
+       "paired_input": null
+      },
+      {
+       "id": 28,
+       "text": "FV-10004",
+       "bbox": [
+        18,
+        232,
+        86,
+        252
+       ],
+       "kind": "link",
+       "conf": 0.9925748854875565,
+       "paired_input": null
+      },
+      {
+       "id": 29,
+       "text": "Ferreteria Ruiz",
+       "bbox": [
+        169,
+        234,
+        269,
+        251
+       ],
+       "kind": "cell",
+       "conf": 0.993213935693105,
+       "paired_input": null
+      },
+      {
+       "id": 30,
+       "text": "02/03/2026",
+       "bbox": [
+        602,
+        234,
+        682,
+        251
+       ],
+       "kind": "cell",
+       "conf": 0.9998485624790192,
+       "paired_input": null
+      },
+      {
+       "id": 31,
+       "text": "01/04/2026",
+       "bbox": [
+        777,
+        232,
+        859,
+        252
+       ],
+       "kind": "cell",
+       "conf": 0.9998924255371093,
+       "paired_input": null
+      },
+      {
+       "id": 32,
+       "text": "450.000",
+       "bbox": [
+        953,
+        232,
+        1014,
+        252
+       ],
+       "kind": "cell",
+       "conf": 0.973624416760036,
+       "paired_input": null
+      },
+      {
+       "id": 33,
+       "text": "Pendiente",
+       "bbox": [
+        1112,
+        232,
+        1184,
+        252
+       ],
+       "kind": "cell",
+       "conf": 0.9991758863131205,
+       "paired_input": null
+      },
+      {
+       "id": 34,
+       "text": "FV-10020",
+       "bbox": [
+        17,
+        254,
+        86,
+        274
+       ],
+       "kind": "link",
+       "conf": 0.9716160669922829,
+       "paired_input": null
+      },
+      {
+       "id": 35,
+       "text": "Comercializadora Gomez y Cia.",
+       "bbox": [
+        169,
+        255,
+        374,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.9898892969920717,
+       "paired_input": null
+      },
+      {
+       "id": 36,
+       "text": "03/03/2026",
+       "bbox": [
+        601,
+        255,
+        684,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.99988654255867,
+       "paired_input": null
+      },
+      {
+       "id": 37,
+       "text": "02/04/2026",
+       "bbox": [
+        777,
+        255,
+        860,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.9999037146568298,
+       "paired_input": null
+      },
+      {
+       "id": 38,
+       "text": "990.000",
+       "bbox": [
+        953,
+        255,
+        1014,
+        275
+       ],
+       "kind": "cell",
+       "conf": 0.9995467492512294,
+       "paired_input": null
+      },
+      {
+       "id": 39,
+       "text": "Pagada",
+       "bbox": [
+        1112,
+        255,
+        1167,
+        276
+       ],
+       "kind": "cell",
+       "conf": 0.997347762187322,
+       "paired_input": null
+      },
+      {
+       "id": 40,
+       "text": "FV-10107",
+       "bbox": [
+        18,
+        278,
+        87,
+        298
+       ],
+       "kind": "link",
+       "conf": 0.9965156093239784,
+       "paired_input": null
+      },
+      {
+       "id": 41,
+       "text": "Deposito Hernandez",
+       "bbox": [
+        168,
+        278,
+        307,
+        298
+       ],
+       "kind": "cell",
+       "conf": 0.9980896082189348,
+       "paired_input": null
+      },
+      {
+       "id": 42,
+       "text": "03/03/2026",
+       "bbox": [
+        601,
+        278,
+        684,
+        298
+       ],
+       "kind": "cell",
+       "conf": 0.9998867690563202,
+       "paired_input": null
+      },
+      {
+       "id": 43,
+       "text": "02/04/2026",
+       "bbox": [
+        777,
+        278,
+        860,
+        298
+       ],
+       "kind": "cell",
+       "conf": 0.9999139368534088,
+       "paired_input": null
+      },
+      {
+       "id": 44,
+       "text": "4.090.000",
+       "bbox": [
+        953,
+        278,
+        1027,
+        298
+       ],
+       "kind": "cell",
+       "conf": 0.9990349941783481,
+       "paired_input": null
+      },
+      {
+       "id": 45,
+       "text": "Vencida",
+       "bbox": [
+        1113,
+        279,
+        1169,
+        297
+       ],
+       "kind": "cell",
+       "conf": 0.9975306817463466,
+       "paired_input": null
+      },
+      {
+       "id": 46,
+       "text": "FV-10225",
+       "bbox": [
+        19,
+        303,
+        86,
+        320
+       ],
+       "kind": "link",
+       "conf": 0.9950405061244965,
+       "paired_input": null
+      },
+      {
+       "id": 47,
+       "text": "Almacen Diaz",
+       "bbox": [
+        167,
+        300,
+        264,
+        322
+       ],
+       "kind": "cell",
+       "conf": 0.970896045366923,
+       "paired_input": null
+      },
+      {
+       "id": 48,
+       "text": "04/03/2026",
+       "bbox": [
+        602,
+        303,
+        683,
+        320
+       ],
+       "kind": "cell",
+       "conf": 0.9998048543930054,
+       "paired_input": null
+      },
+      {
+       "id": 49,
+       "text": "03/04/2026",
+       "bbox": [
+        778,
+        303,
+        859,
+        320
+       ],
+       "kind": "cell",
+       "conf": 0.9998280763626098,
+       "paired_input": null
+      },
+      {
+       "id": 50,
+       "text": "3.900.000",
+       "bbox": [
+        953,
+        300,
+        1027,
+        320
+       ],
+       "kind": "cell",
+       "conf": 0.9991640183660719,
+       "paired_input": null
+      },
+      {
+       "id": 51,
+       "text": "Pagada",
+       "bbox": [
+        1111,
+        300,
+        1167,
+        323
+       ],
+       "kind": "cell",
+       "conf": 0.9960128366947174,
+       "paired_input": null
+      },
+      {
+       "id": 52,
+       "text": "FV-10136",
+       "bbox": [
+        17,
+        323,
+        86,
+        343
+       ],
+       "kind": "link",
+       "conf": 0.9925394430756569,
+       "paired_input": null
+      },
+      {
+       "id": 53,
+       "text": "Almacen Pardo y Cia.",
+       "bbox": [
+        168,
+        323,
+        310,
+        345
+       ],
+       "kind": "cell",
+       "conf": 0.9914999127388,
+       "paired_input": null
+      },
+      {
+       "id": 54,
+       "text": "05/03/2026",
+       "bbox": [
+        602,
+        326,
+        683,
+        343
+       ],
+       "kind": "cell",
+       "conf": 0.9998695075511932,
+       "paired_input": null
+      },
+      {
+       "id": 55,
+       "text": "04/04/2026",
+       "bbox": [
+        777,
+        324,
+        860,
+        344
+       ],
+       "kind": "cell",
+       "conf": 0.999910044670105,
+       "paired_input": null
+      },
+      {
+       "id": 56,
+       "text": "3.210.000",
+       "bbox": [
+        954,
+        323,
+        1027,
+        343
+       ],
+       "kind": "cell",
+       "conf": 0.9996244774924384,
+       "paired_input": null
+      },
+      {
+       "id": 57,
+       "text": "Pagada",
+       "bbox": [
+        1113,
+        326,
+        1166,
+        344
+       ],
+       "kind": "cell",
+       "conf": 0.9984256525834402,
+       "paired_input": null
+      },
+      {
+       "id": 58,
+       "text": "FV-10029",
+       "bbox": [
+        18,
+        348,
+        86,
+        368
+       ],
+       "kind": "link",
+       "conf": 0.9949785098433495,
+       "paired_input": null
+      },
+      {
+       "id": 59,
+       "text": "Supermercado Moreno S.A.S.",
+       "bbox": [
+        169,
+        349,
+        360,
+        366
+       ],
+       "kind": "cell",
+       "conf": 0.9953741133213043,
+       "paired_input": null
+      },
+      {
+       "id": 60,
+       "text": "07/03/2026",
+       "bbox": [
+        602,
+        349,
+        683,
+        366
+       ],
+       "kind": "cell",
+       "conf": 0.9998427391052246,
+       "paired_input": null
+      },
+      {
+       "id": 61,
+       "text": "06/04/2026",
+       "bbox": [
+        778,
+        349,
+        859,
+        366
+       ],
+       "kind": "cell",
+       "conf": 0.9998465716838837,
+       "paired_input": null
+      },
+      {
+       "id": 62,
+       "text": "1.600.000",
+       "bbox": [
+        953,
+        347,
+        1027,
+        367
+       ],
+       "kind": "cell",
+       "conf": 0.9996123446358575,
+       "paired_input": null
+      },
+      {
+       "id": 63,
+       "text": "Pagada",
+       "bbox": [
+        1112,
+        347,
+        1167,
+        368
+       ],
+       "kind": "cell",
+       "conf": 0.997347762187322,
+       "paired_input": null
+      },
+      {
+       "id": 64,
+       "text": "FV-10120",
+       "bbox": [
+        18,
+        371,
+        85,
+        388
+       ],
+       "kind": "cell",
+       "conf": 0.9950903430581093,
+       "paired_input": null
+      },
+      {
+       "id": 65,
+       "text": "Miscelanea Castro Central",
+       "bbox": [
+        169,
+        371,
+        343,
+        388
+       ],
+       "kind": "cell",
+       "conf": 0.9916574120521545,
+       "paired_input": null
+      },
+      {
+       "id": 66,
+       "text": "07/03/2026",
+       "bbox": [
+        601,
+        370,
+        684,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9998857319355011,
+       "paired_input": null
+      },
+      {
+       "id": 67,
+       "text": "06/04/2026",
+       "bbox": [
+        777,
+        370,
+        860,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9999300122261048,
+       "paired_input": null
+      },
+      {
+       "id": 68,
+       "text": "2.380.000",
+       "bbox": [
+        953,
+        370,
+        1027,
+        390
+       ],
+       "kind": "cell",
+       "conf": 0.9995522763994005,
+       "paired_input": null
+      },
+      {
+       "id": 69,
+       "text": "Pagada",
+       "bbox": [
+        1112,
+        370,
+        1167,
+        391
+       ],
+       "kind": "cell",
+       "conf": 0.9976156751314799,
+       "paired_input": null
+      },
+      {
+       "id": 70,
+       "text": "FV-10080",
+       "bbox": [
+        17,
+        393,
+        86,
+        413
+       ],
+       "kind": "link",
+       "conf": 0.9743227660655975,
+       "paired_input": null
+      },
+      {
+       "id": 71,
+       "text": "Ferreteria Castro",
+       "bbox": [
+        169,
+        395,
+        283,
+        412
+       ],
+       "kind": "cell",
+       "conf": 0.9936223836506114,
+       "paired_input": null
+      },
+      {
+       "id": 72,
+       "text": "08/03/2026",
+       "bbox": [
+        601,
+        393,
+        684,
+        413
+       ],
+       "kind": "cell",
+       "conf": 0.9998849928379059,
+       "paired_input": null
+      },
+      {
+       "id": 73,
+       "text": "07/04/2026",
+       "bbox": [
+        777,
+        393,
+        860,
+        413
+       ],
+       "kind": "cell",
+       "conf": 0.9999042510986328,
+       "paired_input": null
+      },
+      {
+       "id": 74,
+       "text": "3.500.000",
+       "bbox": [
+        954,
+        394,
+        1025,
+        411
+       ],
+       "kind": "cell",
+       "conf": 0.9985585477617052,
+       "paired_input": null
+      },
+      {
+       "id": 75,
+       "text": "Vencida",
+       "bbox": [
+        1112,
+        394,
+        1168,
+        412
+       ],
+       "kind": "cell",
+       "conf": 0.9970822504588536,
+       "paired_input": null
+      },
+      {
+       "id": 76,
+       "text": "FV-10047",
+       "bbox": [
+        18,
+        416,
+        86,
+        436
+       ],
+       "kind": "link",
+       "conf": 0.9957510903477669,
+       "paired_input": null
+      },
+      {
+       "id": 77,
+       "text": "Ferreteria Ruiz",
+       "bbox": [
+        169,
+        418,
+        269,
+        435
+       ],
+       "kind": "cell",
+       "conf": 0.993213935693105,
+       "paired_input": null
+      },
+      {
+       "id": 78,
+       "text": "11/03/2026",
+       "bbox": [
+        601,
+        416,
+        684,
+        436
+       ],
+       "kind": "cell",
+       "conf": 0.9999042510986328,
+       "paired_input": null
+      },
+      {
+       "id": 79,
+       "text": "10/04/2026",
+       "bbox": [
+        777,
+        416,
+        860,
+        436
+       ],
+       "kind": "cell",
+       "conf": 0.9999149441719055,
+       "paired_input": null
+      },
+      {
+       "id": 80,
+       "text": "2.070.000",
+       "bbox": [
+        953,
+        416,
+        1027,
+        436
+       ],
+       "kind": "cell",
+       "conf": 0.999640961488088,
+       "paired_input": null
+      },
+      {
+       "id": 81,
+       "text": "Vencida",
+       "bbox": [
+        1112,
+        417,
+        1168,
+        435
+       ],
+       "kind": "cell",
+       "conf": 0.9970922810690743,
+       "paired_input": null
+      },
+      {
+       "id": 82,
+       "text": "FV-10073",
+       "bbox": [
+        17,
+        439,
+        86,
+        459
+       ],
+       "kind": "link",
+       "conf": 0.9839478358626366,
+       "paired_input": null
+      },
+      {
+       "id": 83,
+       "text": "Ferreteria Ruiz",
+       "bbox": [
+        169,
+        441,
+        268,
+        458
+       ],
+       "kind": "cell",
+       "conf": 0.9926869710286458,
+       "paired_input": null
+      },
+      {
+       "id": 84,
+       "text": "11/03/2026",
+       "bbox": [
+        601,
+        439,
+        684,
+        459
+       ],
+       "kind": "cell",
+       "conf": 0.9999108374118805,
+       "paired_input": null
+      },
+      {
+       "id": 85,
+       "text": "10/04/2026",
+       "bbox": [
+        778,
+        441,
+        859,
+        458
+       ],
+       "kind": "cell",
+       "conf": 0.999849796295166,
+       "paired_input": null
+      },
+      {
+       "id": 86,
+       "text": "2.700.000",
+       "bbox": [
+        953,
+        439,
+        1027,
+        459
+       ],
+       "kind": "cell",
+       "conf": 0.9995327393213908,
+       "paired_input": null
+      },
+      {
+       "id": 87,
+       "text": "Pagada",
+       "bbox": [
+        1112,
+        439,
+        1167,
+        460
+       ],
+       "kind": "cell",
+       "conf": 0.997347762187322,
+       "paired_input": null
+      },
+      {
+       "id": 88,
+       "text": "FV-10224",
+       "bbox": [
+        18,
+        462,
+        87,
+        482
+       ],
+       "kind": "cell",
+       "conf": 0.9978701621294022,
+       "paired_input": null
+      },
+      {
+       "id": 89,
+       "text": "Panaderia Lopez Express",
+       "bbox": [
+        169,
+        464,
+        335,
+        481
+       ],
+       "kind": "cell",
+       "conf": 0.9901816870855249,
+       "paired_input": null
+      },
+      {
+       "id": 90,
+       "text": "11/03/2026",
+       "bbox": [
+        601,
+        462,
+        684,
+        482
+       ],
+       "kind": "cell",
+       "conf": 0.9999042510986328,
+       "paired_input": null
+      },
+      {
+       "id": 91,
+       "text": "10/04/2026",
+       "bbox": [
+        777,
+        462,
+        860,
+        482
+       ],
+       "kind": "cell",
+       "conf": 0.9999149441719055,
+       "paired_input": null
+      },
+      {
+       "id": 92,
+       "text": "4.680.000",
+       "bbox": [
+        953,
+        462,
+        1027,
+        482
+       ],
+       "kind": "cell",
+       "conf": 0.9992114967770047,
+       "paired_input": null
+      },
+      {
+       "id": 93,
+       "text": "Anulada",
+       "bbox": [
+        1113,
+        463,
+        1171,
+        481
+       ],
+       "kind": "cell",
+       "conf": 0.9983971885272435,
+       "paired_input": null
+      },
+      {
+       "id": 94,
+       "text": "FV-10119",
+       "bbox": [
+        19,
+        487,
+        86,
+        504
+       ],
+       "kind": "link",
+       "conf": 0.9967363178730011,
+       "paired_input": null
+      },
+      {
+       "id": 95,
+       "text": "Comercializadora Rojas La 14",
+       "bbox": [
+        170,
+        487,
+        365,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.993301951459476,
+       "paired_input": null
+      },
+      {
+       "id": 96,
+       "text": "12/03/2026",
+       "bbox": [
+        602,
+        487,
+        683,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.9998892784118653,
+       "paired_input": null
+      },
+      {
+       "id": 97,
+       "text": "11/04/2026",
+       "bbox": [
+        777,
+        487,
+        859,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.9998564183712005,
+       "paired_input": null
+      },
+      {
+       "id": 98,
+       "text": "2.280.000",
+       "bbox": [
+        954,
+        485,
+        1027,
+        505
+       ],
+       "kind": "cell",
+       "conf": 0.9995580712954203,
+       "paired_input": null
+      },
+      {
+       "id": 99,
+       "text": "Vencida",
+       "bbox": [
+        1113,
+        486,
+        1169,
+        504
+       ],
+       "kind": "cell",
+       "conf": 0.9973635247775486,
+       "paired_input": null
+      },
+      {
+       "id": 100,
+       "text": "FV-10206",
+       "bbox": [
+        18,
+        509,
+        84,
+        526
+       ],
+       "kind": "link",
+       "conf": 0.9881577864289284,
+       "paired_input": null
+      },
+      {
+       "id": 101,
+       "text": "Ferreteria Ruiz",
+       "bbox": [
+        169,
+        510,
+        269,
+        527
+       ],
+       "kind": "cell",
+       "conf": 0.993213935693105,
+       "paired_input": null
+      },
+      {
+       "id": 102,
+       "text": "13/03/2026",
+       "bbox": [
+        602,
+        510,
+        683,
+        527
+       ],
+       "kind": "cell",
+       "conf": 0.9998804450035095,
+       "paired_input": null
+      },
+      {
+       "id": 103,
+       "text": "12/04/2026",
+       "bbox": [
+        778,
+        510,
+        859,
+        527
+       ],
+       "kind": "cell",
+       "conf": 0.9998618721961975,
+       "paired_input": null
+      },
+      {
+       "id": 104,
+       "text": "140.000",
+       "bbox": [
+        953,
+        508,
+        1015,
+        528
+       ],
+       "kind": "cell",
+       "conf": 0.9998710240636554,
+       "paired_input": null
+      },
+      {
+       "id": 105,
+       "text": "Pagada",
+       "bbox": [
+        1113,
+        510,
+        1166,
+        528
+       ],
+       "kind": "cell",
+       "conf": 0.9984256525834402,
+       "paired_input": null
+      },
+      {
+       "id": 106,
+       "text": "FV-10013",
+       "bbox": [
+        19,
+        533,
+        86,
+        550
+       ],
+       "kind": "link",
+       "conf": 0.9954111725091934,
+       "paired_input": null
+      },
+      {
+       "id": 107,
+       "text": "Deposito Rodriguez La 14",
+       "bbox": [
+        169,
+        533,
+        340,
+        550
+       ],
+       "kind": "cell",
+       "conf": 0.9901253109176954,
+       "paired_input": null
+      },
+      {
+       "id": 108,
+       "text": "14/03/2026",
+       "bbox": [
+        600,
+        531,
+        684,
+        551
+       ],
+       "kind": "cell",
+       "conf": 0.9998995065689087,
+       "paired_input": null
+      },
+      {
+       "id": 109,
+       "text": "13/04/2026",
+       "bbox": [
+        777,
+        533,
+        859,
+        550
+       ],
+       "kind": "cell",
+       "conf": 0.9998717725276947,
+       "paired_input": null
+      },
+      {
+       "id": 110,
+       "text": "1.870.000",
+       "bbox": [
+        953,
+        531,
+        1027,
+        551
+       ],
+       "kind": "cell",
+       "conf": 0.9996171130074395,
+       "paired_input": null
+      },
+      {
+       "id": 111,
+       "text": "Anulada",
+       "bbox": [
+        1113,
+        532,
+        1171,
+        550
+       ],
+       "kind": "cell",
+       "conf": 0.9982748201915196,
+       "paired_input": null
+      },
+      {
+       "id": 112,
+       "text": "FV-10049",
+       "bbox": [
+        17,
+        553,
+        85,
+        573
+       ],
+       "kind": "link",
+       "conf": 0.9843016117811203,
+       "paired_input": null
+      },
+      {
+       "id": 113,
+       "text": "Comercializadora Lopez La 14",
+       "bbox": [
+        170,
+        556,
+        369,
+        573
+       ],
+       "kind": "cell",
+       "conf": 0.9957388767174312,
+       "paired_input": null
+      },
+      {
+       "id": 114,
+       "text": "14/03/2026",
+       "bbox": [
+        601,
+        554,
+        684,
+        574
+       ],
+       "kind": "cell",
+       "conf": 0.9530969738960267,
+       "paired_input": null
+      },
+      {
+       "id": 115,
+       "text": "13/04/2026",
+       "bbox": [
+        777,
+        554,
+        860,
+        574
+       ],
+       "kind": "cell",
+       "conf": 0.9999426245689392,
+       "paired_input": null
+      },
+      {
+       "id": 116,
+       "text": "5.900.000",
+       "bbox": [
+        953,
+        553,
+        1027,
+        573
+       ],
+       "kind": "cell",
+       "conf": 0.9836239086257087,
+       "paired_input": null
+      },
+      {
+       "id": 117,
+       "text": "Anulada",
+       "bbox": [
+        1113,
+        555,
+        1171,
+        573
+       ],
+       "kind": "cell",
+       "conf": 0.9983971885272435,
+       "paired_input": null
+      },
+      {
+       "id": 118,
+       "text": "FV-10150",
+       "bbox": [
+        18,
+        578,
+        85,
+        595
+       ],
+       "kind": "link",
+       "conf": 0.9897426664829254,
+       "paired_input": null
+      },
+      {
+       "id": 119,
+       "text": "Deposito Martinez La 14",
+       "bbox": [
+        169,
+        579,
+        331,
+        596
+       ],
+       "kind": "cell",
+       "conf": 0.9966225416763969,
+       "paired_input": null
+      },
+      {
+       "id": 120,
+       "text": "15/03/2026",
+       "bbox": [
+        602,
+        579,
+        683,
+        596
+       ],
+       "kind": "cell",
+       "conf": 0.999904316663742,
+       "paired_input": null
+      },
+      {
+       "id": 121,
+       "text": "14/04/2026",
+       "bbox": [
+        776,
+        577,
+        860,
+        597
+       ],
+       "kind": "cell",
+       "conf": 0.9998840987682343,
+       "paired_input": null
+      },
+      {
+       "id": 122,
+       "text": "5.890.000",
+       "bbox": [
+        953,
+        577,
+        1026,
+        597
+       ],
+       "kind": "cell",
+       "conf": 0.9994003905190362,
+       "paired_input": null
+      },
+      {
+       "id": 123,
+       "text": "Pagada",
+       "bbox": [
+        1112,
+        577,
+        1167,
+        598
+       ],
+       "kind": "cell",
+       "conf": 0.997347762187322,
+       "paired_input": null
+      },
+      {
+       "id": 124,
+       "text": "FV-10088",
+       "bbox": [
+        18,
+        600,
+        86,
+        620
+       ],
+       "kind": "link",
+       "conf": 0.9964636638760567,
+       "paired_input": null
+      },
+      {
+       "id": 125,
+       "text": "Panaderia Ortiz Central",
+       "bbox": [
+        167,
+        599,
+        324,
+        619
+       ],
+       "kind": "cell",
+       "conf": 0.9852047122043112,
+       "paired_input": null
+      },
+      {
+       "id": 126,
+       "text": "16/03/2026",
+       "bbox": [
+        601,
+        600,
+        683,
+        620
+       ],
+       "kind": "cell",
+       "conf": 0.9999463081359863,
+       "paired_input": null
+      },
+      {
+       "id": 127,
+       "text": "15/04/2026",
+       "bbox": [
+        777,
+        600,
+        859,
+        620
+       ],
+       "kind": "cell",
+       "conf": 0.9999461770057678,
+       "paired_input": null
+      },
+      {
+       "id": 128,
+       "text": "3.950.000",
+       "bbox": [
+        954,
+        600,
+        1026,
+        620
+       ],
+       "kind": "cell",
+       "conf": 0.9995495014720492,
+       "paired_input": null
+      },
+      {
+       "id": 129,
+       "text": "Vencida",
+       "bbox": [
+        1113,
+        601,
+        1169,
+        619
+       ],
+       "kind": "cell",
+       "conf": 0.9975306817463466,
+       "paired_input": null
+      },
+      {
+       "id": 130,
+       "text": "FV-10056",
+       "bbox": [
+        17,
+        622,
+        86,
+        642
+       ],
+       "kind": "cell",
+       "conf": 0.988340362906456,
+       "paired_input": null
+      },
+      {
+       "id": 131,
+       "text": "Panaderia Pardo Ltda.",
+       "bbox": [
+        169,
+        625,
+        312,
+        642
+       ],
+       "kind": "cell",
+       "conf": 0.9823022059031895,
+       "paired_input": null
+      },
+      {
+       "id": 132,
+       "text": "17/03/2026",
+       "bbox": [
+        600,
+        623,
+        684,
+        643
+       ],
+       "kind": "cell",
+       "conf": 0.9999029994010925,
+       "paired_input": null
+      },
+      {
+       "id": 133,
+       "text": "16/04/2026",
+       "bbox": [
+        778,
+        625,
+        859,
+        642
+       ],
+       "kind": "cell",
+       "conf": 0.9998840451240539,
+       "paired_input": null
+      },
+      {
+       "id": 134,
+       "text": "4.600.000",
+       "bbox": [
+        953,
+        623,
+        1027,
+        643
+       ],
+       "kind": "cell",
+       "conf": 0.998447510931227,
+       "paired_input": null
+      },
+      {
+       "id": 135,
+       "text": "Anulada",
+       "bbox": [
+        1113,
+        624,
+        1171,
+        642
+       ],
+       "kind": "cell",
+       "conf": 0.9982748201915196,
+       "paired_input": null
+      },
+      {
+       "id": 136,
+       "text": "FV-10067",
+       "bbox": [
+        18,
+        646,
+        87,
+        666
+       ],
+       "kind": "link",
+       "conf": 0.9961091056466103,
+       "paired_input": null
+      },
+      {
+       "id": 137,
+       "text": "Panaderia Quintero S.A.S.",
+       "bbox": [
+        169,
+        648,
+        338,
+        665
+       ],
+       "kind": "cell",
+       "conf": 0.9939749479293823,
+       "paired_input": null
+      },
+      {
+       "id": 138,
+       "text": "17/03/2026",
+       "bbox": [
+        601,
+        648,
+        683,
+        665
+       ],
+       "kind": "cell",
+       "conf": 0.9998780906200408,
+       "paired_input": null
+      },
+      {
+       "id": 139,
+       "text": "16/04/2026",
+       "bbox": [
+        777,
+        648,
+        859,
+        665
+       ],
+       "kind": "cell",
+       "conf": 0.9998777389526368,
+       "paired_input": null
+      },
+      {
+       "id": 140,
+       "text": "4.160.000",
+       "bbox": [
+        953,
+        646,
+        1027,
+        666
+       ],
+       "kind": "cell",
+       "conf": 0.9997957547505697,
+       "paired_input": null
+      },
+      {
+       "id": 141,
+       "text": "Pagada",
+       "bbox": [
+        1111,
+        645,
+        1167,
+        668
+       ],
+       "kind": "cell",
+       "conf": 0.9959649840990702,
+       "paired_input": null
+      },
+      {
+       "id": 142,
+       "text": "Anterior",
+       "bbox": [
+        15,
+        674,
+        90,
+        694
+       ],
+       "kind": "button",
+       "conf": 0.9990004971623421,
+       "paired_input": null
+      },
+      {
+       "id": 143,
+       "text": "Pagina 1",
+       "bbox": [
+        98,
+        677,
+        159,
+        694
+       ],
+       "kind": "text",
+       "conf": 0.9709355756640434,
+       "paired_input": null
+      },
+      {
+       "id": 144,
+       "text": "Siguiente",
+       "bbox": [
+        165,
+        674,
+        250,
+        694
+       ],
+       "kind": "button",
+       "conf": 0.9494314988454183,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1791676589.3093066
+    }
+   ]
+  },
+  "acercade": {
+   "id": "acercade",
+   "title": "Acercade",
+   "description": "",
+   "transient": false,
+   "stale": false,
+   "seen": 1,
+   "last_seen": 1791676526.083942,
+   "appearances": [
+    {
+     "version": "V4.2",
+     "band": [
+      "Acercade"
+     ],
+     "atoms": [
+      "0,0|Acercade",
+      "0,0|Archivo",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "menu": [
+      "0,0|Archivo",
+      "1,0|Cartera",
+      "1,0|Comercial",
+      "2,0|Herramientas",
+      "3,0|Ayuda"
+     ],
+     "ref_png": "acercade.png",
+     "crops": [
+      {
+       "bbox": [
+        9,
+        8,
+        310,
+        29
+       ],
+       "file": "acercade/0.png"
+      },
+      {
+       "bbox": [
+        14,
+        39,
+        75,
+        60
+       ],
+       "file": "acercade/2.png"
+      },
+      {
+       "bbox": [
+        86,
+        39,
+        162,
+        60
+       ],
+       "file": "acercade/3.png"
+      },
+      {
+       "bbox": [
+        174,
+        38,
+        233,
+        59
+       ],
+       "file": "acercade/4.png"
+      },
+      {
+       "bbox": [
+        248,
+        38,
+        347,
+        59
+       ],
+       "file": "acercade/5.png"
+      },
+      {
+       "bbox": [
+        359,
+        36,
+        412,
+        63
+       ],
+       "file": "acercade/6.png"
+      },
+      {
+       "bbox": [
+        11,
+        72,
+        108,
+        96
+       ],
+       "file": "acercade/7.png"
+      }
+     ],
+     "elements_snapshot": [
+      {
+       "id": 0,
+       "text": "SIGEcoM·DistribuidoraAndinav4.2",
+       "bbox": [
+        11,
+        10,
+        308,
+        27
+       ],
+       "kind": "title",
+       "conf": 0.9610146399467222,
+       "paired_input": null
+      },
+      {
+       "id": 1,
+       "text": "Hoy:14/10/2026·Usuario:operador2",
+       "bbox": [
+        1037,
+        7,
+        1270,
+        28
+       ],
+       "kind": "text",
+       "conf": 0.9688506592065096,
+       "paired_input": null
+      },
+      {
+       "id": 2,
+       "text": "Archivo",
+       "bbox": [
+        16,
+        41,
+        73,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9986168486731393,
+       "paired_input": null
+      },
+      {
+       "id": 3,
+       "text": "Comercial",
+       "bbox": [
+        88,
+        41,
+        160,
+        58
+       ],
+       "kind": "menu",
+       "conf": 0.9972348610560099,
+       "paired_input": null
+      },
+      {
+       "id": 4,
+       "text": "Cartera",
+       "bbox": [
+        176,
+        40,
+        231,
+        57
+       ],
+       "kind": "menu",
+       "conf": 0.9961824842861721,
+       "paired_input": null
+      },
+      {
+       "id": 5,
+       "text": "Herramientas",
+       "bbox": [
+        250,
+        40,
+        345,
+        57
+       ],
+       "kind": "menu",
+       "conf": 0.9977332999308904,
+       "paired_input": null
+      },
+      {
+       "id": 6,
+       "text": "Ayuda",
+       "bbox": [
+        361,
+        38,
+        410,
+        61
+       ],
+       "kind": "menu",
+       "conf": 0.9965933561325073,
+       "paired_input": null
+      },
+      {
+       "id": 7,
+       "text": "Acercade",
+       "bbox": [
+        13,
+        74,
+        106,
+        94
+       ],
+       "kind": "title",
+       "conf": 0.9958704486489296,
+       "paired_input": null
+      },
+      {
+       "id": 8,
+       "text": "SIGECOM 2011. Licencia perpetua.",
+       "bbox": [
+        10,
+        103,
+        243,
+        125
+       ],
+       "kind": "text",
+       "conf": 0.9853926803916693,
+       "paired_input": null
+      }
+     ],
+     "last_seen": 1791676526.083942
+    }
+   ]
+  }
+ },
+ "edges": {
+  "bienvenidoasigecom|click|Archivo › Inicio": {
+   "from": "bienvenidoasigecom",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "V4.2",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        110,
+        76
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "bienvenidckasigecom",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1791676379.6069162,
+   "outcomes": {
+    "bienvenidckasigecom": 1
+   },
+   "inherited": false
+  },
+  "bienvenidoasigecom|click|Comercial › Pedidos": {
+   "from": "bienvenidoasigecom",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "V4.2",
+       "label": "Pedidos",
+       "role": "menu",
+       "cell": [
+        3,
+        1
+       ],
+       "xy": [
+        392,
+        103
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Comercial",
+     "via": [
+      "Ventas"
+     ]
+    }
+   },
+   "to": "pedidos",
+   "effect": null,
+   "ok": 2,
+   "fail": 0,
+   "last_ok": 1791676553.270209,
+   "outcomes": {
+    "pedidos": 2
+   },
+   "inherited": false
+  },
+  "pedidos-2|click|Cartera › Facturas": {
+   "from": "pedidos-2",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "V4.2",
+       "label": "Facturas",
+       "role": "menu",
+       "cell": [
+        2,
+        0
+       ],
+       "xy": [
+        272,
+        76
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Cartera"
+    }
+   },
+   "to": "pedidos-2",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1791676471.0862267,
+   "outcomes": {
+    "pedidos-2": 1
+   },
+   "inherited": false
+  },
+  "facturas|click|Ayuda › Acerca de": {
+   "from": "facturas",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "V4.2",
+       "label": "Acerca de",
+       "role": "menu",
+       "cell": [
+        4,
+        0
+       ],
+       "xy": [
+        457,
+        76
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Ayuda"
+    }
+   },
+   "to": "facturas",
+   "effect": null,
+   "ok": 2,
+   "fail": 0,
+   "last_ok": 1791676588.900501,
+   "outcomes": {
+    "facturas": 2
+   },
+   "inherited": false
+  },
+  "acercade|click|Archivo › Inicio": {
+   "from": "acercade",
+   "action": {
+    "kind": "click",
+    "target": {
+     "appearances": [
+      {
+       "version": "V4.2",
+       "label": "Inicio",
+       "role": "menu",
+       "cell": [
+        1,
+        0
+       ],
+       "xy": [
+        110,
+        76
+       ]
+      }
+     ]
+    },
+    "params": {
+     "menu": "Archivo"
+    }
+   },
+   "to": "bienvenidckasigecom",
+   "effect": null,
+   "ok": 1,
+   "fail": 0,
+   "last_ok": 1791676533.2740571,
+   "outcomes": {
+    "bienvenidckasigecom": 1
+   },
+   "inherited": false
+  }
+ },
+ "procedures": [],
+ "unexplored": {},
+ "denylist": [
+  "Integraciones",
+  "Eliminar",
+  "Anular",
+  "Borrar",
+  "Guardar*",
+  "Enviar",
+  "Configuración"
+ ]
+}
