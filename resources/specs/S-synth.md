@@ -1,6 +1,6 @@
 # Spec S · Synthetic task suite
 
-Design: `resources/docs/solution.md` §5 unit 3.6, §7 (measurement plan: "plus about 10 written NL tasks", the run sequence and metrics, baseline before and after 15:30), §10 "Later → Observability" (the results page); Appendix A §5 (practice-task JSON, `POST /__check`, `POST /__reset`), §6 (the eight scoring rules); Appendix G §4.5 (the cache schema the generator reads), §7 (the open questions the explorer answers); Appendix B §3 (the noVNC page: `?autoconnect=1`, canvas 1258×566 at 1:1). Run book: [README.md](README.md).
+Design: `resources/docs/solution.md` §5 unit 3.6, §7 (measurement plan: the suite, the runner and its metrics, baseline before and after 15:30), §10 "Later → Observability" (the results page); Appendix A §5 (practice-task JSON, `POST /__check`, `POST /__reset`), §6 (the eight scoring rules); Appendix G §4.5 (the cache schema the generator reads), §7 (the open questions the explorer answers); Appendix B §3 (the noVNC page: `?autoconnect=1`, canvas 1258×566 at 1:1). Run book: [README.md](README.md).
 
 ## Problem
 

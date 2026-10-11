@@ -134,7 +134,7 @@ SVG = """<figure class="arch"><svg viewBox="0 0 1180 545" role="img" aria-label=
 <text x="210" y="527" class="e">One Railway service · Docker python:3.12-slim + uv · uvicorn, 1 worker · no volume · CPU-only · SIGECOM's map and seeded cache ship in the image</text>
 <g class="ext"><rect x="985" y="120" width="185" height="56" rx="8"/><text x="997" y="142" class="t">OpenRouter</text><text x="997" y="161" class="l">MODEL_FAST · VLM · PLANNER</text></g>
 <g class="ext"><rect x="985" y="200" width="185" height="56" rx="8"/><text x="997" y="222" class="t">Jev (TypeSafe AI)</text><text x="997" y="241" class="l">typed decisions · optional</text></g>
-<g class="ext"><rect x="985" y="320" width="185" height="110" rx="8"/><text x="997" y="342" class="t">Target desktop</text><text x="997" y="362" class="l">noVNC → websockify → VNC</text><text x="997" y="380" class="l">SIGECOM v3.9 · unseen app</text><text x="997" y="398" class="l">pixels only · shared login</text></g>
+<g class="ext"><rect x="985" y="320" width="185" height="110" rx="8"/><text x="997" y="342" class="t">Target desktop</text><text x="997" y="362" class="l">noVNC → websockify → VNC</text><text x="997" y="380" class="l">SIGECOM V4.2 · unseen app</text><text x="997" y="398" class="l">pixels only · shared login</text></g>
 <g class="edge">
 <line x1="166" y1="88" x2="230" y2="88"/><line x1="230" y1="110" x2="166" y2="110"/>
 <line x1="440" y1="98" x2="465" y2="98"/>
